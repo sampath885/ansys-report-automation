@@ -1,0 +1,9 @@
+stress:
+  warn_fraction_of_yield: 0.80
+  fail_fraction_of_yield: 1.00
+fos:
+  min_acceptable: 1.5
+modal:
+  resonance_margin_hz: 10
+deformation:
+  warn_mm: 1.0

@@ -1,0 +1,4 @@
+# Pinned deps for non-Python engineers: pip install -r requirements.txt
+-e .
+pytest>=7.4
+ruff>=0.1.0

@@ -1,0 +1,1 @@
+"""Excel design calculation reader."""

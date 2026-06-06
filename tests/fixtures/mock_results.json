@@ -1,0 +1,57 @@
+{
+  "bom_id": "EP 1763",
+  "title": "MOCK VALVE ASSESSMENT",
+  "customer": "Test Customer",
+  "prepared_by": {"name": "Test Engineer", "role": "CAE"},
+  "checked_by": {"name": "Reviewer", "role": "CAE"},
+  "approved_by": {"name": "Manager", "role": "SM"},
+  "ansys_version": "2024 R2",
+  "modal": {
+    "modes": [
+      {"index": 1, "freq_hz": 45.2, "participation": null},
+      {"index": 2, "freq_hz": 98.7, "participation": null},
+      {"index": 3, "freq_hz": 150.0, "participation": null}
+    ],
+    "narrative": {
+      "observations": ["Mode 1: 45.20 Hz.", "Mode 2: 98.70 Hz."],
+      "conclusions": ["No resonance within operating band."],
+      "verdict": "PASS",
+      "source": "rules"
+    }
+  },
+  "static": {
+    "max_stress_mpa": 210.5,
+    "max_deformation_mm": 0.42,
+    "reaction_force_n": 15000,
+    "fos": 1.66,
+    "narrative": {
+      "observations": ["Peak von-Mises stress is 210.50 MPa (60.1% of yield 350 MPa)."],
+      "conclusions": ["Static stress levels are within acceptable limits."],
+      "verdict": "PASS",
+      "source": "rules"
+    }
+  },
+  "design_calcs": {
+    "bolt_load": [
+      {
+        "label": "FOS",
+        "symbol": null,
+        "formula": null,
+        "value": 16.36,
+        "unit": "",
+        "source_ref": "ASME",
+        "verdict": "ACCEPTABLE"
+      }
+    ],
+    "flange_moments": [],
+    "effort": [],
+    "end_flange": []
+  },
+  "narrative": {
+    "executive_summary": "Overall assessment: PASS. modal: PASS; static: PASS."
+  },
+  "sections": {
+    "revision": {"title": "Revision Log", "body": "Rev 0 automated"},
+    "scope": {"title": "Scope", "body": "Mock scope"}
+  }
+}

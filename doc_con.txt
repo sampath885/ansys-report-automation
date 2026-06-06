@@ -1,0 +1,619 @@
+# ANSYS AI-Powered Automated Technical Report Generation Platform
+
+## Project Overview
+
+### Problem Statement
+
+Engineering organizations spend significant time manually creating simulation reports after completing analysis in ANSYS Workbench. While ANSYS provides report generation capabilities, the generated reports often require substantial manual effort to:
+
+* Export and organize simulation images
+* Insert images into company-specific templates
+* Copy numerical results
+* Include design calculations from Excel sheets
+* Write engineering observations and conclusions
+* Generate executive summaries
+* Maintain document formatting standards
+
+For complex projects involving multiple analyses such as Static Structural, Modal, Harmonic Response, Random Vibration, CFD, and MBD, report preparation can consume several hours per simulation iteration.
+
+---
+
+## Project Objective
+
+Develop an intelligent report automation platform that automatically extracts simulation results, images, and engineering data from ANSYS Workbench projects and generates client-ready Word and PDF reports following predefined company templates.
+
+The system should reduce report generation time from several hours to a few minutes while ensuring consistency and accuracy.
+
+---
+
+# Business Goals
+
+## Primary Goals
+
+* Automate technical report generation
+* Standardize report formatting
+* Reduce engineering documentation effort
+* Improve report consistency
+* Enable rapid design iteration reporting
+
+## Expected Benefits
+
+| Metric                      | Current Process | Automated Process |
+| --------------------------- | --------------- | ----------------- |
+| Report Creation Time        | 3-6 Hours       | 5-15 Minutes      |
+| Manual Image Placement      | High            | Automated         |
+| Formatting Errors           | Frequent        | Minimal           |
+| Engineering Summary Writing | Manual          | AI Assisted       |
+| Design Comparison Reports   | Manual          | Automated         |
+
+---
+
+# System Scope
+
+## Supported Engineering Domains
+
+### Structural Analysis
+
+* Static Structural
+* Linear Static
+* Nonlinear Static
+* Contact Analysis
+
+### Dynamic Analysis
+
+* Modal Analysis
+* Harmonic Response Analysis
+* Random Vibration Analysis
+* Response Spectrum Analysis
+
+### Fluid Analysis
+
+* CFD
+* Fluent
+* CFX
+
+### Multibody Dynamics
+
+* ANSYS Motion
+* MBD Simulations
+
+### Thermal Analysis
+
+* Steady State Thermal
+* Transient Thermal
+
+---
+
+# Input Sources
+
+## ANSYS Workbench Project
+
+Supported Inputs:
+
+```text
+Workbench Project
+├── Geometry
+├── Mesh
+├── Static Structural
+├── Modal Analysis
+├── Harmonic Response
+├── Random Vibration
+├── CFD
+├── MBD
+└── Thermal Analysis
+```
+
+---
+
+## Excel Design Calculations
+
+Supported Formats:
+
+```text
+.xlsx
+.xls
+.csv
+```
+
+Example Data:
+
+| Parameter        | Value  |
+| ---------------- | ------ |
+| Shaft Diameter   | 50 mm  |
+| Torque           | 250 Nm |
+| Factor of Safety | 2.1    |
+| Power            | 15 kW  |
+
+---
+
+## Report Templates
+
+Supported Formats:
+
+```text
+.docx
+.dotx
+```
+
+Template placeholders:
+
+```text
+{{PROJECT_NAME}}
+{{CAD_IMAGE}}
+{{MESH_IMAGE}}
+{{STATIC_STRESS_IMAGE}}
+{{STATIC_DEFORMATION_IMAGE}}
+{{MODAL_MODE1}}
+{{CFD_PRESSURE_IMAGE}}
+{{DESIGN_CALCULATIONS}}
+{{EXECUTIVE_SUMMARY}}
+```
+
+---
+
+# Functional Requirements
+
+## Module 1: ANSYS Data Extraction Engine
+
+### Responsibilities
+
+* Connect to ANSYS Workbench
+* Access simulation tree
+* Identify available analyses
+* Extract result values
+* Export images
+
+### Extracted Data
+
+#### Geometry
+
+* Part Name
+* Assembly Name
+* Mass
+* Volume
+* Material Assignment
+
+#### Mesh
+
+* Element Count
+* Node Count
+* Element Quality Metrics
+* Mesh Statistics
+
+#### Static Structural
+
+* Maximum Stress
+* Maximum Strain
+* Maximum Deformation
+* Safety Factor
+* Reaction Forces
+
+#### Modal Analysis
+
+* Mode Shapes
+* Natural Frequencies
+* Participation Factors
+
+#### Harmonic Analysis
+
+* Frequency Response
+* Amplitude Response
+* Resonance Peaks
+
+#### Random Vibration
+
+* PSD Response
+* RMS Stress
+* RMS Displacement
+
+#### CFD
+
+* Pressure Distribution
+* Velocity Distribution
+* Streamlines
+* Temperature Distribution
+
+#### MBD
+
+* Joint Forces
+* Motion Profiles
+* Torque Curves
+
+---
+
+# Module 2: High Resolution Image Export Engine
+
+## Requirements
+
+The system shall export publication-quality images directly from ANSYS.
+
+### Export Settings
+
+```text
+Resolution:
+1920x1080
+3840x2160
+7680x4320
+
+Format:
+PNG
+
+DPI:
+300+
+```
+
+### Images to Capture
+
+#### Geometry
+
+* Isometric View
+* Front View
+* Side View
+
+#### Mesh
+
+* Global Mesh View
+* Critical Region Mesh View
+
+#### Static Analysis
+
+* Equivalent Stress
+* Total Deformation
+* Safety Factor
+
+#### Modal Analysis
+
+* Mode Shape 1
+* Mode Shape 2
+* Mode Shape 3
+
+#### Harmonic Analysis
+
+* Frequency Response Curve
+
+#### Random Vibration
+
+* PSD Plot
+
+#### CFD
+
+* Pressure Contour
+* Velocity Contour
+* Streamline Visualization
+
+#### MBD
+
+* Force History Graphs
+* Motion Profiles
+
+---
+
+# Module 3: Excel Design Calculation Integration
+
+## Features
+
+* Read Excel sheets
+* Extract design calculations
+* Generate calculation tables
+* Validate engineering values
+
+### Supported Libraries
+
+```text
+openpyxl
+pandas
+numpy
+```
+
+---
+
+# Module 4: AI Engineering Analysis Engine
+
+## Purpose
+
+Generate engineering narratives using extracted simulation results.
+
+### Inputs
+
+```json
+{
+  "max_stress":245,
+  "max_deformation":0.82,
+  "yield_strength":350,
+  "modal_frequency":23.5
+}
+```
+
+### Outputs
+
+#### Executive Summary
+
+Example:
+
+"The structure successfully meets the design requirements. Maximum equivalent stress remains below material yield limits with an acceptable factor of safety."
+
+#### Observations
+
+Example:
+
+"Stress concentration is observed near the mounting bracket interface."
+
+#### Conclusions
+
+Example:
+
+"No resonance risk exists within the operational frequency range."
+
+#### Recommendations
+
+Example:
+
+"The current design is suitable for manufacturing without modification."
+
+---
+
+# Module 5: Report Generation Engine
+
+## Responsibilities
+
+* Populate Word templates
+* Insert images
+* Generate tables
+* Format content
+* Create PDF output
+
+### Report Structure
+
+#### Cover Page
+
+* Project Name
+* Customer Name
+* Engineer Name
+* Date
+
+#### Geometry Section
+
+* CAD Images
+* Model Description
+
+#### Mesh Section
+
+* Mesh Statistics
+* Mesh Images
+
+#### Static Structural Section
+
+* Stress Results
+* Deformation Results
+* Safety Factor Results
+
+#### Modal Section
+
+* Mode Shapes
+* Frequency Tables
+
+#### Harmonic Section
+
+* Frequency Response Graphs
+
+#### Random Vibration Section
+
+* PSD Graphs
+
+#### CFD Section
+
+* Pressure Contours
+* Velocity Contours
+
+#### MBD Section
+
+* Motion Analysis Results
+
+#### Design Calculations
+
+* Excel Tables
+* Supporting Calculations
+
+#### AI Generated Summary
+
+* Executive Summary
+* Observations
+* Conclusions
+* Recommendations
+
+---
+
+# Technical Architecture
+
+```text
+ANSYS Workbench
+        │
+        ▼
+Extraction Engine
+        │
+        ▼
+Result Processing Layer
+        │
+        ├── Image Export Module
+        ├── Numerical Data Module
+        ├── Excel Integration Module
+        │
+        ▼
+AI Analysis Engine
+        │
+        ▼
+Template Rendering Engine
+        │
+        ▼
+Word Generator
+        │
+        ▼
+PDF Generator
+```
+
+---
+
+# Technology Stack
+
+## Backend
+
+```text
+Python
+FastAPI
+```
+
+## ANSYS Integration
+
+```text
+PyAnsys
+PyDPF
+Mechanical Scripting
+ACT Extensions
+```
+
+## Data Processing
+
+```text
+Pandas
+NumPy
+OpenPyXL
+```
+
+## AI Layer
+
+```text
+GPT-5.5
+Claude
+Engineering RAG
+```
+
+## Report Generation
+
+```text
+python-docx
+docxtpl
+ReportLab
+```
+
+## Storage
+
+```text
+PostgreSQL
+Azure Blob Storage
+AWS S3
+```
+
+---
+
+# Future Enhancements
+
+## Phase 2
+
+* Direct RST parsing
+* Multi-project comparison
+* Trend analysis dashboards
+* Design optimization reports
+
+## Phase 3
+
+* ANSYS Workbench Plugin
+* One-click report generation
+* Compliance report generation
+* ASME/ISO validation checks
+* Review and approval workflows
+
+---
+
+# Success Criteria
+
+* Generate complete reports in under 10 minutes
+* Reduce manual report effort by 80%
+* Maintain report formatting consistency
+* Support all major ANSYS analysis types
+* Produce publication-quality images
+* Generate client-ready Word and PDF documents
+Great, I've read your document carefully. This is an ANSYS AI-powered report automation platform — a fairly complex engineering software system. Let me break down exactly how to build it, layer by layer.Here's a comprehensive breakdown of how to build this platform, module by module.
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.25s;
+    animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+  }
+VvisualizeVvisualize show_widgetHere's a practical guide to building this, module by module:
+
+Module 1 — ANSYS Data Extraction
+This is the hardest and most critical piece. Use PyAnsys (Ansys's official Python SDK):
+
+ansys-mechanical-core to connect to a running Mechanical instance and query the project tree
+ansys-dpf-core to read result files (.rst) directly — stress, strain, deformation, frequencies — without needing the GUI open
+Use Mechanical.run_python_script() to trigger ACT scripting for things DPF can't reach
+
+Practical approach: Open Mechanical, use its scripting console to prototype what data you need, then replicate that in Python via ansys-mechanical-core. DPF is better for bulk result extraction since it reads .rst files offline.
+
+Module 2 — Image Export
+ANSYS's scripting API can export images, but quality is inconsistent. Two approaches:
+
+Inside Mechanical: ExtAPI.Graphics.ExportImage(path, format, settings) — works but is limited
+Better approach: Use DPF's result data + pyvista or matplotlib to render your own high-quality contour plots from the raw mesh + result arrays. You get full control over resolution, color maps, and annotations.
+
+For mesh and geometry screenshots, Mechanical scripting remains the most straightforward path.
+
+Module 3 — Excel Integration
+Simplest module. Use openpyxl to read named ranges or specific cells:
+pythonfrom openpyxl import load_workbook
+wb = load_workbook("calcs.xlsx", data_only=True)
+ws = wb["Design Calcs"]
+shaft_dia = ws["B2"].value  # or iterate a table range
+Build a structured dict of parameters, then pass it downstream to both the AI engine and the template renderer.
+
+Module 4 — AI Analysis Engine
+Use the Anthropic API (Claude) or OpenAI. Feed it structured JSON of results:
+pythonprompt = f"""
+You are a structural engineer reviewing FEA results.
+Results: {json.dumps(results)}
+Write: 1) Executive summary 2) Key observations 3) Conclusions 4) Recommendations.
+Be specific with numbers. Flag anything exceeding 80% of yield strength.
+"""
+For better results, add RAG over your company's past reports and relevant standards (ASME, ISO) using LlamaIndex or LangChain with a vector store.
+
+Module 5 — Report Generation
+Use docxtpl (a Jinja2-based Word template engine) — it's far easier than raw python-docx:
+pythonfrom docxtpl import DocxTemplate, InlineImage
+tpl = DocxTemplate("template.docx")
+context = {
+    "PROJECT_NAME": "Gearbox Housing Analysis",
+    "STATIC_STRESS_IMAGE": InlineImage(tpl, "stress.png", width=Mm(150)),
+    "MAX_STRESS": "245 MPa",
+    "EXECUTIVE_SUMMARY": ai_summary,
+}
+tpl.render(context)
+tpl.save("output_report.docx")
+Then convert to PDF using LibreOffice --headless --convert-to pdf or the docx2pdf library.
+
+Recommended Build Order
+Start with this sequence to get value early and validate assumptions:
+
+Proof of concept: Extract one result (e.g. max stress) from a known .rst file using DPF → print it. This tells you if the ANSYS integration is feasible.
+Static report: Hard-code some results, populate a Word template, export PDF. Validate the template system.
+Image pipeline: Get one good contour plot out of PyVista from DPF data.
+AI layer: Wire Claude API to generate summaries from structured JSON.
+Excel reader: Add design calculation extraction.
+FastAPI wrapper: Expose everything as a REST API with file upload endpoints.
+Phase 2: Add the web UI, job queuing (Celery + Redis), and cloud storage.
+
+
+Tech Stack Summary
+LayerLibraryANSYS connectionansys-mechanical-core, ansys-dpf-coreVisualizationpyvista, matplotlibExcelopenpyxl, pandasAIAnthropic API, LlamaIndexReportdocxtpl, python-docx, docx2pdfAPIFastAPI, PydanticStorageboto3 (S3), psycopg2 (PostgreSQL)
+The biggest risk is the ANSYS integration — PyAnsys requires a licensed ANSYS installation and the API surface changes between versions. Test that first before building anything else.You said: give me walkthrough for the doc i provided as an wxample and expalingive me walkthrough for the doc i provided as an wxample and expalin9:29 PMClaude responded: Let me walk you through your document section by section.Let me walk you through your document section by section.Here's a section-by-section walkthrough of your document as an interactive explorer — click any section to see a detailed explanation.
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.25s;
+    animation-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+  }
+VvisualizeVvisualize show_widgetClick each section in the left panel to read a plain-English explanation of what that part of your document means and what it implies for actually building the system.
+A few things worth highlighting that the document implies but doesn't say directly:
+The document is written as a product requirements document (PRD) — it's the "what" and "why", not the "how". It defines what each module should do (extract this data, export these images, generate these narratives) but leaves the implementation decisions to the engineering team. That's intentional and correct for this stage.
+The biggest assumption buried in the doc is that PyAnsys gives you clean programmatic access to all those result values. In practice, some result types are easier to extract than others — max stress via DPF is straightforward, but MBD joint force histories or harmonic frequency response curves may need more custom scripting. The document treats all of them as equivalent, but they're not.
+The AI module (Module 4) is described as producing human-quality engineering narratives, but the quality will depend heavily on how you structure the prompt. The document shows a simple JSON input — in reality you'll need to give the model much more context: what are the design requirements, what standards apply, what did previous iterations show.
+Want me to go deeper on any specific section or module?

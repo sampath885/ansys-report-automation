@@ -1,0 +1,40 @@
+bom_id: "EP 1763"
+title: "FLANGED STRAIGHT WAY STOP VALVE WITH MANUAL CONTROL, Ti ALLOY NB40 NP40"
+customer: "M/S ULTRA DIMENSIONS PVT. LTD., VISAKHAPATNAM"
+prepared_by:
+  name: "Guravaiah V"
+  role: "CAE Engr"
+checked_by:
+  name: "Aniket N"
+  role: "CAE Engr"
+approved_by:
+  name: "Ashok Varma R"
+  role: "Sr. General Manager"
+ansys_version: "2024 R2"
+
+# Override at runtime with --project-dir or set to your Workbench folder
+project_dir: "."
+image_folder: "exports"
+excel_calcs: "design_calcs.xlsx"
+
+sections_enabled:
+  - revision
+  - scope
+  - software
+  - references
+  - equipment
+  - modelling
+  - modal
+  - static
+  - harmonic_x
+  - design_calcs
+
+operating_freq_hz: [10, 200]
+materials:
+  - name: "MAT_ASTM B 367 Gr.5"
+    yield_mpa: 350
+    uts_mpa: 480
+modal:
+  num_modes: 6
+static:
+  fos_target: 1.5
