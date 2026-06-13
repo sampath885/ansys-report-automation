@@ -21,7 +21,22 @@ TABLE_SHEETS = {
 HEADER_ROW = 1
 
 
-def read_design_calcs(excel_path: Path) -> DesignCalcsResult:
+def read_design_calcs(
+    excel_path: Path,
+    *,
+    excel_map_path: Path | None = None,
+    case_root: Path | None = None,
+    fos_target: float = 1.5,
+) -> DesignCalcsResult:
+    if excel_map_path and excel_map_path.exists() and case_root:
+        from ansys_report.excel.ep2737 import load_excel_map, read_ep2737_design_calcs
+
+        try:
+            load_excel_map(excel_map_path)
+            return read_ep2737_design_calcs(case_root, excel_map_path, fos_target=fos_target)
+        except Exception as exc:
+            logger.warning("EP2737 excel adapter failed (%s); falling back to generic reader", exc)
+
     if not excel_path.exists():
         logger.warning("Excel file not found: %s", excel_path)
         return DesignCalcsResult()

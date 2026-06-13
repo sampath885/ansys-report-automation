@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from ansys_report.extract.dpf_base import open_model
+from ansys_report.extract.dpf_base import open_model, read_modal_frequencies_hz
 from ansys_report.models import ModalResult, ModeResult
 
 logger = logging.getLogger(__name__)
@@ -23,13 +23,10 @@ def extract_modal(rst_path: Path, num_modes: int = 6) -> ModalResult:
         )
 
     try:
-        freq_op = model.results.eigen_frequencies()
-        fc = freq_op.eval()
-        if fc:
-            freqs = fc[0].data
-            for i in range(min(num_modes, len(freqs))):
-                modes.append(ModeResult(index=i + 1, freq_hz=float(freqs[i])))
-        else:
+        freqs = read_modal_frequencies_hz(model, num_modes)
+        for i, hz in enumerate(freqs):
+            modes.append(ModeResult(index=i + 1, freq_hz=hz))
+        if not freqs:
             manual.append("frequencies")
     except Exception as exc:
         logger.warning("Modal extraction failed: %s", exc)

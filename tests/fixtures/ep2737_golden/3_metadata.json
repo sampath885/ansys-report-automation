@@ -1,0 +1,265 @@
+{
+  "phase": "3_metadata",
+  "bom_id": "EP 2737",
+  "title": "WELDED PLANE PIPE FLANGE",
+  "ansys_version": null,
+  "cad_step": "EP 2737\\11-EP2737.STEP",
+  "equipment": {
+    "bom_id": "EP 2737",
+    "title": "WELDED PLANE PIPE FLANGE",
+    "cad_step": "EP 2737\\11-EP2737.STEP",
+    "bodies": [
+      {
+        "name": "Cut-Extrude1",
+        "mass_tonne": 0.001959768101232686,
+        "mass_kg": 1.9598,
+        "material": "ASTM 182 F 321"
+      },
+      {
+        "name": "Gasket",
+        "mass_tonne": null,
+        "mass_kg": null,
+        "material": "Nylon"
+      },
+      {
+        "name": "Extended pipe1",
+        "mass_tonne": 0.006622084614685579,
+        "mass_kg": 6.6221,
+        "material": "ASTM 182 F 321"
+      },
+      {
+        "name": "Cut-Extrude1",
+        "mass_tonne": 0.001959768101232684,
+        "mass_kg": 1.9598,
+        "material": "ASTM 182 F 321"
+      },
+      {
+        "name": "Extended pipe1",
+        "mass_tonne": 0.006622084614685587,
+        "mass_kg": 6.6221,
+        "material": "ASTM 182 F 321"
+      }
+    ],
+    "assembly": {
+      "name": "Component1",
+      "mass_tonne": 0.01718235744441202,
+      "mass_kg": 17.1824,
+      "cog_mm": {
+        "x_mm": 7.984122515848825,
+        "y_mm": 6.031893447827984e-10,
+        "z_mm": 4.176280052244421e-10
+      }
+    },
+    "material_names": [
+      "ASTM 182 F 321",
+      "Nylon"
+    ]
+  },
+  "modelling": {
+    "project_name": "EP2737--Static Structural (A5)",
+    "solver_analysis_type": "Static",
+    "antype": null,
+    "load_steps": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "contacts": [
+      {
+        "caption": "Frictional - Gasket To Cut-Extrude1",
+        "contact_type": "Frictional"
+      },
+      {
+        "caption": "Bonded - Gasket To Cut-Extrude1",
+        "contact_type": "Bonded"
+      }
+    ],
+    "boundary_conditions": [
+      {
+        "caption": "Displacement",
+        "bc_type": "displacement"
+      },
+      {
+        "caption": "Displacement",
+        "bc_type": "displacement"
+      },
+      {
+        "caption": "Displacement",
+        "bc_type": "displacement"
+      }
+    ],
+    "loads": [
+      {
+        "load_type": "pressure",
+        "caption": "Pressure",
+        "magnitude": null,
+        "count": null
+      },
+      {
+        "load_type": "acceleration",
+        "caption": "Standard Earth Gravity",
+        "magnitude": null,
+        "count": null
+      },
+      {
+        "load_type": "bolt_pretension",
+        "caption": "Bolt pretension",
+        "magnitude": 11832.54,
+        "count": 8
+      }
+    ],
+    "materials": [
+      {
+        "name": "ASTM 182 F 321",
+        "youngs_modulus_gpa": 195.0,
+        "poissons_ratio": 0.31,
+        "density_kg_m3": 8030.0,
+        "tensile_yield_mpa": null
+      },
+      {
+        "name": "Nylon",
+        "youngs_modulus_gpa": 160.0,
+        "poissons_ratio": 0.34,
+        "density_kg_m3": 1140.0,
+        "tensile_yield_mpa": null
+      },
+      {
+        "name": "ASTM 276 S 321",
+        "youngs_modulus_gpa": 195.0,
+        "poissons_ratio": 0.31,
+        "density_kg_m3": 8030.0,
+        "tensile_yield_mpa": null
+      }
+    ],
+    "node_count": 294165,
+    "element_count": 202546,
+    "mesh_source": "solve.out",
+    "manual_fields": []
+  },
+  "static_analysis": {
+    "project_name": "EP2737--Static Structural (A5)",
+    "solver_analysis_type": "Static",
+    "antype": null,
+    "load_steps": [
+      1.0,
+      2.0,
+      3.0
+    ],
+    "bodies": [
+      {
+        "name": "Cut-Extrude1",
+        "mass_tonne": 0.001959768101232686,
+        "mass_kg": 1.9598,
+        "material": "ASTM 182 F 321"
+      },
+      {
+        "name": "Gasket",
+        "mass_tonne": null,
+        "mass_kg": null,
+        "material": "Nylon"
+      },
+      {
+        "name": "Extended pipe1",
+        "mass_tonne": 0.006622084614685579,
+        "mass_kg": 6.6221,
+        "material": "ASTM 182 F 321"
+      },
+      {
+        "name": "Cut-Extrude1",
+        "mass_tonne": 0.001959768101232684,
+        "mass_kg": 1.9598,
+        "material": "ASTM 182 F 321"
+      },
+      {
+        "name": "Extended pipe1",
+        "mass_tonne": 0.006622084614685587,
+        "mass_kg": 6.6221,
+        "material": "ASTM 182 F 321"
+      }
+    ],
+    "assembly": {
+      "name": "Component1",
+      "mass_tonne": 0.01718235744441202,
+      "mass_kg": 17.1824,
+      "cog_mm": {
+        "x_mm": 7.984122515848825,
+        "y_mm": 6.031893447827984e-10,
+        "z_mm": 4.176280052244421e-10
+      }
+    },
+    "contacts": [
+      {
+        "caption": "Frictional - Gasket To Cut-Extrude1",
+        "contact_type": "Frictional"
+      },
+      {
+        "caption": "Bonded - Gasket To Cut-Extrude1",
+        "contact_type": "Bonded"
+      }
+    ],
+    "boundary_conditions": [
+      {
+        "caption": "Displacement",
+        "bc_type": "displacement"
+      },
+      {
+        "caption": "Displacement",
+        "bc_type": "displacement"
+      },
+      {
+        "caption": "Displacement",
+        "bc_type": "displacement"
+      }
+    ],
+    "loads": [
+      {
+        "load_type": "pressure",
+        "caption": "Pressure",
+        "magnitude": null,
+        "count": null
+      },
+      {
+        "load_type": "acceleration",
+        "caption": "Standard Earth Gravity",
+        "magnitude": null,
+        "count": null
+      },
+      {
+        "load_type": "bolt_pretension",
+        "caption": "Bolt pretension",
+        "magnitude": 11832.54,
+        "count": 8
+      }
+    ],
+    "materials": [
+      {
+        "name": "ASTM 182 F 321",
+        "youngs_modulus_gpa": 195.0,
+        "poissons_ratio": 0.31,
+        "density_kg_m3": 8030.0,
+        "tensile_yield_mpa": null
+      },
+      {
+        "name": "Nylon",
+        "youngs_modulus_gpa": 160.0,
+        "poissons_ratio": 0.34,
+        "density_kg_m3": 1140.0,
+        "tensile_yield_mpa": null
+      },
+      {
+        "name": "ASTM 276 S 321",
+        "youngs_modulus_gpa": 195.0,
+        "poissons_ratio": 0.31,
+        "density_kg_m3": 8030.0,
+        "tensile_yield_mpa": null
+      }
+    ],
+    "mesh": {
+      "node_count": 294165,
+      "element_count": 202546,
+      "quality_metrics": {},
+      "manual_fields": []
+    },
+    "source_mech_dir": "EP 2737\\Structural Analysis_EP2737\\EP2737_files\\dp0\\SYS\\MECH"
+  }
+}

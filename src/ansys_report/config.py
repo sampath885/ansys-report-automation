@@ -17,11 +17,14 @@ REGISTERED_SECTIONS = frozenset(
         "references",
         "equipment",
         "modelling",
+        "loads",
+        "materials",
         "modal",
         "static",
         "harmonic_x",
         "harmonic_y",
         "harmonic_z",
+        "shock",
         "design_calcs",
     }
 )
@@ -36,6 +39,29 @@ class MaterialConfig(BaseModel):
     name: str
     yield_mpa: float
     uts_mpa: float | None = None
+    elongation_pct: float | None = 30.0
+    static_allowable_mpa: float | None = None
+    fatigue_allowable_mpa: float | None = None
+
+
+class EquipmentSpecConfig(BaseModel):
+    part_name: str = "Welded plane Pipe Flange"
+    material_grade: str = "ASTM A 182 F32100"
+    drawing_mass_kg: str = "1.94±3%"
+    fe_mass_note: str = "Model Mass (Excluding Extended pipes & Counter Flanges)"
+
+
+class BoltConfig(BaseModel):
+    count: int = 8
+    tensile_stress_area_mm2: float = 115.0
+    shear_stress_area_mm2: float = 100.0
+    report_yield_mpa: float = 205.0
+    # Used only when extraction_mode is "step". Stress extraction uses static.load_step separately.
+    load_step: int = 1
+    extraction_mode: str = "envelope"
+    static_extraction_mode: str | None = None
+    shock_extraction_mode: str = "first"
+    uniform_axial_from_preload: bool = True
 
 
 class ModalConfig(BaseModel):
@@ -44,6 +70,29 @@ class ModalConfig(BaseModel):
 
 class StaticConfig(BaseModel):
     fos_target: float = 1.5
+
+
+class MeshQualityCriterion(BaseModel):
+    operator: str
+    limit: float
+
+
+class MeshQualityCriteriaConfig(BaseModel):
+    aspect_ratio: MeshQualityCriterion = Field(
+        default_factory=lambda: MeshQualityCriterion(operator="<", limit=10.0)
+    )
+    skewness: MeshQualityCriterion = Field(
+        default_factory=lambda: MeshQualityCriterion(operator="<", limit=0.31)
+    )
+    jacobian_ratio: MeshQualityCriterion = Field(
+        default_factory=lambda: MeshQualityCriterion(operator=">", limit=0.97)
+    )
+    element_quality: MeshQualityCriterion = Field(
+        default_factory=lambda: MeshQualityCriterion(operator=">=", limit=0.77)
+    )
+    max_corner_angle_deg: MeshQualityCriterion = Field(
+        default_factory=lambda: MeshQualityCriterion(operator="<=", limit=100.0)
+    )
 
 
 class ProjectConfig(BaseModel):
@@ -55,16 +104,31 @@ class ProjectConfig(BaseModel):
     approved_by: PersonRole
     ansys_version: str = "2024 R2"
     project_dir: Path
+    case_root: Path | None = None
     image_folder: str = "exports"
     excel_calcs: str = "design_calcs.xlsx"
+    excel_bolt_preload: str | None = None
+    excel_map_path: Path | None = None
+    section_content_path: Path | None = None
+    template_path: Path | None = None
+    style_shell_path: Path | None = None
+    reference_layout_path: Path | None = None
+    use_reference_front_matter: bool = True
+    use_word_table_data: bool = False
+    report_defaults_path: Path | None = None
+    use_dpf_golden_fallback: bool = False
+    standards_tables_path: Path | None = None
+    skip_images: bool = False
     sections_enabled: list[str]
     operating_freq_hz: list[float] = Field(default_factory=lambda: [10.0, 200.0])
     materials: list[MaterialConfig] = Field(default_factory=list)
+    equipment_spec: EquipmentSpecConfig = Field(default_factory=EquipmentSpecConfig)
+    bolts: BoltConfig = Field(default_factory=BoltConfig)
+    mesh_quality_criteria: MeshQualityCriteriaConfig = Field(default_factory=MeshQualityCriteriaConfig)
     modal: ModalConfig = Field(default_factory=ModalConfig)
     static: StaticConfig = Field(default_factory=StaticConfig)
     image_map_path: Path | None = None
     thresholds_path: Path | None = None
-    template_path: Path | None = None
 
     @field_validator("sections_enabled")
     @classmethod
@@ -83,11 +147,13 @@ class ProjectConfig(BaseModel):
 
     @property
     def image_root(self) -> Path:
-        return self.project_dir / self.image_folder
+        root = self.case_root if self.case_root else self.project_dir
+        return root / self.image_folder
 
     @property
     def excel_path(self) -> Path:
-        return self.project_dir / self.excel_calcs
+        root = self.case_root if self.case_root else self.project_dir
+        return root / self.excel_calcs
 
     @property
     def primary_yield_mpa(self) -> float | None:
@@ -144,8 +210,34 @@ def load_project_config(
     elif "project_dir" in data:
         base = config_path.parent
         data["project_dir"] = str((base / data["project_dir"]).resolve())
+    if data.get("case_root"):
+        base = config_path.parent
+        data["case_root"] = str((base / data["case_root"]).resolve())
+    if data.get("excel_map_path"):
+        base = config_path.parent
+        data["excel_map_path"] = str((base / data["excel_map_path"]).resolve())
+    if data.get("template_path"):
+        base = config_path.parent
+        data["template_path"] = str((base / data["template_path"]).resolve())
+    if data.get("style_shell_path"):
+        base = config_path.parent
+        data["style_shell_path"] = str((base / data["style_shell_path"]).resolve())
+    if data.get("reference_layout_path"):
+        base = config_path.parent
+        data["reference_layout_path"] = str((base / data["reference_layout_path"]).resolve())
+    if data.get("standards_tables_path"):
+        base = config_path.parent
+        data["standards_tables_path"] = str((base / data["standards_tables_path"]).resolve())
+    if data.get("report_defaults_path"):
+        base = config_path.parent
+        data["report_defaults_path"] = str((base / data["report_defaults_path"]).resolve())
+    if data.get("section_content_path"):
+        base = config_path.parent
+        data["section_content_path"] = str((base / data["section_content_path"]).resolve())
     cfg = ProjectConfig(**data)
     cfg.project_dir = cfg.project_dir.resolve()
+    if cfg.case_root:
+        cfg.case_root = cfg.case_root.resolve()
     return cfg
 
 

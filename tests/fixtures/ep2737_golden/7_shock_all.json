@@ -1,0 +1,66 @@
+{
+  "phase": "7_shock",
+  "yield_mpa": 170.0,
+  "directions": [
+    {
+      "key": "plus_x",
+      "system_key": "shock_plus_x",
+      "direction": "+X",
+      "workbench_folder": "SYS-5",
+      "max_stress_mpa": 255.03355634657729,
+      "max_deformation_mm": 0.06558382216159132,
+      "fos": 0.6666666666666666,
+      "manual_fields": []
+    },
+    {
+      "key": "plus_y",
+      "system_key": "shock_plus_y",
+      "direction": "+Y",
+      "workbench_folder": "SYS-6",
+      "max_stress_mpa": 255.03355634657729,
+      "max_deformation_mm": 0.06558382216159174,
+      "fos": 0.6666666666666666,
+      "manual_fields": []
+    },
+    {
+      "key": "plus_z",
+      "system_key": "shock_plus_z",
+      "direction": "+Z",
+      "workbench_folder": "SYS-7",
+      "max_stress_mpa": 255.03355634657729,
+      "max_deformation_mm": 0.06558382216159175,
+      "fos": 0.6666666666666666,
+      "manual_fields": []
+    },
+    {
+      "key": "minus_x",
+      "system_key": "shock_minus_x",
+      "direction": "-X",
+      "workbench_folder": "SYS-8",
+      "max_stress_mpa": 255.03355634657729,
+      "max_deformation_mm": 0.06558382216159149,
+      "fos": 0.6666666666666666,
+      "manual_fields": []
+    },
+    {
+      "key": "minus_y",
+      "system_key": "shock_minus_y",
+      "direction": "-Y",
+      "workbench_folder": "SYS-9",
+      "max_stress_mpa": 255.03355634657729,
+      "max_deformation_mm": 0.0655838221615918,
+      "fos": 0.6666666666666666,
+      "manual_fields": []
+    },
+    {
+      "key": "minus_z",
+      "system_key": "shock_minus_z",
+      "direction": "-Z",
+      "workbench_folder": "SYS-10",
+      "max_stress_mpa": 255.03355634657729,
+      "max_deformation_mm": 0.06558382216159227,
+      "fos": 0.6666666666666666,
+      "manual_fields": []
+    }
+  ]
+}

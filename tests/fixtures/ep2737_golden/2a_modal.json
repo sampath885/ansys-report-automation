@@ -1,0 +1,37 @@
+{
+  "spike": "2a_modal",
+  "rst": "EP 2737\\Structural Analysis_EP2737\\EP2737_files\\dp0\\SYS-1\\MECH\\file.rst",
+  "modes": [
+    {
+      "index": 1,
+      "freq_hz": 421.124143395469,
+      "participation": null
+    },
+    {
+      "index": 2,
+      "freq_hz": 421.1339674448364,
+      "participation": null
+    },
+    {
+      "index": 3,
+      "freq_hz": 949.2186556367276,
+      "participation": null
+    },
+    {
+      "index": 4,
+      "freq_hz": 1293.3375928310863,
+      "participation": null
+    },
+    {
+      "index": 5,
+      "freq_hz": 1293.3546756451838,
+      "participation": null
+    },
+    {
+      "index": 6,
+      "freq_hz": 1334.12537349373,
+      "participation": null
+    }
+  ],
+  "manual_fields": []
+}

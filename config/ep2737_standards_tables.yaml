@@ -1,0 +1,65 @@
+# Engineering lookup tables (ASME / fatigue standards) — not exported from any report DOCX.
+surface_finish_factors:
+  caption: 'Table 28: Surface Finish Factors'
+  headers:
+  - S.No
+  - Surface Finish
+  - Coefficient (a)
+  - Exponent (b)
+  rows:
+  - - '1'
+    - Ground
+    - '1.58'
+    - '-0.085'
+  - - '2'
+    - Machined or Cold-drawn
+    - '4.51'
+    - '-0.265'
+  - - '3'
+    - Hot-Rolled
+    - '57.7'
+    - '-0.718'
+  - - '4'
+    - As forged
+    - '272'
+    - '-0.0995'
+reliability_factors:
+  caption: 'Table 29: Reliability Factors'
+  headers:
+  - S.No
+  - Reliability
+  - Transformation Variable (Za)
+  - Reliability Factor (KR)
+  rows:
+  - - '1'
+    - '50'
+    - '0'
+    - '1'
+  - - '2'
+    - '90'
+    - '1.288'
+    - '0.897'
+  - - '3'
+    - '95'
+    - '1.645'
+    - '0.868'
+  - - '4'
+    - '99'
+    - '2.326'
+    - '0.814'
+  - - '5'
+    - '99.9'
+    - '3.091'
+    - '0.753'
+  - - '6'
+    - '99.99'
+    - '3.719'
+    - '0.702'
+  - - '7'
+    - '99.999'
+    - '4.265'
+    - '0.659'
+  - - '8'
+    - '99.9999'
+    - '4.753'
+    - '0.602'

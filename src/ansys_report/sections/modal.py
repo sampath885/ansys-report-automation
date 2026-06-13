@@ -17,7 +17,7 @@ class ModalSection:
         return self.key in cfg.sections_enabled
 
     def extract(self, inventory: ProjectInventory, cfg: ProjectConfig) -> dict[str, Any]:
-        rst = _pick_rst(inventory, ("modal", "SYS-3", "SYS-2"))
+        rst = _pick_rst(inventory, ("modal", "SYS-1"))
         modal = extract_modal(rst, cfg.modal.num_modes) if rst else None
         modes = []
         if modal:
@@ -36,11 +36,18 @@ class ModalSection:
         return narrative.model_dump()
 
     def context(self, data: dict[str, Any], narrative: dict[str, Any]) -> dict[str, Any]:
-        return {"modal": {**data, "narrative": narrative}}
+        block = {**data, "narrative": narrative}
+        has_freq = any(m.get("freq_hz") is not None for m in data.get("modes", []))
+        if "source" not in block:
+            block["source"] = "dpf" if has_freq else "missing"
+        return {"modal": block}
 
 
 def _pick_rst(inventory: ProjectInventory, prefer: tuple[str, ...]):
     for name in prefer:
+        for key, sys in inventory.systems.items():
+            if name.lower() in key.lower() or name.lower() in sys.folder.lower():
+                return sys.primary_rst
         for key, path in inventory.rst_files.items():
             if name.lower() in key.lower():
                 return path

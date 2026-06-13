@@ -1,0 +1,1345 @@
+meta:
+  phase: 0
+  bom_id: EP 2737
+  purpose: Ground-truth data contract for report automation
+  regenerate: python scripts/inventory_ep2737.py
+reference_template:
+  path: Design Report_EP2737_UPDATED.docx
+  stats:
+    paragraphs: 661
+    tables: 33
+    figure_captions: 76
+    table_captions: 28
+    headings: 72
+  cover:
+    title: WELDED PLANE PIPE FLANGE
+    bom_id: EP 2737 – S5
+    customer: M/s ULTRA DIMENSIONS PVT. LTD., VISAKHAPATNAM
+  sections:
+  - level: Heading 1
+    title: Revision log
+  - level: Heading 1
+    title: Current design based on previous reference design/drawing
+  - level: Heading 1
+    title: Scope
+  - level: Heading 2
+    title: Details of types of analysis.
+  - level: Heading 1
+    title: Software/ Tools
+  - level: Heading 1
+    title: References
+  - level: Heading 1
+    title: Equipment details
+  - level: Heading 2
+    title: Model
+  - level: Heading 3
+    title: 3D Model
+  - level: Heading 3
+    title: Welded Flange Design
+  - level: Heading 2
+    title: Mass, Centre of gravity, model orientation and materials as per drawing
+  - level: Heading 3
+    title: 'The weight of FE analysis is tabulated below: -'
+  - level: Heading 3
+    title: Centre of Gravity
+  - level: Heading 3
+    title: Model Orientation
+  - level: Heading 2
+    title: Details of structural connections to surrounding structure
+  - level: Heading 2
+    title: Working Principle.
+  - level: Heading 2
+    title: Input data / Technical Specifications.
+  - level: Heading 1
+    title: Modelling details
+  - level: Heading 2
+    title: Details of all the non-structural parts, which are excluded from the model        (N.A)
+  - level: Heading 2
+    title: Modelling approach for all structural part
+  - level: Heading 2
+    title: Modelling approach for bolted joints
+  - level: Heading 2
+    title: "Modelling approach for welded joints\t\t                               (Not Applicable)"
+  - level: Heading 2
+    title: "Modelling approach for joints\t\t                                           (Not Applicable)"
+  - level: Heading 2
+    title: Modelling approach for interfaces (contacts)
+  - level: Heading 2
+    title: Details of materials models selected
+  - level: Heading 1
+    title: Loads and Boundary conditions
+  - level: Heading 2
+    title: Static Structural Analysis
+  - level: Heading 3
+    title: Methodology.
+  - level: Heading 3
+    title: Environment & Boundary Conditions.
+  - level: Heading 3
+    title: Standard Earth Gravity
+  - level: Heading 3
+    title: 'Fixed Supports:'
+  - level: Heading 3
+    title: 'Pressure:'
+  - level: Heading 3
+    title: Weight of Fluid
+  - level: Heading 2
+    title: Modal Analysis
+  - level: Heading 3
+    title: Methodology
+  - level: Heading 3
+    title: Fixed Supports
+  - level: Heading 2
+    title: Vibration Resistance Analysis
+  - level: Heading 3
+    title: Methodology
+  - level: Heading 3
+    title: Loading Conditions
+  - level: Heading 3
+    title: Fixed Support
+  - level: Heading 3
+    title: Excitation in X- Direction
+  - level: Heading 3
+    title: Excitation in Y- Direction
+  - level: Heading 3
+    title: Excitation in Z- Direction
+  - level: Heading 2
+    title: Shock Analysis - Equivalent Static Approach
+  - level: Heading 3
+    title: Methodology
+  - level: Heading 3
+    title: Loading Conditions
+  - level: Heading 3
+    title: 'Shock Pulse Specifications:'
+  - level: Heading 3
+    title: Shock Acceleration
+  - level: Heading 1
+    title: Material Properties & Static allowable Strength.
+  - level: Heading 1
+    title: Results & Discussions
+  - level: Heading 2
+    title: Modal Analysis
+  - level: Heading 3
+    title: 'Modal Analysis: Conclusions'
+  - level: Heading 2
+    title: Static Structural Analysis
+  - level: Heading 2
+    title: 'Static structural analysis: Conclusion'
+  - level: Heading 2
+    title: Vibration Resistance Analysis
+  - level: Heading 3
+    title: Vibration Resistance Analysis in X – Direction
+  - level: Heading 3
+    title: Vibration Resistance Analysis in Y – Direction
+  - level: Heading 3
+    title: Vibration Resistance Analysis in Z – Direction
+  - level: Heading 3
+    title: Vibration resistance Analysis – Conclusion
+  - level: Heading 2
+    title: Shock Analysis – Equivalent Static Approach
+  - level: Heading 3
+    title: Equivalent Static Analysis in positive X – Direction
+  - level: Heading 3
+    title: Equivalent Static Analysis in positive Y – Direction
+  - level: Heading 3
+    title: Equivalent Static Analysis in positive Z – Direction
+  - level: Heading 3
+    title: Equivalent Static Analysis in negative X –Direction
+  - level: Heading 3
+    title: Equivalent Static Analysis in negative Y – Direction
+  - level: Heading 3
+    title: Equivalent Static Analysis in negative Z – Direction
+  - level: Heading 3
+    title: Result Summary – Equivalent Static Analysis
+  - level: Heading 1
+    title: MECHANICAL DESIGN CALCULATION
+  - level: Heading 2
+    title: Thickness Calculation of Welded Plane Pipe Flange
+  - level: Heading 2
+    title: Design Validation Flange Thickness Calculations
+  - level: Heading 2
+    title: Bolt Preload Calculations
+  - level: Heading 2
+    title: Fatigue Strength Calculations
+  table_captions:
+  - 'Table 1: Revision Log'
+  - 'Table 2: Current  Design changes comparison Table w.r.t previous reference design/ drawing of NTD-117-96.'
+  - Table 3:Scope of Design Analysis
+  - 'Table 4: References'
+  - 'Table 5: Mass Balance'
+  - 'Table 6: Centre of gravity'
+  - 'Table 7: Technical Specifications'
+  - 'Table 8: Mesh Control'
+  - 'Table 9: Mesh Quality'
+  - 'Table 10: Material Properties'
+  - 'Table 11: Shock Pulse Specifications'
+  - 'Table 12: Material Properties'
+  - 'Table 13: Material allowable strength – Static and Fatigue'
+  - Table 14 Modal Frequencies
+  - 'Table 15: Bolt Loads for Static Structural Analysis'
+  - Table 16:Static Structural Analysis Conclusion
+  - 'Table 17: Bolt Loads: Shock in Positive X direction'
+  - 'Table 18: Bolt Loads: Shock in Positive Y direction'
+  - 'Table 19: Bolt Loads: Shock in Positive Z direction'
+  - 'Table 20: Bolt Loads: Shock in Negative X direction'
+  - 'Table 21: Bolt Loads: Shock in Negative Y direction'
+  - 'Table 22: Bolt Loads: Shock in Negative Z direction'
+  - 'Table 23: Result Summary – Equivalent Static Analysis'
+  - 'Table 25: Flange Thickness calculation'
+  - 'Table 26: Bolt pretension calculations'
+  - 'Table 27: Fatigue Strength Calculations'
+  - 'Table 28: Surface Finish Factors'
+  - 'Table 29: Reliability Factors'
+  tables:
+  - index: 0
+    rows: 3
+    cols: 3
+    first_row:
+    - 'Prepared by:'
+    - 'Checked by:'
+    - 'Approved by: (DMDE)'
+  - index: 1
+    rows: 2
+    cols: 3
+    first_row:
+    - Document Revision number
+    - Date of revision
+    - Description
+  - index: 2
+    rows: 11
+    cols: 5
+    first_row:
+    - Ser No
+    - BOM ID
+    - NTD – 117-96
+    - EP2737
+    - Remarks
+  - index: 3
+    rows: 12
+    cols: 6
+    first_row:
+    - S.no
+    - Analysis type
+    - Sections
+    - Sections
+    - Relevant section of PO
+    - Remarks
+  - index: 4
+    rows: 5
+    cols: 4
+    first_row:
+    - 'S.NO:'
+    - Process
+    - Software used
+    - Version
+  - index: 5
+    rows: 6
+    cols: 6
+    first_row:
+    - S.no.
+    - Reference type (Standard/Jonal paper/etc)
+    - Reference Number
+    - Title
+    - Revision year and date
+    - Referred for
+  - index: 6
+    rows: 4
+    cols: 1
+    first_row:
+    - 'Figure 1: 3D Model of the Welded plane pipe flange
+
+
+
+      Sectional View'
+  - index: 7
+    rows: 3
+    cols: 7
+    first_row:
+    - S.No.
+    - Part Name
+    - Material Std/Grade
+    - Qty
+    - Drawing (Kg)
+    - FE Model Mass (Kg)
+    - FE Model Mass (Kg)
+  - index: 8
+    rows: 1
+    cols: 2
+    first_row:
+    - 'From the reference coordinate
+
+
+      cg. Wt= ʃ x dw
+
+
+      XCG = -1.5 mm
+
+
+      YCG = 0 mm
+
+
+      ZCG = '
+    - ''
+  - index: 9
+    rows: 6
+    cols: 3
+    first_row:
+    - S.No
+    - Parameter
+    - Value
+  - index: 10
+    rows: 8
+    cols: 3
+    first_row:
+    - S. No.
+    - Parameter
+    - Value
+  - index: 11
+    rows: 6
+    cols: 4
+    first_row:
+    - S. No.
+    - Parameter
+    - Range
+    - Value
+  - index: 12
+    rows: 9
+    cols: 5
+    first_row:
+    - ASTM A 182 F32100
+    - ASTM A 182 F32100
+    - ASTM A 182 F32100
+    - ASTM A 182 F32100
+    - References
+  - index: 13
+    rows: 3
+    cols: 13
+    first_row:
+    - 'Direction of Impact
+
+
+      Wt'
+    - Longitudinal (X)
+    - Longitudinal (X)
+    - Longitudinal (X)
+    - Longitudinal (X)
+    - Vertical (Y)
+    - Vertical (Y)
+    - Vertical (Y)
+    - Vertical (Y)
+    - Horizontal (Z)
+    - Horizontal (Z)
+    - Horizontal (Z)
+    - Horizontal (Z)
+  - index: 14
+    rows: 2
+    cols: 6
+    first_row:
+    - Trade name of Material
+    - Material Grade
+    - Young’s Modulus (GPa)
+    - Density (kg/m3)
+    - Poisson’s Ratio
+    - Reference Standard
+  - index: 15
+    rows: 3
+    cols: 9
+    first_row:
+    - Trade name of Material
+    - Trade name of Material
+    - Material Grade
+    - Yield (MPa)
+    - Ultimate Tensile Strength (MPa)
+    - '% Elongation'
+    - Static Allowable (MPa)
+    - 'Fatigue Allowable
+
+      (MPa) Base Material'
+    - 'Fatigue Allowable
+
+      (MPa) Welds'
+  - index: 16
+    rows: 7
+    cols: 5
+    first_row:
+    - Sl. No
+    - Frequency (Hz)
+    - Operating Frequency
+    - Dominant in Direction
+    - Remark
+  - index: 17
+    rows: 10
+    cols: 9
+    first_row:
+    - Bolt No
+    - Maximum Axial Force (N)
+    - Maximum Shear Force (N)
+    - Tensile Stress Area mm2
+    - Shear Stress Area mm2
+    - Normal Stress
+    - Shear Stress
+    - Yield Stress MPa
+    - Conclusion
+  - index: 18
+    rows: 2
+    cols: 6
+    first_row:
+    - Sr. No
+    - Material
+    - Maximum Occurs on
+    - Stresses Observed (MPa)
+    - Allowable Stress (MPa)
+    - Remarks
+  - index: 19
+    rows: 4
+    cols: 7
+    first_row:
+    - Sl. No.
+    - Analysis
+    - Component
+    - Material
+    - Peak Frequency (Hz)
+    - Maximum Stress (MPa)
+    - Fatigue Allowable (MPa)
+  - index: 20
+    rows: 10
+    cols: 9
+    first_row:
+    - Bolt No
+    - Maximum Axial Force (N)
+    - Maximum Shear Force (N)
+    - Tensile Stress Area mm2
+    - Shear Stress Area mm2
+    - Normal Stress
+    - Shear Stress
+    - Yield Stress MPa
+    - Conclusion
+  - index: 21
+    rows: 10
+    cols: 10
+    first_row:
+    - Bolt No
+    - Maximum Axial Force (N)
+    - Maximum Shear Force (N)
+    - Tensile Stress Area mm2
+    - Shear Stress Area mm2
+    - Normal Stress
+    - Shear Stress
+    - Yield Stress MPa
+    - Yield Stress MPa
+    - Conclusion
+  - index: 22
+    rows: 10
+    cols: 9
+    first_row:
+    - Bolt No
+    - Maximum Axial Force (N)
+    - Maximum Shear Force (N)
+    - Tensile Stress Area mm2
+    - Shear Stress Area mm2
+    - Normal Stress
+    - Shear Stress
+    - Yield Stress MPa
+    - Conclusion
+  - index: 23
+    rows: 10
+    cols: 9
+    first_row:
+    - Bolt No
+    - Maximum Axial Force (N)
+    - Maximum Shear Force (N)
+    - Tensile Stress Area mm2
+    - Shear Stress Area mm2
+    - Normal Stress
+    - Shear Stress
+    - Yield Stress MPa
+    - Conclusion
+  - index: 24
+    rows: 10
+    cols: 9
+    first_row:
+    - Bolt No
+    - Maximum Axial Force (N)
+    - Maximum Shear Force (N)
+    - Tensile Stress Area mm2
+    - Shear Stress Area mm2
+    - Normal Stress
+    - Shear Stress
+    - Yield Stress MPa
+    - Conclusion
+  - index: 25
+    rows: 10
+    cols: 9
+    first_row:
+    - Bolt No
+    - Maximum Axial Force (N)
+    - Maximum Shear Force (N)
+    - Tensile Stress Area mm2
+    - Shear Stress Area mm2
+    - Normal Stress
+    - Shear Stress
+    - Yield Stress MPa
+    - Conclusion
+  - index: 26
+    rows: 7
+    cols: 5
+    first_row:
+    - Input Shock Load
+    - Component
+    - Material
+    - Shock Allowable Strength (MPa)
+    - Max. Stress (MPa)
+  - index: 27
+    rows: 10
+    cols: 5
+    first_row:
+    - SL.
+    - DESCRIPTION
+    - UNIT
+    - Values
+    - REMARKS
+  - index: 28
+    rows: 53
+    cols: 5
+    first_row:
+    - Sl. No
+    - Parameter
+    - Formula and Unit
+    - Value
+    - Reference / Standard
+  - index: 29
+    rows: 7
+    cols: 3
+    first_row:
+    - Parameter
+    - M14 × 2
+    - Reference
+  - index: 30
+    rows: 10
+    cols: 2
+    first_row:
+    - Name of the Component
+    - Body
+  - index: 31
+    rows: 6
+    cols: 4
+    first_row:
+    - Parameters for Surface Modification Factor
+    - Parameters for Surface Modification Factor
+    - Parameters for Surface Modification Factor
+    - Parameters for Surface Modification Factor
+  - index: 32
+    rows: 9
+    cols: 4
+    first_row:
+    - S.No
+    - Reliability
+    - Transformation Variable (Za)
+    - Reliability Factor (KR)
+figure_export_slots:
+- caption: 'Figure 3: 2D Drawing'
+  suggested_export_path: geometry/cad_section.png
+- caption: 'Figure 4: Welded Plane Pipe Flange NTD 117-96'
+  suggested_export_path: geometry/flange_drawing.png
+- caption: 'Figure 5: Model Orientation'
+  suggested_export_path: geometry/model_orientation.png
+- caption: 'Figure 6: Mesh'
+  suggested_export_path: mesh/mesh_global.png
+- caption: 'Figure 7: Aspect ratio'
+  suggested_export_path: mesh/aspect_ratio.png
+- caption: 'Figure 8: Skewness'
+  suggested_export_path: mesh/skewness.png
+- caption: 'Figure 9: Jacobian ratio'
+  suggested_export_path: mesh/jacobian.png
+- caption: 'Figure 10: Mesh quality'
+  suggested_export_path: mesh/mesh_global.png
+- caption: 'Figure 11: Maximum Corner Angle'
+  suggested_export_path: mesh/max_corner_angle.png
+- caption: 'Figure 12: 1D Beam with rigid connection (RB2)'
+  suggested_export_path: modelling/bolt_beam.png
+- caption: 'Figure 13: Contacts'
+  suggested_export_path: modelling/contacts.png
+- caption: 'Figure 14: Standard Earth Gravity'
+  suggested_export_path: static/earth_gravity.png
+- caption: 'Figure 15: Fixed Support. Fixed in all DOFs'
+  suggested_export_path: static/fixed_support.png
+- caption: 'Figure 16: Pressure'
+  suggested_export_path: static/pressure.png
+- caption: 'Figure 17: Fixed Support. Fixed in all DOFs'
+  suggested_export_path: static/fixed_support.png
+- caption: 'Figure 18: Fixed Support. Fixed in all DOFs'
+  suggested_export_path: static/fixed_support.png
+- caption: 'Figure 19: Excitation of 0.7g in X-Direction'
+  suggested_export_path: harmonic_x/excitation.png
+- caption: 'Figure 20: Excitation of 0.7g in Y-Direction'
+  suggested_export_path: harmonic_x/excitation.png
+- caption: 'Figure 21: Excitation of 0.7g in Z-Direction'
+  suggested_export_path: harmonic_x/excitation.png
+- caption: 'Figure 22: Shock Pulse Nomenclature'
+  suggested_export_path: null
+- caption: 'Figure 23: Shock Acceleration of 280g in + X Direction'
+  suggested_export_path: null
+- caption: 'Figure 24: Shock Acceleration of 280g in + Y Direction'
+  suggested_export_path: null
+- caption: 'Figure 25: Shock Acceleration of 280g in + Z Direction'
+  suggested_export_path: null
+- caption: 'Figure 26: Shock Acceleration of 94g in - X Direction'
+  suggested_export_path: null
+- caption: 'Figure 27: Shock Acceleration of 94g in – Y Direction'
+  suggested_export_path: null
+- caption: 'Figure 28: Shock Acceleration of 94g in - Z Direction'
+  suggested_export_path: null
+- caption: 'Figure 29: Ratio of Effective Mass to Total mass'
+  suggested_export_path: null
+- caption: 'Figure 30: Mode 1 at Frequency of 421.12 Hz'
+  suggested_export_path: null
+- caption: 'Figure 31: Mode 2 at Frequency of 421.13 Hz'
+  suggested_export_path: null
+- caption: 'Figure 32: Mode 3 at Frequency of 949.22 Hz'
+  suggested_export_path: null
+- caption: 'Figure 33: Mode 4 at Frequency of 1293.3 Hz'
+  suggested_export_path: null
+- caption: Figure 34 Mode 5 at Frequency of 1293.4 Hz
+  suggested_export_path: null
+- caption: 'Figure 35: Mode 6 at Frequency of 1334.1 Hz'
+  suggested_export_path: null
+- caption: 'Figure 36: Total Deformation of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/total_deformation.png
+- caption: 'Figure 37: Equivalent Von-mises Stress of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 38 : Equivalent Von-mises Stress of Welded Plane Pipe Flange'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 39: Reaction Force of 171.7 N in Z-Direction'
+  suggested_export_path: null
+- caption: 'Figure 40: Frequency response on the Flange in X – direction'
+  suggested_export_path: null
+- caption: 'Figure 41: Frequency response acceleration for a frequency range of 3 – 33 Hz'
+  suggested_export_path: null
+- caption: 'Figure 42: Total Deformation of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: geometry/flange_drawing.png
+- caption: 'Figure 43: Equivalent Von-Misses Stress of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: geometry/flange_drawing.png
+- caption: 'Figure 44: Equivalent Von-Misses Stress of Welded Plane Pipe Flange'
+  suggested_export_path: geometry/flange_drawing.png
+- caption: 'Figure 45: Frequency response on the Flange in Y – direction'
+  suggested_export_path: null
+- caption: 'Figure 46: Frequency response acceleration for a frequency range of 3 – 33 Hz'
+  suggested_export_path: null
+- caption: 'Figure 47: Total Deformation of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: geometry/flange_drawing.png
+- caption: 'Figure 48: Equivalent Von-mises of Stress Welded Plane Pipe Flange Assembly.'
+  suggested_export_path: geometry/flange_drawing.png
+- caption: 'Figure 49: Equivalent Von-Misses Stress of Welded Plane Pipe Flange'
+  suggested_export_path: geometry/flange_drawing.png
+- caption: 'Figure 50: Frequency response on the Flange in Z – direction'
+  suggested_export_path: null
+- caption: 'Figure 51: Frequency response acceleration for a frequency range of 3 – 33 Hz'
+  suggested_export_path: null
+- caption: 'Figure 52: Total Deformation of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/total_deformation.png
+- caption: 'Figure 53: Equivalent Von-mises Stress of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 54: Equivalent Von-Misses Stress of Welded Plane Pipe Flange'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 55: Total Deformation of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/total_deformation.png
+- caption: 'Figure 56: Force Reaction of 48093 N For -X Application of the Shock'
+  suggested_export_path: null
+- caption: 'Figure 57: Equivalent Von-Misses Stress of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 58: Equivalent Von-Misses Stress of Welded Plane Pipe Flange'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 59: Total Deformation of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/total_deformation.png
+- caption: 'Figure 60: Force Reaction of 48093 N For -Y Application of the Shock'
+  suggested_export_path: null
+- caption: 'Figure 61: Equivalent Von-Misses Stress of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 62: Equivalent Von-Misses Stress of Welded Plane Pipe Flange'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 63: Total Deformation of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/total_deformation.png
+- caption: 'Figure 64: Force Reaction of 48265 N For -Z Application of the Shock'
+  suggested_export_path: null
+- caption: 'Figure 65: Equivalent Von-Misses Stress of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 66: Equivalent Von-Misses Stress of Welded Plane Pipe Flange'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 67: Total Deformation of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/total_deformation.png
+- caption: 'Figure 68: Force Reaction of 48265 N For negative X Application of the Shock'
+  suggested_export_path: null
+- caption: 'Figure 69: Equivalent Von-Misses Stress Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 70: Equivalent Von-Misses Stress of Welded Plane Pipe Flange'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 71: Total Deformation of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/total_deformation.png
+- caption: 'Figure 72: Force Reaction of 48265 N For negative Y Application of the Shock'
+  suggested_export_path: null
+- caption: 'Figure 73: Equivalent Von-Misses Stress of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 74: Equivalent Von-Misses Stress of Welded Plane Pipe Flange'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 75: Total Deformation of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/total_deformation.png
+- caption: 'Figure 76: Force Reaction of 48265 N For negative Y Application of the Shock'
+  suggested_export_path: null
+- caption: 'Figure 77: Equivalent Von-Misses Stress of Welded Plane Pipe Flange Assembly'
+  suggested_export_path: static/vonmises.png
+- caption: 'Figure 78: Equivalent Von-Misses Stress of Welded Plane Pipe Flange'
+  suggested_export_path: static/vonmises.png
+report_to_ansys_mapping:
+- report_section: Static Structural Analysis
+  system_key: static_structural
+  workbench_folder: SYS
+- report_section: Modal Analysis
+  system_key: modal
+  workbench_folder: SYS-1
+- report_section: Vibration Resistance Analysis (X/Y/Z)
+  system_key: vibration_x | vibration_y | vibration_z
+  workbench_folder: SYS-2 | SYS-3 | SYS-4
+- report_section: Shock Analysis - Equivalent Static Approach
+  system_key: shock_plus_x … shock_minus_z
+  workbench_folder: SYS-5 … SYS-10
+- report_section: MECHANICAL DESIGN CALCULATION
+  system_key: excel
+  workbench_folder: N/A
+paths:
+  case_root: EP 2737
+  workbench_project: EP 2737/Structural Analysis_EP2737
+  wbpj: EP 2737/Structural Analysis_EP2737/EP2737.wbpj
+  cad_step: EP 2737/11-EP2737.STEP
+  geometry_scdocx: EP 2737/Structural Analysis_EP2737/EP2737_files/dp0/SYS/DM/SYS.scdocx
+  exports: EP 2737/exports
+  excel_design_calcs: EP 2737/OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx
+  excel_bolt_preload: EP 2737/Bolt pre load.xlsx
+ansys_environment:
+  version: 2025 R2
+  version_build: 25.2.1.0
+  solver_units: N, mm, MPa (solver unit code 6)
+  pyansys_note: Pin ansys-dpf-core to build matching ANSYS 2025 R2 on target laptop
+ansys_systems:
+  static_structural:
+    folder: SYS
+    display_name: Static Structural
+    workbench_analysis_type: Static
+    report_section_key: static_structural
+    mech_relative: Structural Analysis_EP2737/EP2737_files/dp0/SYS/MECH
+    rst_files:
+    - file.rst
+    primary_rst: file.rst
+    has_mcf: false
+    has_mode_files: false
+    project_name: EP2737--Static Structural (A5)
+    solver_analysis_type: Static
+    antype: static
+    mapdl_errors: 0
+  modal:
+    folder: SYS-1
+    display_name: Modal
+    workbench_analysis_type: Static
+    report_section_key: modal
+    mech_relative: Structural Analysis_EP2737/EP2737_files/dp0/SYS-1/MECH
+    rst_files:
+    - file.rst
+    - file0.rst
+    - file1.rst
+    - file10.rst
+    - file11.rst
+    - file2.rst
+    - file3.rst
+    - file4.rst
+    - file5.rst
+    - file6.rst
+    - file7.rst
+    - file8.rst
+    - file9.rst
+    primary_rst: file.rst
+    has_mcf: false
+    has_mode_files: true
+    project_name: EP2737--Modal (B5)
+    solver_analysis_type: Modal
+    antype: modal
+    mapdl_errors: 0
+  vibration_x:
+    folder: SYS-2
+    display_name: Harmonic Response X direction
+    workbench_analysis_type: Modal
+    report_section_key: vibration_x
+    mech_relative: Structural Analysis_EP2737/EP2737_files/dp0/SYS-2/MECH
+    rst_files:
+    - file.rst
+    primary_rst: file.rst
+    has_mcf: true
+    has_mode_files: false
+    project_name: EP2737--Harmonic Response X direction (C5)
+    solver_analysis_type: Harmonic
+    antype: harmonic
+    mapdl_errors: 0
+  vibration_y:
+    folder: SYS-3
+    display_name: Harmonic Response Y direction
+    workbench_analysis_type: Harmonic
+    report_section_key: vibration_y
+    mech_relative: Structural Analysis_EP2737/EP2737_files/dp0/SYS-3/MECH
+    rst_files:
+    - file.rst
+    primary_rst: file.rst
+    has_mcf: true
+    has_mode_files: false
+    project_name: EP2737--Harmonic Response Y direction (D5)
+    solver_analysis_type: Harmonic
+    antype: harmonic
+    mapdl_errors: 0
+  vibration_z:
+    folder: SYS-4
+    display_name: Harmonic Response Z direction
+    workbench_analysis_type: Harmonic
+    report_section_key: vibration_z
+    mech_relative: Structural Analysis_EP2737/EP2737_files/dp0/SYS-4/MECH
+    rst_files:
+    - file.rst
+    primary_rst: file.rst
+    has_mcf: true
+    has_mode_files: false
+    project_name: EP2737--Harmonic Response Z direction (E5)
+    solver_analysis_type: Harmonic
+    antype: harmonic
+    mapdl_errors: 0
+  shock_plus_x:
+    folder: SYS-5
+    display_name: Equivalent shock analysis +X direction
+    workbench_analysis_type: Harmonic
+    report_section_key: shock_plus_x
+    mech_relative: Structural Analysis_EP2737/EP2737_files/dp0/SYS-5/MECH
+    rst_files:
+    - file.rst
+    primary_rst: file.rst
+    has_mcf: false
+    has_mode_files: false
+    project_name: EP2737--Equivalent shock analysis +X direction (F5)
+    solver_analysis_type: Static
+    antype: static
+    mapdl_errors: 0
+  shock_plus_y:
+    folder: SYS-6
+    display_name: Equivalent shock analysis +Y direction
+    workbench_analysis_type: Static
+    report_section_key: shock_plus_y
+    mech_relative: Structural Analysis_EP2737/EP2737_files/dp0/SYS-6/MECH
+    rst_files:
+    - file.rst
+    primary_rst: file.rst
+    has_mcf: false
+    has_mode_files: false
+    project_name: EP2737--Equivalent shock analysis +Y direction  (G5)
+    solver_analysis_type: Static
+    antype: static
+    mapdl_errors: 0
+  shock_plus_z:
+    folder: SYS-7
+    display_name: Equivalent shock analysis +Z direction
+    workbench_analysis_type: Static
+    report_section_key: shock_plus_z
+    mech_relative: Structural Analysis_EP2737/EP2737_files/dp0/SYS-7/MECH
+    rst_files:
+    - file.rst
+    primary_rst: file.rst
+    has_mcf: false
+    has_mode_files: false
+    project_name: EP2737--Equivalent shock analysis +Z direction (H5)
+    solver_analysis_type: Static
+    antype: static
+    mapdl_errors: 0
+  shock_minus_x:
+    folder: SYS-8
+    display_name: Equivalent shock analysis -X direction
+    workbench_analysis_type: Static
+    report_section_key: shock_minus_x
+    mech_relative: Structural Analysis_EP2737/EP2737_files/dp0/SYS-8/MECH
+    rst_files:
+    - file.rst
+    primary_rst: file.rst
+    has_mcf: false
+    has_mode_files: false
+    project_name: EP2737--Equivalent shock analysis -X direction (I5)
+    solver_analysis_type: Static
+    antype: static
+    mapdl_errors: 0
+  shock_minus_y:
+    folder: SYS-9
+    display_name: Equivalent shock analysis -Y direction
+    workbench_analysis_type: Static
+    report_section_key: shock_minus_y
+    mech_relative: Structural Analysis_EP2737/EP2737_files/dp0/SYS-9/MECH
+    rst_files:
+    - file.rst
+    primary_rst: file.rst
+    has_mcf: false
+    has_mode_files: false
+    project_name: EP2737--Equivalent shock analysis -Y direction  (J5)
+    solver_analysis_type: Static
+    antype: static
+    mapdl_errors: 0
+  shock_minus_z:
+    folder: SYS-10
+    display_name: Equivalent shock analysis -Z direction
+    workbench_analysis_type: Static
+    report_section_key: shock_minus_z
+    mech_relative: Structural Analysis_EP2737/EP2737_files/dp0/SYS-10/MECH
+    rst_files:
+    - file.rst
+    primary_rst: file.rst
+    has_mcf: false
+    has_mode_files: false
+    project_name: EP2737--Equivalent shock analysis -Z direction (K5)
+    solver_analysis_type: Static
+    antype: static
+    mapdl_errors: 0
+static_analysis:
+  load_steps:
+  - 1.0
+  - 2.0
+  - 3.0
+  report_result_step: 3
+  report_result_step_note: Step 3 applies full pressure after pretension (steps 1-2); confirm against
+    reference report.
+  bolt_preload_n: 11832.54
+  bolt_count: 8
+  bodies:
+  - name: Cut-Extrude1
+    mass_tonne: 0.001959768101232686
+    mass_kg: 1.9598
+    material: ASTM 182 F 321
+  - name: Gasket
+    mass_tonne: 0.006622084614685579
+    mass_kg: 6.6221
+    material: ASTM 182 F 321
+  - name: Cut-Extrude1
+    mass_tonne: 0.001959768101232684
+    mass_kg: 1.9598
+    material: ASTM 182 F 321
+  - name: Extended pipe1
+    mass_tonne: 0.006622084614685587
+    mass_kg: 6.6221
+    material: ASTM 182 F 321
+  assembly_cog_mm: null
+  contacts: []
+modal_analysis:
+  modes_requested: 20
+  modes_for_report: 6
+  frequencies_hz:
+  - mode: 1
+    freq_hz: 421.1241433955
+  - mode: 2
+    freq_hz: 421.1339674448
+  - mode: 3
+    freq_hz: 949.2186556367
+  - mode: 4
+    freq_hz: 1293.337592831
+  - mode: 5
+    freq_hz: 1293.354675645
+  - mode: 6
+    freq_hz: 1334.125373494
+  - mode: 7
+    freq_hz: 1334.159377833
+  - mode: 8
+    freq_hz: 1400.046871453
+  - mode: 9
+    freq_hz: 1400.077293166
+  - mode: 10
+    freq_hz: 1851.322518202
+  - mode: 11
+    freq_hz: 1992.262906097
+  - mode: 12
+    freq_hz: 1992.325605265
+  - mode: 13
+    freq_hz: 2021.058360621
+  - mode: 14
+    freq_hz: 2021.086044971
+  - mode: 15
+    freq_hz: 2180.761565204
+  - mode: 16
+    freq_hz: 2180.82818522
+  - mode: 17
+    freq_hz: 2971.119169893
+  - mode: 18
+    freq_hz: 2971.478603707
+  - mode: 19
+    freq_hz: 3016.124131445
+  - mode: 20
+    freq_hz: 3016.220592392
+  golden_mode1_hz: 421.1241433955
+mesh:
+  node_count: 323537
+  element_count: null
+  note: node_count defaults to 323537 from CAERep scan if not found in ds.dat header
+excel:
+  OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx:
+    relative_path: OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx
+    sheets:
+      Welded Flange Thickness Calcula:
+        sample_rows:
+        - - null
+          - Thickness and Calculation of Stress at Welded Plain Pipe Flanges - CONSIDERED AS LOOSE TYPE
+          - null
+          - null
+          - null
+          - null
+          - null
+          - null
+        - - null
+          - Parameters
+          - Units
+          - Value
+          - Remarks
+          - null
+          - null
+          - null
+        - - null
+          - DESIGN PRESSURE
+          - MPa
+          - '1'
+          - As per Drawings / PO
+          - null
+          - null
+          - null
+        - - null
+          - DESIGN TEMPERATURE
+          - °C
+          - .,- 10 to 55
+          - As per PO
+          - null
+          - null
+          - null
+        - - null
+          - FLANGE MATERIAL
+          - null
+          - 08X18H10T / ASTM A182 F321
+          - Row 20, Pg. 112 of ASME BPVC 2023 Sec II Part D
+          - null
+          - null
+          - null
+        - - null
+          - BOLT MATERIAL
+          - null
+          - ASTM A276 S32100
+          - ASTM A276-06, Table 2, Type 321, Page no- 4
+          - null
+          - null
+          - null
+        - - null
+          - NO OF BOLTS
+          - null
+          - 8(M14)
+          - NDT 117-96, Pg No. 97, Table 4.12
+          - null
+          - null
+          - null
+        - - null
+          - FLANGE ALLOWABLE STRENGTH, Sf
+          - MPa
+          - '138'
+          - Row 20, Pg. 114 of ASME BPVC 2023 Sec II Part D
+          - null
+          - null
+          - null
+        - - null
+          - BOLT ALLOWABLE STRENGTH, Sa
+          - MPa
+          - '138'
+          - ASME BPVC SEC II, Part D Min(((1/3.5)*UTS),((2/3)*YTS))
+          - null
+          - null
+          - null
+        - - null
+          - FLANGE OD (A)
+          - mm
+          - '190'
+          - As per Drawings
+          - null
+          - null
+          - null
+        - - null
+          - PCD, C
+          - mm
+          - '158'
+          - null
+          - null
+          - null
+          - null
+        - - null
+          - FLANGE BORE, B
+          - mm
+          - '100'
+          - null
+          - null
+          - null
+          - null
+      'Bolt pretension load with ':
+        sample_rows:
+        - - Bolt Pretension loads
+          - null
+          - null
+          - null
+          - WITH GASKET
+          - null
+        - - 'Reference: ASME Sec. VIII Div. 2'
+          - null
+          - null
+          - null
+          - null
+          - null
+        - - 'Bolt Load for Design Condition: Wo = Wm1 = 0.785 * G2 * P'
+          - '502.40000000000003'
+          - N
+          - '83.73333333333333'
+          - null
+          - null
+        - - 'Bolt Load for Gasket Seating Condition: Wg = (Am + Ab) * Sa/2'
+          - '70487.84413099001'
+          - N
+          - '11747.974021831667'
+          - null
+          - for each
+        - - No  Bolts
+          - '6'
+          - null
+          - null
+          - null
+          - null
+        - - '   Provided Bolt Area Ab,(Bolt root diameter of M16 = 14.701 mm, (pitch is 2 we cinsiderd)
+            total 8 n'
+          - '1017.9223787100002'
+          - mm^2
+          - null
+          - null
+          - null
+        - - BOLT ALLOWABLE STRENGTH, Sa= Sb
+          - '138'
+          - MPa
+          - null
+          - null
+          - null
+        - - ' REQUIRED BOLTING AREA, AmAm = Wm1/Sb'
+          - '3.640579710144928'
+          - null
+          - null
+          - null
+          - null
+        - - 'P, Working pressure '
+          - '0.1'
+          - MPa
+          - 100 kg/cm2 = 9.81 Mpa
+          - null
+          - null
+        - - Gasket
+          - null
+          - null
+          - null
+          - null
+          - null
+        - - Gasket OD, GOD, mm
+          - '88'
+          - ' mm'
+          - null
+          - null
+          - null
+        - - Gasket ID, GID, mm
+          - '72'
+          - ' mm'
+          - null
+          - null
+          - null
+      bolt pre load:
+        sample_rows:
+        - - null
+          - null
+          - null
+          - null
+          - Parameter
+          - M20X2
+          - Reference
+        - - null
+          - null
+          - null
+          - null
+          - null
+          - '115.43940908438398'
+          - Nonmandatory Appendix B, para. B-1 of ASME B1.13M-2005, Pg. 62
+        - - null
+          - null
+          - null
+          - null
+          - Basic Major Diameter (dbsc)
+          - '14'
+          - null
+        - - null
+          - null
+          - null
+          - null
+          - Pitch(p)
+          - '2'
+          - null
+        - - null
+          - null
+          - null
+          - null
+          - P%
+          - '0.5'
+          - ASME PCC-1–2019, APPENDIX J, CALCULATION OF TARGET TORQUE, Pg. 62
+        - - null
+          - null
+          - null
+          - null
+          - material yeild ASTM 182 F 321
+          - '205'
+          - null
+        - - null
+          - null
+          - null
+          - null
+          - 'Preload (F) '
+          - '11832.539431149358'
+          - null
+  Bolt pre load.xlsx:
+    relative_path: Bolt pre load.xlsx
+    sheets:
+      'Bolt pretension load with ':
+        sample_rows:
+        - - Bolt Pretension loads
+          - null
+          - null
+          - null
+          - WITH GASKET
+        - - 'Reference: ASME Sec. VIII Div. 2'
+          - null
+          - null
+          - null
+          - null
+        - - 'Bolt Load for Design Condition: Wo = Wm1 = 0.785 * G2 * P'
+          - '12070.16'
+          - N
+          - '1508.77'
+          - null
+        - - 'Bolt Load for Gasket Seating Condition: Wg = (Am + Ab) * Sa/2'
+          - '62963.83193664'
+          - N
+          - null
+          - null
+        - - No  Bolts
+          - '8'
+          - null
+          - null
+          - null
+        - - '   Provided Bolt Area Ab,(Bolt root diameter of M14 = 11.546 mm, (pitch is 2 we cinsiderd)
+            total 8 n'
+          - '837.18752848'
+          - mm^2
+          - null
+          - null
+        - - BOLT ALLOWABLE STRENGTH, Sa= Sb
+          - '136'
+          - MPa
+          - null
+          - null
+        - - ' REQUIRED BOLTING AREA, AmAm = Wm1/Sb'
+          - '88.7511764705882'
+          - null
+          - null
+          - null
+        - - 'P, Working pressure '
+          - '1'
+          - MPa
+          - 100 kg/cm2 = 9.81 Mpa
+          - null
+        - - Gasket
+          - null
+          - null
+          - null
+          - null
+        - - Gasket OD, GOD, mm
+          - '138'
+          - ' mm'
+          - null
+          - null
+        - - Gasket ID, GID, mm
+          - '110'
+          - ' mm'
+          - null
+          - null
+      without Gasket:
+        sample_rows:
+        - - null
+          - null
+          - EP2697
+          - null
+          - null
+          - null
+        - - null
+          - null
+          - Parameter
+          - M14X2
+          - Reference
+          - null
+        - - null
+          - null
+          - null
+          - '115.439409084384'
+          - Nonmandatory Appendix B, para. B-1 of ASME B1.13M-2005, Pg. 52
+          - null
+        - - null
+          - null
+          - Basic Major Diameter (dbsc)
+          - '14'
+          - null
+          - null
+        - - null
+          - null
+          - Pitch(p)
+          - '2'
+          - null
+          - null
+        - - null
+          - null
+          - P%
+          - '0.5'
+          - ASME PCC-1–2019, APPENDIX J, CALCULATION OF TARGET TORQUE, Pg. 62
+          - null
+        - - null
+          - null
+          - σy (ASTM A276 S321:1986 Table 4, Pg. 10)
+          - '205'
+          - null
+          - null
+        - - null
+          - null
+          - 'Preload (F) '
+          - '11832.5394311494'
+          - null
+          - null
+excel_report_tables:
+- report_table: 'Table 25: Flange Thickness calculation'
+  workbook: OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx
+  sheet: Welded Flange Thickness Calcula
+- report_table: 'Table 26: Bolt pretension calculations'
+  workbook: OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx
+  sheet: 'Bolt pretension load with '
+- report_table: 'Table 27: Fatigue Strength Calculations'
+  workbook: OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx
+  sheet: bolt pre load
+images:
+  exports_root: EP 2737/exports
+  status: missing
+  png_jpg_count: 0
+known_issues:
+- 'Harmonic SYS-2/3/4: Workbench Solution cell error; MAPDL solve.out reports 0 errors'
+- 'Shock SYS-5…10: Workbench Setup refresh error; ds.dat and file.rst present'
+- Project originally on \\sambaserver\FE_ANALYSIS\...; use local paths
+- IMPLEMENTATION.md references EP1763 Excel sheet names; EP2737 uses different sheet names
+phase_0_exit_checklist:
+- Reference DOCX section map matches ansys_systems keys
+- Modal mode-1 frequency 421.124 Hz documented as DPF spike golden value
+- Static load step 3 identified for final stress/deformation (engineer confirm)
+- Figure export slots defined for all 105 figure captions
+- Excel sheet mapping documented for design calc tables

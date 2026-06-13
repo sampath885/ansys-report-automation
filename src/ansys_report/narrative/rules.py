@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ansys_report.config import ProjectConfig, ThresholdsConfig
-from ansys_report.models import ModalResult, Narrative, SectionVerdict, StaticResult
+from ansys_report.models import HarmonicPeakResult, ModalResult, Narrative, SectionVerdict, StaticResult
 
 
 def narrate_static(
@@ -112,6 +112,107 @@ def narrate_modal(
         observations=observations,
         conclusions=conclusions,
         recommendations=recommendations,
+        verdict=verdict,
+        source="rules",
+    )
+
+
+def narrate_harmonic(
+    peak: HarmonicPeakResult,
+    direction: str,
+    cfg: ProjectConfig,
+    thresholds: ThresholdsConfig,
+) -> Narrative:
+    observations: list[str] = []
+    conclusions: list[str] = []
+    recommendations: list[str] = []
+    verdict = "PASS"
+
+    disp = peak.peak_displacement_mm
+    freq = peak.peak_frequency_hz
+    if disp is None or freq is None:
+        return Narrative(
+            observations=[f"Harmonic {direction}: peak response not extracted."],
+            conclusions=["Vibration assessment pending manual review."],
+            verdict="CAUTION",
+            source="rules",
+        )
+
+    observations.append(
+        f"Harmonic {direction}: peak displacement {disp:.3f} mm at {freq:.2f} Hz "
+        f"({peak.num_frequency_sets or '?'} frequency sets)."
+    )
+    if disp > thresholds.deformation.warn_mm:
+        verdict = "CAUTION"
+        conclusions.append(
+            f"Peak harmonic displacement exceeds {thresholds.deformation.warn_mm} mm warning level."
+        )
+        recommendations.append("Verify acceptance against vibration specification and operational limits.")
+    else:
+        conclusions.append("Peak harmonic displacement is within configured warning threshold.")
+
+    low, high = cfg.operating_freq_hz
+    if (low - thresholds.modal.resonance_margin_hz) <= freq <= (high + thresholds.modal.resonance_margin_hz):
+        verdict = "CAUTION" if verdict != "FAIL" else verdict
+        conclusions.append(
+            f"Peak response frequency {freq:.2f} Hz is near operating band ({low}-{high} Hz)."
+        )
+
+    return Narrative(
+        observations=observations,
+        conclusions=conclusions,
+        recommendations=recommendations,
+        verdict=verdict,
+        source="rules",
+    )
+
+
+def narrate_shock(
+    static: StaticResult,
+    direction: str,
+    cfg: ProjectConfig,
+    thresholds: ThresholdsConfig,
+) -> Narrative:
+    observations: list[str] = []
+    conclusions: list[str] = []
+    verdict = "PASS"
+
+    stress = static.max_stress_mpa
+    deform = static.max_deformation_mm
+    if stress is None:
+        observations.append(f"Shock {direction}: stress not extracted.")
+        return Narrative(
+            observations=observations,
+            conclusions=["Shock assessment pending manual review."],
+            verdict="CAUTION",
+            source="rules",
+        )
+
+    yield_mpa = cfg.primary_yield_mpa
+    observations.append(f"Shock {direction}: peak von-Mises stress {stress:.2f} MPa.")
+    if deform is not None:
+        observations.append(f"Shock {direction}: peak deformation {deform:.3f} mm.")
+
+    if yield_mpa:
+        fraction = stress / yield_mpa
+        if fraction >= thresholds.stress.fail_fraction_of_yield:
+            verdict = "FAIL"
+            conclusions.append(f"Shock {direction}: stress exceeds yield — NOT ACCEPTABLE.")
+        elif fraction >= thresholds.stress.warn_fraction_of_yield:
+            verdict = "CAUTION"
+            conclusions.append(f"Shock {direction}: stress above 80% of yield — review margins.")
+        else:
+            conclusions.append(f"Shock {direction}: stress within acceptable limits.")
+
+    if static.fos is not None and static.fos < thresholds.fos.min_acceptable:
+        verdict = "FAIL"
+        conclusions.append(
+            f"Shock {direction}: FOS {static.fos:.2f} below target {thresholds.fos.min_acceptable}."
+        )
+
+    return Narrative(
+        observations=observations,
+        conclusions=conclusions,
         verdict=verdict,
         source="rules",
     )

@@ -16,9 +16,14 @@ class DesignCalcsSection:
         return self.key in cfg.sections_enabled
 
     def extract(self, inventory: ProjectInventory, cfg: ProjectConfig) -> dict[str, Any]:
-        path = inventory.excel_path or cfg.excel_path
-        calcs = read_design_calcs(path) if path and path.exists() else None
-        if not calcs:
+        case_root = inventory.case_root or cfg.case_root or cfg.project_dir
+        calcs = read_design_calcs(
+            inventory.excel_path or cfg.excel_path,
+            excel_map_path=cfg.excel_map_path,
+            case_root=case_root,
+            fos_target=cfg.static.fos_target,
+        )
+        if not any([calcs.bolt_load, calcs.flange_moments, calcs.effort, calcs.end_flange]):
             return {
                 "bolt_load": [],
                 "flange_moments": [],

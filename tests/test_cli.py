@@ -13,6 +13,7 @@ def test_cli_help():
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
     assert "build" in result.stdout
+    assert "inventory" in result.stdout
 
 
 def test_build_mock(repo_root, fixtures_dir, template_path, tmp_path):

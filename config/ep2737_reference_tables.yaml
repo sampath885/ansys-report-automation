@@ -1,0 +1,438 @@
+design_changes:
+  caption: 'Table 2: Current Design changes comparison Table w.r.t previous reference
+    design/ drawing of NTD-117-96.'
+  headers:
+  - Ser No
+  - BOM ID
+  - NTD – 117-96
+  - EP2737
+  - Remarks
+  rows:
+  - - '1'
+    - Nominal Dia (mm)
+    - NTD – 117-96 Table 4.12 at pressure 1Mpa and at material steel refer figure
+      no.4
+    - '100'
+    - ''
+  - - '2'
+    - Nominal Pressure (Kgf/Cm2)
+    - ''
+    - '10'
+    - ''
+  - - '3'
+    - Type
+    - ''
+    - Loose type Flange
+    - ''
+  - - '4'
+    - End Connection
+    - ''
+    - Flange to Flange
+    - ''
+  - - '5'
+    - Working Medium
+    - ''
+    - Air
+    - ''
+  - - '6'
+    - Working Temperature
+    - ''
+    - -10 TO 55
+    - ''
+  - - '7'
+    - Weight
+    - ''
+    - 1.94± 03%
+    - ''
+  - - '8'
+    - Material
+    - ''
+    - SS
+    - ''
+  - - '9'
+    - Manufacturing Method
+    - ''
+    - CDF
+    - ''
+  - - '10'
+    - Model view
+    - ''
+    - ''
+    - ''
+mass_balance_reference:
+  caption: 'Table 5: Mass Balance'
+  headers:
+  - S.No.
+  - Part Name
+  - Material Std/Grade
+  - Qty
+  - Drawing (Kg)
+  - FE Model Mass (Kg)
+  rows:
+  - - '1'
+    - Welded plane Pipe Flange
+    - ASTM A 182 F32100
+    - '1'
+    - 1.94±3%
+    - Model Mass (Excluding Extended pipes & Counter Flanges)
+    - Total Mass
+  - - ''
+    - ''
+    - ''
+    - ''
+    - ''
+    - '1.9598'
+    - '17.182'
+centre_of_gravity:
+  caption: 'Table 6: Centre of gravity'
+  headers: &id001
+  - From the reference coordinatecg. Wt= ʃ x dwXCG = -1.5 mmYCG = 0 mmZCG = 0 mm
+  - ''
+  rows:
+  - *id001
+technical_specifications:
+  caption: 'Table 7: Technical Specifications'
+  headers:
+  - S.No
+  - Parameter
+  - Value
+  rows:
+  - - '1'
+    - Nominal Bore
+    - 100 mm
+  - - '2'
+    - Working Pressure
+    - 10 kg/cm²
+  - - '3'
+    - Working Medium
+    - Air
+  - - '5'
+    - Weight
+    - 1.959 kg
+  - - '6'
+    - Material
+    - ASTM A 182 F321
+mesh_control_reference:
+  caption: 'Table 8: Mesh Control'
+  headers:
+  - S. No.
+  - Parameter
+  - Value
+  rows:
+  - - '1'
+    - Type of Element
+    - Tetrahedron and 1D Beam (Solid 187, Beam 188)
+  - - '2'
+    - Type of method
+    - Patch Conforming
+  - - '3'
+    - Element Size
+    - 5 mm
+  - - '4'
+    - Control Sizing
+    - Curvature control
+  - - '5'
+    - No. of Elements
+    - '170440'
+  - - '6'
+    - No. of Nodes
+    - '294125'
+  - - '7'
+    - Quality
+    - '1'
+mesh_quality:
+  caption: 'Table 9: Mesh Quality'
+  headers:
+  - S. No.
+  - Parameter
+  - Range
+  - Value
+  rows:
+  - - '1'
+    - Aspect Ratio
+    - <
+    - '10'
+  - - '2'
+    - Skewness
+    - <
+    - '0.31'
+  - - '3'
+    - Jacobian ratio
+    - '>'
+    - '0.97'
+  - - '5'
+    - Element Quality
+    - '='
+    - '0.77'
+  - - '6'
+    - Maximum Corner Angle
+    - '='
+    - 100°
+material_properties_modelling:
+  caption: 'Table 10: Material Properties'
+  headers:
+  - ASTM A 182 F32100
+  - References
+  rows:
+  - - S.No
+    - Property
+    - Value
+    - Units
+    - ''
+  - - '1'
+    - Density
+    - '8030'
+    - Kg/m^3
+    - ASME Sec II Part D-2023, Table PRD, Page No. 1154 (series 300)
+  - - '2'
+    - Elastic Modulus
+    - '195'
+    - GPa
+    - ASME Sec II Part D-2023, Table TM1, Group G, Pg No. 1148
+  - - '3'
+    - Poisson’s Ratio
+    - '0.31'
+    - ''
+    - ASME Sec II Part D-2023, Table PRD, Page No. 1154 (series 300)
+  - - '4'
+    - Yield Strength
+    - '205'
+    - MPa / (N/mm^2)
+    - ASME Sec II Part D-2023, Pg No. 112, Group 20
+  - - '5'
+    - Tensile Strength
+    - '515'
+    - MPa / (N/mm^2)
+    - ''
+  - - '6'
+    - '% of Elongation'
+    - '30'
+    - '%'
+    - ASTM A182/A182M-12a, Table 3, Pg- 11
+  - - '7'
+    - Static Allowable Strength (Min (2/3YTS or 1/3.5UTS))
+    - '136.67'
+    - MPa / (N/mm^2)
+    - ASME Sec II Part D-2023, Pg No. 114, Group 20
+shock_pulse_specifications:
+  caption: 'Table 11: Shock Pulse Specifications'
+  headers:
+  - Direction of ImpactWt
+  - Longitudinal (X)
+  - Vertical (Y)
+  - Horizontal (Z)
+  rows:
+  - - ''
+    - A1
+    - T1
+    - A2
+    - T2
+    - A1
+    - T1
+    - A2
+    - T2
+    - A1
+    - T1
+    - A2
+    - T2
+  - - 0-60 kg
+    - '220'
+    - '2.5'
+    - '59.5'
+    - '9'
+    - '180'
+    - '3'
+    - '83.5'
+    - '6.5'
+    - '280'
+    - '3'
+    - '94'
+    - '9'
+material_properties_results:
+  caption: 'Table 12: Material Properties'
+  headers:
+  - Trade name of Material
+  - Material Grade
+  - Young’s Modulus (GPa)
+  - Density (kg/m3)
+  - Poisson’s Ratio
+  - Reference Standard
+  rows:
+  - - ASTM A 182
+    - F32100
+    - '195'
+    - '8030'
+    - '0.31'
+    - ASME Section II, Part D
+material_allowable_strength:
+  caption: 'Table 13: Material allowable strength – Static and Fatigue'
+  headers:
+  - Trade name of Material
+  - Material Grade
+  - Yield (MPa)
+  - Ultimate Tensile Strength (MPa)
+  - '% Elongation'
+  - Static Allowable (MPa)
+  - Fatigue Allowable(MPa) Base Material
+  - Fatigue Allowable(MPa) Welds
+  rows:
+  - - ASTM A 182
+    - F32100
+    - '205'
+    - '515'
+    - '30'
+    - '136.67'
+    - '68.2'
+    - N.A
+  - - ''
+    - '*Allowable stresses for Strength: Min of (1/3.5 x UTS) or (2/3 x Yield strength)'
+    - ''
+static_bolt_loads_reference:
+  caption: 'Table 15: Bolt Loads for Static Structural Analysis'
+  headers:
+  - Bolt No
+  - Maximum Axial Force (N)
+  - Maximum Shear Force (N)
+  - Tensile Stress Area mm2
+  - Shear Stress Area mm2
+  - Normal Stress
+  - Shear Stress
+  - Yield Stress MPa
+  - Conclusion
+  rows:
+  - - '1'
+    - '11833'
+    - '376.02'
+    - '115'
+    - '100'
+    - '102.895652'
+    - '3.7602'
+    - '205'
+    - Accepted
+  - - '2'
+    - '11833'
+    - '383.19'
+    - '115'
+    - '100'
+    - '102.895652'
+    - '3.8319'
+    - '205'
+    - Accepted
+  - - '3'
+    - '11833'
+    - '388.49'
+    - '115'
+    - '100'
+    - '102.895652'
+    - '3.8849'
+    - '205'
+    - Accepted
+  - - '4'
+    - '11833'
+    - '394.07'
+    - '115'
+    - '100'
+    - '102.895652'
+    - '3.9407'
+    - '205'
+    - Accepted
+  - - '5'
+    - '11833'
+    - '398.62'
+    - '115'
+    - '100'
+    - '102.895652'
+    - '3.9862'
+    - '205'
+    - Accepted
+  - - '6'
+    - '11833'
+    - '414.53'
+    - '115'
+    - '100'
+    - '102.895652'
+    - '4.1453'
+    - '205'
+    - Accepted
+  - - '7'
+    - '11833'
+    - '398.9'
+    - '115'
+    - '100'
+    - '102.895652'
+    - '3.989'
+    - '205'
+    - Accepted
+  - - '8'
+    - '11833'
+    - '385.12'
+    - '115'
+    - '100'
+    - '102.895652'
+    - '3.8512'
+    - '205'
+    - Accepted
+surface_finish_factors:
+  caption: 'Table 28: Surface Finish Factors'
+  headers:
+  - S.No
+  - Surface Finish
+  - Coefficient (a)
+  - Exponent (b)
+  rows:
+  - - '1'
+    - Ground
+    - '1.58'
+    - '-0.085'
+  - - '2'
+    - Machined or Cold-drawn
+    - '4.51'
+    - '-0.265'
+  - - '3'
+    - Hot-Rolled
+    - '57.7'
+    - '-0.718'
+  - - '4'
+    - As forged
+    - '272'
+    - '-0.0995'
+reliability_factors:
+  caption: 'Table 29: Reliability Factors'
+  headers:
+  - S.No
+  - Reliability
+  - Transformation Variable (Za)
+  - Reliability Factor (KR)
+  rows:
+  - - '1'
+    - '50'
+    - '0'
+    - '1'
+  - - '2'
+    - '90'
+    - '1.288'
+    - '0.897'
+  - - '3'
+    - '95'
+    - '1.645'
+    - '0.868'
+  - - '4'
+    - '99'
+    - '2.326'
+    - '0.814'
+  - - '5'
+    - '99.9'
+    - '3.091'
+    - '0.753'
+  - - '6'
+    - '99.99'
+    - '3.719'
+    - '0.702'
+  - - '7'
+    - '99.999'
+    - '4.265'
+    - '0.659'
+  - - '8'
+    - '99.9999'
+    - '4.753'
+    - '0.602'

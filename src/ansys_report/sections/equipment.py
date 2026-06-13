@@ -75,7 +75,13 @@ class EquipmentSection(_StaticSection):
         super().__init__("equipment", "Equipment Description", "")
 
     def extract(self, inventory: ProjectInventory, cfg: ProjectConfig) -> dict[str, Any]:
-        return {"title": self.title, "bom_id": cfg.bom_id, "title_full": cfg.title}
+        from ansys_report.extract.metadata import extract_equipment_metadata
+
+        meta = extract_equipment_metadata(inventory, cfg.bom_id, cfg.title)
+        return {
+            "title": self.title,
+            **meta.model_dump(mode="json"),
+        }
 
 
 class ModellingSection(_StaticSection):
@@ -83,13 +89,20 @@ class ModellingSection(_StaticSection):
         super().__init__("modelling", "Modelling", "")
 
     def extract(self, inventory: ProjectInventory, cfg: ProjectConfig) -> dict[str, Any]:
-        from ansys_report.extract.dpf_mesh import extract_mesh
+        import os
 
-        rst = next(iter(inventory.rst_files.values()), None)
-        mesh = extract_mesh(rst) if rst else None
-        return {
-            "title": self.title,
-            "node_count": mesh.node_count if mesh else None,
-            "element_count": mesh.element_count if mesh else None,
-            "manual_fields": mesh.manual_fields if mesh else ["node_count"],
-        }
+        from ansys_report.extract.dpf_mesh import extract_mesh_quality
+        from ansys_report.extract.metadata import extract_modelling_metadata, _static_system
+
+        meta = extract_modelling_metadata(inventory)
+        payload = meta.model_dump(mode="json")
+
+        if os.getenv("ANSYS_AVAILABLE") == "1":
+            static = _static_system(inventory)
+            if static and static.primary_rst:
+                quality = extract_mesh_quality(static.primary_rst)
+                if quality:
+                    payload["quality_metrics"] = quality
+                    payload["mesh_quality_source"] = "dpf"
+
+        return {"title": self.title, **payload}

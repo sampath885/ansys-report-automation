@@ -1,0 +1,383 @@
+# Project report metadata (per-BOM config — not read from reference DOCX at build).
+revision_log:
+  caption: 'Table 1: Revision Log'
+  headers:
+  - Document Revision number
+  - Date of revision
+  - Description
+  rows:
+  - - R00
+    - ''
+    - Initial Submission
+scope_analysis:
+  caption: 'Table 3: Scope of Design Analysis'
+  headers:
+  - S.no
+  - Analysis type
+  - Loading Condition
+  - FE Results
+  - Relevant section of PO
+  - Remarks
+  rows:
+  - - '1'
+    - Static Structural Analysis
+    - '8.1'
+    - '10.1'
+    - Sec- B
+    - --
+  - - '2'
+    - Modal Analysis
+    - '8.2'
+    - '10.2'
+    - Sec- B
+    - --
+  - - '3'
+    - Vibration Analysis
+    - '8.3'
+    - '10.3'
+    - Sec- B
+    - --
+  - - '4'
+    - Shock Analysis
+    - '8.4'
+    - '10.4'
+    - Sec- B
+    - --
+  - - '5'
+    - Fatigue Analysis
+    - NA
+    - NA
+    - N.A
+    - Indicated in the P.O. However, FE Analysis is not carried out as there is no
+      Cyclic load.
+  - - ''
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+  - - '6'
+    - Thickness Calculation of Welded Plane Pipe Flange
+    - '11.1'
+    - '11.1'
+    - Sec- B
+    - --
+  - - '7'
+    - Design Validation Flange Thickness Calculations
+    - '11.2'
+    - '11.2'
+    - Sec- B
+    - --
+  - - '8'
+    - Bolt Preload Calculations
+    - '11.3'
+    - '11.3'
+    - Sec- B
+    - --
+  - - '9'
+    - Fatigue Calculations
+    - '11.4'
+    - '11.4'
+    - Sec- B
+    - --
+software_tools:
+  caption: 'Table 4: Software used'
+  headers:
+  - 'S.NO:'
+  - Process
+  - Software used
+  - Version
+  rows:
+  - - '1'
+    - 3D Modelling
+    - Solidworks
+    - '2025'
+  - - '2'
+    - Pre-processer
+    - Ansys Space claim & Design Modeller
+    - 2025 R2
+  - - '3'
+    - Solver
+    - Ansys Enterprise
+    - 2025 R2
+  - - '4'
+    - Post-processer
+    - Ansys Mechanical
+    - 2025 R2
+references:
+  caption: 'Table 4: References'
+  headers:
+  - S.no.
+  - Reference type (Standard/Jonal paper/etc)
+  - Reference Number
+  - Title
+  - Revision year and date
+  - Referred for
+  rows:
+  - - '1'
+    - Standard
+    - ASME PCC-1-2019
+    - Guidelines for Pressure Boundary Bolted Flange Joint Assembly
+    - '2019'
+    - Bolt Pretension Calculations
+  - - '2'
+    - Standard
+    - ASME BPVC SEC II, Part D
+    - Boiler and Pressure Vessels Codes- Materials
+    - '2023'
+    - Material Properties
+  - - '3'
+    - Standard
+    - ASME section VIII Div 1
+    - Boiler and Pressure Vessels Codes
+    - '2023'
+    - Shell Thickness Calculations
+  - - '4'
+    - Standard
+    - NDT 117-96
+    - Flange section
+    - '2024'
+    - Flange design
+  - - '5'
+    - Test Book
+    - ''
+    - Machine Design – Robert L. Norton
+    - ''
+    - Endurance limit
+design_changes:
+  caption: 'Table 2: Current Design changes comparison Table w.r.t previous reference
+    design/ drawing of NTD-117-96.'
+  headers:
+  - Ser No
+  - BOM ID
+  - NTD – 117-96
+  - EP2737
+  - Remarks
+  rows:
+  - - '1'
+    - Nominal Dia (mm)
+    - NTD – 117-96 Table 4.12 at pressure 1Mpa and at material steel refer figure
+      no.4
+    - '100'
+    - ''
+  - - '2'
+    - Nominal Pressure (Kgf/Cm2)
+    - ''
+    - '10'
+    - ''
+  - - '3'
+    - Type
+    - ''
+    - Loose type Flange
+    - ''
+  - - '4'
+    - End Connection
+    - ''
+    - Flange to Flange
+    - ''
+  - - '5'
+    - Working Medium
+    - ''
+    - Air
+    - ''
+  - - '6'
+    - Working Temperature
+    - ''
+    - -10 TO 55
+    - ''
+  - - '7'
+    - Weight
+    - ''
+    - 1.94± 03%
+    - ''
+  - - '8'
+    - Material
+    - ''
+    - SS
+    - ''
+  - - '9'
+    - Manufacturing Method
+    - ''
+    - CDF
+    - ''
+  - - '10'
+    - Model view
+    - ''
+    - ''
+    - ''
+centre_of_gravity:
+  caption: 'Table 6: Centre of gravity'
+  headers: &id001
+  - From the reference coordinatecg. Wt= ʃ x dwXCG = -1.5 mmYCG = 0 mmZCG = 0 mm
+  - ''
+  rows:
+  - *id001
+technical_specifications:
+  caption: 'Table 7: Technical Specifications'
+  headers:
+  - S.No
+  - Parameter
+  - Value
+  rows:
+  - - '1'
+    - Nominal Bore
+    - 100 mm
+  - - '2'
+    - Working Pressure
+    - 10 kg/cm²
+  - - '3'
+    - Working Medium
+    - Air
+  - - '5'
+    - Weight
+    - 1.959 kg
+  - - '6'
+    - Material
+    - ASTM A 182 F321
+mesh_quality:
+  caption: 'Table 9: Mesh Quality'
+  headers:
+  - S. No.
+  - Parameter
+  - Range
+  - Value
+  rows:
+  - - '1'
+    - Aspect Ratio
+    - <
+    - '10'
+  - - '2'
+    - Skewness
+    - <
+    - '0.31'
+  - - '3'
+    - Jacobian ratio
+    - '>'
+    - '0.97'
+  - - '5'
+    - Element Quality
+    - '='
+    - '0.77'
+  - - '6'
+    - Maximum Corner Angle
+    - '='
+    - 100°
+material_properties_modelling:
+  caption: 'Table 10: Material Properties'
+  headers:
+  - ASTM A 182 F32100
+  - References
+  rows:
+  - - S.No
+    - Property
+    - Value
+    - Units
+    - ''
+  - - '1'
+    - Density
+    - '8030'
+    - Kg/m^3
+    - ASME Sec II Part D-2023, Table PRD, Page No. 1154 (series 300)
+  - - '2'
+    - Elastic Modulus
+    - '195'
+    - GPa
+    - ASME Sec II Part D-2023, Table TM1, Group G, Pg No. 1148
+  - - '3'
+    - Poisson’s Ratio
+    - '0.31'
+    - ''
+    - ASME Sec II Part D-2023, Table PRD, Page No. 1154 (series 300)
+  - - '4'
+    - Yield Strength
+    - '205'
+    - MPa / (N/mm^2)
+    - ASME Sec II Part D-2023, Pg No. 112, Group 20
+  - - '5'
+    - Tensile Strength
+    - '515'
+    - MPa / (N/mm^2)
+    - ''
+  - - '6'
+    - '% of Elongation'
+    - '30'
+    - '%'
+    - ASTM A182/A182M-12a, Table 3, Pg- 11
+  - - '7'
+    - Static Allowable Strength (Min (2/3YTS or 1/3.5UTS))
+    - '136.67'
+    - MPa / (N/mm^2)
+    - ASME Sec II Part D-2023, Pg No. 114, Group 20
+shock_pulse_specifications:
+  caption: 'Table 11: Shock Pulse Specifications'
+  headers:
+  - Direction of ImpactWt
+  - Longitudinal (X)
+  - Vertical (Y)
+  - Horizontal (Z)
+  rows:
+  - - ''
+    - A1
+    - T1
+    - A2
+    - T2
+    - A1
+    - T1
+    - A2
+    - T2
+    - A1
+    - T1
+    - A2
+    - T2
+  - - 0-60 kg
+    - '220'
+    - '2.5'
+    - '59.5'
+    - '9'
+    - '180'
+    - '3'
+    - '83.5'
+    - '6.5'
+    - '280'
+    - '3'
+    - '94'
+    - '9'
+material_properties_results:
+  caption: 'Table 12: Material Properties'
+  headers:
+  - Trade name of Material
+  - Material Grade
+  - Young’s Modulus (GPa)
+  - Density (kg/m3)
+  - Poisson’s Ratio
+  - Reference Standard
+  rows:
+  - - ASTM A 182
+    - F32100
+    - '195'
+    - '8030'
+    - '0.31'
+    - ASME Section II, Part D
+material_allowable_strength:
+  caption: 'Table 13: Material allowable strength – Static and Fatigue'
+  headers:
+  - Trade name of Material
+  - Material Grade
+  - Yield (MPa)
+  - Ultimate Tensile Strength (MPa)
+  - '% Elongation'
+  - Static Allowable (MPa)
+  - Fatigue Allowable(MPa) Base Material
+  - Fatigue Allowable(MPa) Welds
+  rows:
+  - - ASTM A 182
+    - F32100
+    - '205'
+    - '515'
+    - '30'
+    - '136.67'
+    - '68.2'
+    - N.A
+  - - ''
+    - '*Allowable stresses for Strength: Min of (1/3.5 x UTS) or (2/3 x Yield strength)'
+    - ''

@@ -21,8 +21,10 @@ from ansys_report.sections.equipment import (
     ScopeSection,
     SoftwareSection,
 )
-from ansys_report.sections.harmonic import HarmonicSection
+from ansys_report.sections.harmonic import harmonic_sections
 from ansys_report.sections.modal import ModalSection
+from ansys_report.sections.reference_only import LoadsSection, MaterialsSection
+from ansys_report.sections.shock import ShockSection
 from ansys_report.sections.static_structural import StaticStructuralSection
 
 logger = logging.getLogger(__name__)
@@ -34,9 +36,12 @@ ALL_SECTIONS = [
     ReferencesSection(),
     EquipmentSection(),
     ModellingSection(),
+    LoadsSection(),
+    MaterialsSection(),
     ModalSection(),
     StaticStructuralSection(),
-    HarmonicSection(),
+    *harmonic_sections(),
+    ShockSection(),
     DesignCalcsSection(),
 ]
 
@@ -101,7 +106,7 @@ def build_context(
 
         fragment = section.context(data, narrative_data)
         ctx.update(fragment)
-        if section.key in ("revision", "scope", "software", "references", "equipment", "modelling"):
+        if section.key in ("revision", "scope", "software", "references", "equipment", "modelling", "loads", "materials"):
             ctx["sections"][section.key] = fragment.get(section.key, fragment)
 
         for field in data.get("manual_fields", []):

@@ -1,0 +1,493 @@
+# EP2737 section content matrix — maps reference template blocks to data sources.
+# Regenerate inventory: python scripts/inventory_ep2737.py
+version: 1
+reference_template: Design Report_EP2737_UPDATED.docx
+
+sections:
+  - key: cover
+    enabled: true
+    blocks:
+      - type: cover
+
+  - key: revision
+    section_key: revision
+    heading: Revision log
+    heading_level: 1
+    reference_table: "Table 1: Revision Log"
+    blocks:
+      - type: reference_table
+        ref_key: revision_log
+      - type: reference_table
+        ref_key: design_changes
+
+  - key: scope
+    section_key: scope
+    heading: Scope
+    heading_level: 1
+    reference_table: "Table 3: Scope of Design Analysis"
+    blocks:
+      - type: reference_table
+        ref_key: scope_analysis
+
+  - key: software
+    section_key: software
+    heading: Software/ Tools
+    heading_level: 1
+    blocks:
+      - type: reference_table
+        ref_key: software_tools
+
+  - key: references
+    section_key: references
+    heading: References
+    heading_level: 1
+    blocks:
+      - type: reference_table
+        ref_key: references
+
+  - key: equipment
+    section_key: equipment
+    heading: Equipment details
+    heading_level: 1
+    blocks:
+      - type: heading
+        text: Model
+        level: 2
+      - type: figure
+        slot: cad_isometric
+        caption: "Figure 3: 2D Drawing"
+        required: false
+      - type: figure
+        slot: cad_section
+        caption: "Figure 4: Welded Plane Pipe Flange NTD 117-96"
+        required: false
+      - type: heading
+        text: "Mass, Centre of gravity, model orientation and materials as per drawing"
+        level: 2
+      - type: heading
+        text: "The weight of FE analysis is tabulated below: -"
+        level: 3
+      - type: reference_table
+        ref_key: mass_balance
+      - type: reference_table
+        ref_key: centre_of_gravity
+      - type: reference_table
+        ref_key: technical_specifications
+      - type: paragraph
+        template: "Assembly mass: {assembly_mass_kg} kg"
+        when_field: assembly.mass_kg
+      - type: figure
+        slot: geometry_model_orientation
+        caption: "Figure 5: Model Orientation"
+        required: false
+
+  - key: modelling
+    section_key: modelling
+    heading: Modelling details
+    heading_level: 1
+    blocks:
+      - type: paragraph
+        template: "Project: {project_name}"
+      - type: paragraph
+        template: "Mesh: {node_count} nodes, {element_count} elements"
+      - type: reference_table
+        ref_key: mesh_control_reference
+      - type: figure
+        slot: mesh_global
+        caption: "Figure 6: Mesh"
+        required: false
+      - type: figure
+        slot: mesh_quality_aspect
+        caption: "Figure 7: Aspect ratio"
+        required: false
+      - type: figure
+        slot: mesh_skewness
+        caption: "Figure 8: Skewness"
+        required: false
+      - type: figure
+        slot: mesh_jacobian
+        caption: "Figure 9: Jacobian ratio"
+        required: false
+      - type: paragraph
+        template: "Load steps: {load_steps_text}"
+      - type: paragraph
+        template: "Contacts: {contact_count}"
+      - type: figure
+        slot: modelling_contacts
+        caption: "Figure 13: Contacts"
+        required: false
+      - type: reference_table
+        ref_key: mesh_quality
+      - type: reference_table
+        ref_key: material_properties_modelling
+
+  - key: loads
+    section_key: loads
+    heading: Loads & Boundary Conditions
+    heading_level: 1
+    blocks:
+      - type: heading
+        text: Static Structural Analysis
+        level: 2
+      - type: heading
+        text: Methodology
+        level: 3
+      - type: paragraph
+        text: >
+          Static structural analysis is performed on the Welded Plane Pipe Flange assembly
+          considering bolt pretension, earth gravity, design pressure, and fluid weight per PO.
+      - type: reference_table
+        ref_key: loads_summary
+      - type: figure
+        slot: static_earth_gravity
+        caption: "Figure 14: Standard Earth Gravity"
+        required: false
+      - type: figure
+        slot: static_fixed_support
+        caption: "Figure 15: Fixed Support. Fixed in all DOFs"
+        required: false
+      - type: figure
+        slot: static_pressure
+        caption: "Figure 16: Pressure"
+        required: false
+      - type: heading
+        text: Shock Analysis - Equivalent Static Approach
+        level: 2
+      - type: heading
+        text: Methodology
+        level: 3
+      - type: paragraph
+        text: >
+          Equivalent static shock analysis applies peak shock accelerations as inertia loads
+          in each axis direction per the shock pulse specification.
+      - type: reference_table
+        ref_key: shock_pulse_specifications
+
+  - key: materials
+    section_key: materials
+    heading: Material Properties & Static allowable Strength
+    heading_level: 1
+    blocks:
+      - type: reference_table
+        ref_key: material_properties_results
+      - type: reference_table
+        ref_key: material_allowable_strength
+
+  - key: modal
+    section_key: modal
+    heading: Modal Analysis
+    heading_level: 2
+    parent_section: Results & Discussions
+    blocks:
+      - type: table
+        caption: "Table 14: Modal Frequencies"
+        headers: ["Mode", "Frequency (Hz)"]
+        rows_path: modes
+        columns: [index, freq_hz]
+      - type: figure
+        slot: modal_mode1
+        caption: "Figure 30: Mode 1"
+        required: false
+      - type: figure
+        slot: modal_mode2
+        caption: "Figure 31: Mode 2"
+        required: false
+      - type: figure
+        slot: modal_mode3
+        caption: "Figure 32: Mode 3"
+        required: false
+      - type: figure
+        slot: modal_mode4
+        caption: "Figure 33: Mode 4"
+        required: false
+      - type: figure
+        slot: modal_mode5
+        caption: "Figure 34: Mode 5"
+        required: false
+      - type: figure
+        slot: modal_mode6
+        caption: "Figure 35: Mode 6"
+        required: false
+      - type: heading
+        text: "Modal Analysis: Conclusions"
+        level: 3
+      - type: narrative
+
+  - key: static
+    section_key: static
+    heading: Static Structural Analysis
+    heading_level: 2
+    parent_section: Results & Discussions
+    blocks:
+      - type: figure
+        slot: static_total_deformation
+        caption: "Figure 36: Total Deformation of Welded Plane Pipe Flange Assembly"
+        required: false
+      - type: figure
+        slot: static_vonmises_stress
+        caption: "Figure 37: Equivalent Von-mises Stress of Welded Plane Pipe Flange Assembly"
+        required: false
+      - type: figure
+        slot: static_vonmises_flange
+        caption: "Figure 38: Equivalent Von-mises Stress of Welded Plane Pipe Flange"
+        required: false
+      - type: scalar
+        label: Max von-Mises stress
+        field: max_stress_mpa
+        unit: MPa
+      - type: scalar
+        label: Max deformation
+        field: max_deformation_mm
+        unit: mm
+      - type: scalar
+        label: Factor of safety
+        field: fos
+        when_field: fos
+      - type: table
+        caption: "Table 15: Bolt Loads for Static Structural Analysis"
+        headers:
+          - Bolt No
+          - Maximum Axial Force (N)
+          - Maximum Shear Force (N)
+          - Tensile Stress Area mm2
+          - Shear Stress Area mm2
+          - Normal Stress
+          - Shear Stress
+          - Yield Stress MPa
+          - Conclusion
+        rows_path: bolt_loads
+        columns:
+          - bolt_no
+          - axial_force_n
+          - shear_force_n
+          - tensile_stress_area_mm2
+          - shear_stress_area_mm2
+          - normal_stress_mpa
+          - shear_stress_mpa
+          - yield_stress_mpa
+          - conclusion
+      - type: heading
+        text: "Static structural analysis: Conclusion"
+        level: 2
+      - type: table
+        caption: "Table 16: Static Structural Analysis Conclusion"
+        headers: ["Sr. No", "Material", "Maximum Occurs on", "Stresses Observed (MPa)", "Allowable Stress (MPa)", "Remarks"]
+        rows_path: conclusion_table
+        columns: [sr_no, material, location, stress_mpa, allowable_mpa, remarks]
+      - type: narrative
+
+  - key: harmonic_x
+    section_key: harmonic_x
+    heading: "Vibration Resistance Analysis in X – Direction"
+    heading_level: 3
+    parent_section: Vibration Resistance Analysis
+    blocks:
+      - type: paragraph
+        template: >
+          Harmonic Response of Welded Plane Pipe Flange simulated for a frequency range of
+          3–33 Hz with amplitude of 0.7g acceleration in X direction.
+      - type: figure
+        slot: harmonic_x_location
+        caption: "Figure 40: Frequency response on the Flange in X – direction"
+        required: false
+      - type: figure
+        slot: harmonic_x_accel_plot
+        caption: "Figure 41: Frequency response acceleration for a frequency range of 3 – 33 Hz"
+        required: false
+      - type: scalar
+        label: Peak displacement
+        field: peak_displacement_mm
+        unit: mm
+        suffix_template: "@ {peak_frequency_hz} Hz"
+      - type: figure
+        slot: harmonic_x_deformation
+        caption: "Figure 42: Total Deformation of Welded Plane Pipe Flange Assembly"
+        required: false
+      - type: figure
+        slot: harmonic_x_stress_asm
+        caption: "Figure 43: Equivalent Von-Mises Stress of Welded Plane Pipe Flange Assembly"
+        required: false
+      - type: figure
+        slot: harmonic_x_stress_flange
+        caption: "Figure 44: Equivalent Von-Mises Stress of Welded Plane Pipe Flange"
+        required: false
+      - type: narrative
+
+  - key: harmonic_y
+    section_key: harmonic_y
+    heading: "Vibration Resistance Analysis in Y – Direction"
+    heading_level: 3
+    parent_section: Vibration Resistance Analysis
+    blocks:
+      - type: paragraph
+        template: >
+          Harmonic Response of Welded Plane Pipe Flange simulated for a frequency range of
+          3–33 Hz with amplitude of 0.7g acceleration in Y direction.
+      - type: figure
+        slot: harmonic_y_location
+        caption: "Figure 45: Frequency response on the Flange in Y – direction"
+        required: false
+      - type: figure
+        slot: harmonic_y_accel_plot
+        caption: "Figure 46: Frequency response acceleration for a frequency range of 3 – 33 Hz"
+        required: false
+      - type: scalar
+        label: Peak displacement
+        field: peak_displacement_mm
+        unit: mm
+        suffix_template: "@ {peak_frequency_hz} Hz"
+      - type: figure
+        slot: harmonic_y_deformation
+        caption: "Figure 47: Total Deformation of Welded Plane Pipe Flange Assembly"
+        required: false
+      - type: figure
+        slot: harmonic_y_stress_asm
+        caption: "Figure 48: Equivalent Von-mises Stress Welded Plane Pipe Flange Assembly"
+        required: false
+      - type: figure
+        slot: harmonic_y_stress_flange
+        caption: "Figure 49: Equivalent Von-Misses Stress of Welded Plane Pipe Flange"
+        required: false
+      - type: narrative
+
+  - key: harmonic_z
+    section_key: harmonic_z
+    heading: "Vibration Resistance Analysis in Z – Direction"
+    heading_level: 3
+    parent_section: Vibration Resistance Analysis
+    blocks:
+      - type: paragraph
+        template: >
+          Harmonic Response of Welded Plane Pipe Flange simulated for a frequency range of
+          3–33 Hz with amplitude of 0.7g acceleration in Z direction.
+      - type: figure
+        slot: harmonic_z_location
+        caption: "Figure 50: Frequency response on the Flange in Z – direction"
+        required: false
+      - type: figure
+        slot: harmonic_z_accel_plot
+        caption: "Figure 51: Frequency response acceleration for a frequency range of 3 – 33 Hz"
+        required: false
+      - type: scalar
+        label: Peak displacement
+        field: peak_displacement_mm
+        unit: mm
+        suffix_template: "@ {peak_frequency_hz} Hz"
+      - type: figure
+        slot: harmonic_z_deformation
+        caption: "Figure 52: Total Deformation of Welded Plane Pipe Flange Assembly"
+        required: false
+      - type: figure
+        slot: harmonic_z_stress_asm
+        caption: "Figure 53: Equivalent Von-mises Stress of Welded Plane Pipe Flange Assembly"
+        required: false
+      - type: figure
+        slot: harmonic_z_stress_flange
+        caption: "Figure 54: Equivalent Von-Misses Stress of Welded Plane Pipe Flange"
+        required: false
+      - type: narrative
+
+  - key: harmonic_conclusion
+    section_key: vibration_conclusion
+    heading: "Vibration resistance Analysis – Conclusion"
+    heading_level: 3
+    parent_section: Vibration Resistance Analysis
+    enabled_when_any: [harmonic_x, harmonic_y, harmonic_z]
+    blocks:
+      - type: table
+        caption: "Vibration resistance summary"
+        headers: ["Sl. No.", "Analysis", "Component", "Material", "Peak Frequency (Hz)", "Peak Displacement (mm)", "Remarks"]
+        rows_path: rows
+        columns: [sr_no, analysis, component, material, peak_frequency_hz, peak_displacement_mm, remarks]
+      - type: narrative
+        narrative_from: harmonic_x
+
+  - key: shock
+    section_key: shock
+    heading: "Shock Analysis – Equivalent Static Approach"
+    heading_level: 2
+    parent_section: Results & Discussions
+    blocks:
+      - type: repeat
+        items_path: directions
+        item_prefix: shock_item
+        blocks:
+          - type: heading
+            template: "Equivalent Static Analysis in {shock_item.direction} Direction"
+            level: 3
+          - type: figure
+            slot_template: "shock_{shock_item.key}_deformation"
+            caption_template: "Total Deformation — shock {shock_item.direction}"
+            required: false
+          - type: figure
+            slot_template: "shock_{shock_item.key}_stress_asm"
+            caption_template: "Equivalent Von-Mises Stress — assembly, shock {shock_item.direction}"
+            required: false
+          - type: figure
+            slot_template: "shock_{shock_item.key}_stress_flange"
+            caption_template: "Equivalent Von-Mises Stress — flange, shock {shock_item.direction}"
+            required: false
+          - type: table
+            caption_template: "Table {shock_item.table_no}: Bolt Loads: Shock in {shock_item.direction} direction"
+            headers:
+              - Bolt No
+              - Maximum Axial Force (N)
+              - Maximum Shear Force (N)
+              - Tensile Stress Area mm2
+              - Shear Stress Area mm2
+              - Normal Stress
+              - Shear Stress
+              - Yield Stress MPa
+              - Conclusion
+            rows_path: bolt_loads
+            columns:
+              - bolt_no
+              - axial_force_n
+              - shear_force_n
+              - tensile_stress_area_mm2
+              - shear_stress_area_mm2
+              - normal_stress_mpa
+              - shear_stress_mpa
+              - yield_stress_mpa
+              - conclusion
+      - type: heading
+        text: "Result Summary – Equivalent Static Analysis"
+        level: 3
+      - type: table
+        caption: "Table 23: Result Summary – Equivalent Static Analysis"
+        headers: ["Direction", "Max stress (MPa)", "Max deformation (mm)", "FOS"]
+        rows_path: directions
+        columns: [direction, max_stress_mpa, max_deformation_mm, fos]
+      - type: narrative
+
+  - key: design_calcs
+    section_key: design_calcs
+    heading: MECHANICAL DESIGN CALCULATION
+    heading_level: 1
+    blocks:
+      - type: heading
+        text: Thickness Calculation of Welded Plane Pipe Flange
+        level: 2
+      - type: table
+        caption: "Table 25: Flange Thickness calculation"
+        headers: ["Parameter", "Value", "Unit", "Verdict"]
+        rows_path: end_flange
+        columns: [label, value, unit, verdict]
+      - type: heading
+        text: Bolt Preload Calculations
+        level: 2
+      - type: table
+        caption: "Table 26: Bolt pretension calculations"
+        headers: ["Parameter", "Value", "Unit"]
+        rows_path: bolt_load
+        columns: [label, value, unit]
+      - type: heading
+        text: Fatigue Strength Calculations
+        level: 2
+      - type: reference_table
+        ref_key: fatigue_strength_calculations
+      - type: reference_table
+        ref_key: surface_finish_factors
+      - type: reference_table
+        ref_key: reliability_factors
+      - type: narrative

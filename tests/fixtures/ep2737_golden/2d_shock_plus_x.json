@@ -1,0 +1,11 @@
+{
+  "spike": "2d_shock_plus_x",
+  "rst": "EP 2737\\Structural Analysis_EP2737\\EP2737_files\\dp0\\SYS-5\\MECH\\file.rst",
+  "max_stress_mpa": 255.03355634657729,
+  "max_deformation_mm": 0.06558382216159132,
+  "reaction_force_n": 594.7874782704738,
+  "reaction_moment_nmm": null,
+  "fos": 0.67,
+  "per_material": {},
+  "manual_fields": []
+}

@@ -1,0 +1,24 @@
+{
+  "phase": "4_excel",
+  "end_flange": {
+    "fos": 1.8006517160929383,
+    "required_thickness_mm": 7.497285499103823,
+    "tangential_stress_mpa": 56.86837028668987,
+    "stress_verdict": "ACCEPTED"
+  },
+  "bolt_load": {
+    "bolt_count": 8,
+    "design_pressure_mpa": 1.0
+  },
+  "effort": {
+    "preload_n": 11832.5394311494,
+    "bolt_size": "M14X2",
+    "yield_mpa": 205.0
+  },
+  "row_counts": {
+    "end_flange": 44,
+    "flange_moments": 7,
+    "bolt_load": 13,
+    "effort": 5
+  }
+}

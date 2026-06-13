@@ -1,0 +1,12 @@
+{
+  "spike": "2b_static",
+  "rst": "EP 2737\\Structural Analysis_EP2737\\EP2737_files\\dp0\\SYS\\MECH\\file.rst",
+  "load_step": 3,
+  "max_stress_mpa": 239.6292510330148,
+  "max_deformation_mm": 0.06558382216159157,
+  "reaction_force_n": 32056.697883891295,
+  "reaction_moment_nmm": null,
+  "fos": 0.71,
+  "per_material": {},
+  "manual_fields": []
+}

@@ -1,0 +1,58 @@
+variant: ep2737
+
+# Workbook keys resolved relative to case_root unless absolute.
+workbooks:
+  design_calcs: "OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx"
+  bolt_preload: "Bolt pre load.xlsx"
+
+tables:
+  end_flange:
+    report_table: "Table 25: Flange Thickness calculation"
+    workbook: design_calcs
+    sheet: "Welded Flange Thickness Calcula"
+    layout: parameters_bcde
+    header_row: 3
+    label_col: 1
+    unit_col: 2
+    value_col: 3
+    source_col: 4
+
+  flange_moments:
+    workbook: design_calcs
+    sheet: "Welded Flange Thickness Calcula"
+    layout: parameters_bcde
+    header_row: 3
+    label_col: 1
+    unit_col: 2
+    value_col: 3
+    source_col: 4
+    label_contains:
+      - MOMENT
+      - ", MD"
+      - ", MG"
+      - ", MT"
+      - "M0"
+      - "ST<"
+      - "tangential flange stress"
+
+  bolt_load:
+    report_table: "Table 26: Bolt pretension calculations"
+    workbook: bolt_preload
+    sheet: "Bolt pretension load with "
+    layout: label_value_unit
+    label_col: 0
+    value_col: 1
+    unit_col: 2
+    per_bolt_col: 3
+    source_col: 5
+
+  effort:
+    report_table: "Table 27: Fatigue Strength Calculations"
+    workbook: bolt_preload
+    sheet: "without Gasket"
+    layout: parameter_column
+    header_row: 5
+    label_col: 2
+    value_col: 3
+    source_col: 4
+    data_start_row: 6

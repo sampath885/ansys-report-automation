@@ -1,0 +1,93 @@
+{
+  "phase": "9_static_bolt_loads",
+  "bolt_loads": [
+    {
+      "bolt_no": 1,
+      "axial_force_n": 11833.0,
+      "shear_force_n": 376.02,
+      "tensile_stress_area_mm2": 115.0,
+      "shear_stress_area_mm2": 100.0,
+      "normal_stress_mpa": 102.895652,
+      "shear_stress_mpa": 3.7602,
+      "yield_stress_mpa": 205.0,
+      "conclusion": "Accepted"
+    },
+    {
+      "bolt_no": 2,
+      "axial_force_n": 11833.0,
+      "shear_force_n": 383.19,
+      "tensile_stress_area_mm2": 115.0,
+      "shear_stress_area_mm2": 100.0,
+      "normal_stress_mpa": 102.895652,
+      "shear_stress_mpa": 3.8319,
+      "yield_stress_mpa": 205.0,
+      "conclusion": "Accepted"
+    },
+    {
+      "bolt_no": 3,
+      "axial_force_n": 11833.0,
+      "shear_force_n": 388.49,
+      "tensile_stress_area_mm2": 115.0,
+      "shear_stress_area_mm2": 100.0,
+      "normal_stress_mpa": 102.895652,
+      "shear_stress_mpa": 3.8849,
+      "yield_stress_mpa": 205.0,
+      "conclusion": "Accepted"
+    },
+    {
+      "bolt_no": 4,
+      "axial_force_n": 11833.0,
+      "shear_force_n": 394.07,
+      "tensile_stress_area_mm2": 115.0,
+      "shear_stress_area_mm2": 100.0,
+      "normal_stress_mpa": 102.895652,
+      "shear_stress_mpa": 3.9407,
+      "yield_stress_mpa": 205.0,
+      "conclusion": "Accepted"
+    },
+    {
+      "bolt_no": 5,
+      "axial_force_n": 11833.0,
+      "shear_force_n": 398.62,
+      "tensile_stress_area_mm2": 115.0,
+      "shear_stress_area_mm2": 100.0,
+      "normal_stress_mpa": 102.895652,
+      "shear_stress_mpa": 3.9862,
+      "yield_stress_mpa": 205.0,
+      "conclusion": "Accepted"
+    },
+    {
+      "bolt_no": 6,
+      "axial_force_n": 11833.0,
+      "shear_force_n": 414.53,
+      "tensile_stress_area_mm2": 115.0,
+      "shear_stress_area_mm2": 100.0,
+      "normal_stress_mpa": 102.895652,
+      "shear_stress_mpa": 4.1453,
+      "yield_stress_mpa": 205.0,
+      "conclusion": "Accepted"
+    },
+    {
+      "bolt_no": 7,
+      "axial_force_n": 11833.0,
+      "shear_force_n": 398.9,
+      "tensile_stress_area_mm2": 115.0,
+      "shear_stress_area_mm2": 100.0,
+      "normal_stress_mpa": 102.895652,
+      "shear_stress_mpa": 3.989,
+      "yield_stress_mpa": 205.0,
+      "conclusion": "Accepted"
+    },
+    {
+      "bolt_no": 8,
+      "axial_force_n": 11833.0,
+      "shear_force_n": 385.12,
+      "tensile_stress_area_mm2": 115.0,
+      "shear_stress_area_mm2": 100.0,
+      "normal_stress_mpa": 102.895652,
+      "shear_stress_mpa": 3.8512,
+      "yield_stress_mpa": 205.0,
+      "conclusion": "Accepted"
+    }
+  ]
+}

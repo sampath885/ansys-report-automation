@@ -1,0 +1,161 @@
+revision_log:
+  caption: 'Table 1: Revision Log'
+  headers:
+  - Document Revision number
+  - Date of revision
+  - Description
+  rows:
+  - - R00
+    - ''
+    - Initial Submission
+scope_analysis:
+  caption: 'Table 3: Scope of Design Analysis'
+  headers:
+  - S.no
+  - Analysis type
+  - Loading Condition
+  - FE Results
+  - Relevant section of PO
+  - Remarks
+  rows:
+  - - '1'
+    - Static Structural Analysis
+    - '8.1'
+    - '10.1'
+    - Sec- B
+    - --
+  - - '2'
+    - Modal Analysis
+    - '8.2'
+    - '10.2'
+    - Sec- B
+    - --
+  - - '3'
+    - Vibration Analysis
+    - '8.3'
+    - '10.3'
+    - Sec- B
+    - --
+  - - '4'
+    - Shock Analysis
+    - '8.4'
+    - '10.4'
+    - Sec- B
+    - --
+  - - '5'
+    - Fatigue Analysis
+    - NA
+    - NA
+    - N.A
+    - Indicated in the P.O. However, FE Analysis is not carried out as there is no
+      Cyclic load.
+  - - ''
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+  - - '6'
+    - Thickness Calculation of Welded Plane Pipe Flange
+    - '11.1'
+    - '11.1'
+    - Sec- B
+    - --
+  - - '7'
+    - Design Validation Flange Thickness Calculations
+    - '11.2'
+    - '11.2'
+    - Sec- B
+    - --
+  - - '8'
+    - Bolt Preload Calculations
+    - '11.3'
+    - '11.3'
+    - Sec- B
+    - --
+  - - '9'
+    - Fatigue Calculations
+    - '11.4'
+    - '11.4'
+    - Sec- B
+    - --
+software_tools:
+  caption: 'Table 4: Software used'
+  headers:
+  - 'S.NO:'
+  - Process
+  - Software used
+  - Version
+  rows:
+  - - '1'
+    - 3D Modelling
+    - Solidworks
+    - '2025'
+  - - '2'
+    - Pre-processer
+    - Ansys Space claim & Design Modeller
+    - 2025 R2
+  - - '3'
+    - Solver
+    - Ansys Enterprise
+    - 2025 R2
+  - - '4'
+    - Post-processer
+    - Ansys Mechanical
+    - 2025 R2
+references:
+  caption: 'Table 4: References'
+  headers:
+  - S.no.
+  - Reference type (Standard/Jonal paper/etc)
+  - Reference Number
+  - Title
+  - Revision year and date
+  - Referred for
+  rows:
+  - - '1'
+    - Standard
+    - ASME PCC-1-2019
+    - Guidelines for Pressure Boundary Bolted Flange Joint Assembly
+    - '2019'
+    - Bolt Pretension Calculations
+  - - '2'
+    - Standard
+    - ASME BPVC SEC II, Part D
+    - Boiler and Pressure Vessels Codes- Materials
+    - '2023'
+    - Material Properties
+  - - '3'
+    - Standard
+    - ASME section VIII Div 1
+    - Boiler and Pressure Vessels Codes
+    - '2023'
+    - Shell Thickness Calculations
+  - - '4'
+    - Standard
+    - NDT 117-96
+    - Flange section
+    - '2024'
+    - Flange design
+  - - '5'
+    - Test Book
+    - ''
+    - Machine Design – Robert L. Norton
+    - ''
+    - Endurance limit
+static_flange_conclusion:
+  caption: 'Table 16: Static Structural Analysis Conclusion (flange)'
+  headers:
+  - Sr. No
+  - Material
+  - Maximum Occurs on
+  - Stresses Observed (MPa)
+  - Allowable Stress (MPa)
+  - Remarks
+  rows:
+  - - '1'
+    - ASTM A182 F321
+    - Flange
+    - '108.65'
+    - '136.67'
+    - Stresses less than allowable
