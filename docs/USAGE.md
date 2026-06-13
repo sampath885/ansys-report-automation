@@ -1,6 +1,12 @@
 # User Guide — ANSYS Report Automation
 
-## Quick start
+## Quick start (production)
+
+1. Install the package (`pip install -e .`)
+2. Run `ansys-report run` and enter your Workbench project, image exports, and Excel paths
+3. Open the generated DOCX in `automated_scripts_output/`
+
+## Quick start (manual config)
 
 1. Install the package (`pip install -e .`)
 2. Copy `config/project.example.yaml` → `config/project.yaml` and set `project_dir`

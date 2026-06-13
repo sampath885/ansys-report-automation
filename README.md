@@ -44,6 +44,33 @@ Point `project_dir` in `config/project.yaml` at your Workbench folder containing
 
 ## Usage
 
+### Production (single command)
+
+From the repo root, run the full flow — prompts for paths, validates, builds DOCX/PDF:
+
+```powershell
+ansys-report run
+```
+
+You will be asked for:
+
+1. **Workbench project folder** — where the `.wbpj` lives (solved RST/CAERep tree)
+2. **Image assets folder** — where Mechanical export PNGs are saved (created if missing)
+3. **Design calculations Excel** — full path to the workbook
+4. **Bolt preload Excel** — optional; press Enter to skip
+
+Output is written to `automated_scripts_output/` (override with `--out`).
+
+Non-interactive (all paths on the command line):
+
+```powershell
+ansys-report run `
+  --project-dir "D:\Projects\EP2737\Structural Analysis_EP2737" `
+  --image-assets "D:\Projects\EP2737\exports" `
+  --excel-calcs "D:\Projects\EP2737\OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx" `
+  --excel-bolt-preload "D:\Projects\EP2737\Bolt pre load.xlsx"
+```
+
 ### Validate inputs (no render)
 
 ```powershell
