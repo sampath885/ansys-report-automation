@@ -13,13 +13,20 @@ from rich.console import Console
 from rich.table import Table
 
 from ansys_report.config import (
+    ProjectConfig,
     ValidationReport,
     load_image_map,
     load_project_config,
-    load_thresholds,
     validate_project_paths,
 )
 from ansys_report.images.mapper import assets_to_validation, build_inline_images, resolve_assets
+from ansys_report.production_flow import (
+    apply_production_inputs,
+    default_image_map,
+    default_production_config,
+    inputs_from_flags,
+    prompt_production_inputs,
+)
 from ansys_report.report.context_builder import build_context, load_mock_results
 from ansys_report.report.pdf import convert_to_pdf
 from ansys_report.report.render import default_template_path, render_report
@@ -93,7 +100,7 @@ def _resolve_paths(
     project_dir: Optional[Path],
     image_map: Optional[Path],
     template: Optional[Path],
-):
+) -> ProjectConfig:
     cfg = load_project_config(config, project_dir)
     repo = config.resolve().parent.parent
     if image_map is None:
@@ -107,24 +114,17 @@ def _resolve_paths(
     return cfg
 
 
-@app.command()
-def build(
-    config: Path = typer.Option(..., "--config", "-c", help="Path to project.yaml"),
-    project_dir: Optional[Path] = typer.Option(None, "--project-dir", help="Workbench project folder"),
-    out: Path = typer.Option(Path("output"), "--out", "-o", help="Output directory"),
-    image_map: Optional[Path] = typer.Option(None, "--image-map", help="image_map.yaml path"),
-    template: Optional[Path] = typer.Option(None, "--template", help="docxtpl template path"),
-    mock: Optional[Path] = typer.Option(None, "--mock", help="Use mock_results.json instead of ANSYS"),
-    golden_dpf: bool = typer.Option(False, "--golden-dpf", help="Use golden modal/static when DPF unavailable"),
-    no_pdf: bool = typer.Option(False, "--no-pdf", help="Skip PDF export"),
-    no_ai: bool = typer.Option(False, "--no-ai", help="Disable AI narrative polish"),
-    verbose: bool = typer.Option(False, "--verbose", "-v"),
-) -> None:
-    """Generate DOCX (and optionally PDF) report."""
-    _setup_logging(verbose)
-    cfg = _resolve_paths(config, project_dir, image_map, template)
-
-    mock_data = load_mock_results(mock) if mock else None
+def _execute_build(
+    cfg: ProjectConfig,
+    *,
+    out: Path,
+    mock_data: Optional[dict] = None,
+    golden_dpf: bool = False,
+    no_pdf: bool = False,
+    no_ai: bool = False,
+    verbose: bool = False,
+) -> Path:
+    """Scan, validate, render DOCX (and optional PDF). Returns path to DOCX."""
     inventory = None
     if not mock_data:
         inventory = _scan(cfg)
@@ -138,7 +138,9 @@ def build(
         root = cfg.image_root if cfg.image_root.exists() else cfg.project_dir
         assets = resolve_assets(root, imap)
         validation.merge(assets_to_validation(assets))
-        if tpl_path.exists():
+        if tpl_path.exists() and "EP2737" in tpl_path.name.upper():
+            images_ctx = dict(assets.resolved)
+        elif tpl_path.exists():
             from docxtpl import DocxTemplate
 
             tpl = DocxTemplate(str(tpl_path))
@@ -172,6 +174,7 @@ def build(
         raise typer.Exit(code=2)
 
     safe_name = cfg.bom_id.replace(" ", "_")
+    out.mkdir(parents=True, exist_ok=True)
     docx_out = out / f"{safe_name}_report.docx"
     if not tpl_path.exists():
         console.print(f"[red]Template not found: {tpl_path}[/red]")
@@ -188,6 +191,116 @@ def build(
 
     _print_validation(validation)
     console.print(f"[green]Report written to {docx_out}[/green]")
+    return docx_out
+
+
+@app.command()
+def run(
+    project_dir: Optional[Path] = typer.Option(
+        None,
+        "--project-dir",
+        help="Workbench project folder (skip prompt when set with other paths)",
+    ),
+    image_assets: Optional[Path] = typer.Option(
+        None,
+        "--image-assets",
+        help="Folder for exported Mechanical plot images",
+    ),
+    excel_calcs: Optional[Path] = typer.Option(
+        None,
+        "--excel-calcs",
+        help="Design calculations Excel workbook",
+    ),
+    excel_bolt_preload: Optional[Path] = typer.Option(
+        None,
+        "--excel-bolt-preload",
+        help="Bolt preload Excel workbook",
+    ),
+    out: Path = typer.Option(
+        Path("automated_scripts_output"),
+        "--out",
+        "-o",
+        help="Output folder for generated DOCX/PDF",
+    ),
+    config: Optional[Path] = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Base project config (default: production EP2737)",
+    ),
+    no_pdf: bool = typer.Option(False, "--no-pdf", help="Skip PDF export"),
+    no_ai: bool = typer.Option(False, "--no-ai", help="Disable AI narrative polish"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Production: prompt for paths, validate, and build report to automated_scripts_output."""
+    _setup_logging(verbose)
+    config_path = config or default_production_config()
+    cfg = _resolve_paths(config_path, None, default_image_map(), None)
+
+    flag_paths = [project_dir, image_assets, excel_calcs]
+    if all(flag_paths):
+        inputs = inputs_from_flags(
+            project_dir=project_dir,
+            image_assets=image_assets,
+            excel_calcs=excel_calcs,
+            excel_bolt_preload=excel_bolt_preload,
+            out_dir=out,
+        )
+    elif any(flag_paths):
+        console.print(
+            "[red]Provide all of --project-dir, --image-assets, and --excel-calcs "
+            "or run without flags for interactive prompts.[/red]"
+        )
+        raise typer.Exit(code=1)
+    else:
+        inputs = prompt_production_inputs(console)
+
+    apply_production_inputs(cfg, inputs)
+    console.print("[bold]Step 1/3[/bold] Scanning Workbench project…")
+    inventory = _scan(cfg)
+    _print_inventory(inventory)
+
+    console.print("[bold]Step 2/3[/bold] Validating inputs…")
+    validation = validate_project_paths(cfg)
+    if cfg.image_map_path and cfg.image_map_path.exists():
+        imap = load_image_map(cfg.image_map_path)
+        root = cfg.image_root if cfg.image_root.exists() else cfg.project_dir
+        assets = resolve_assets(root, imap)
+        validation.merge(assets_to_validation(assets))
+    _print_validation(validation)
+    if validation.has_errors:
+        raise typer.Exit(code=2)
+
+    console.print("[bold]Step 3/3[/bold] Building report…")
+    _execute_build(cfg, out=inputs.out_dir, no_pdf=no_pdf, no_ai=no_ai, verbose=verbose)
+
+
+@app.command()
+def build(
+    config: Path = typer.Option(..., "--config", "-c", help="Path to project.yaml"),
+    project_dir: Optional[Path] = typer.Option(None, "--project-dir", help="Workbench project folder"),
+    out: Path = typer.Option(Path("output"), "--out", "-o", help="Output directory"),
+    image_map: Optional[Path] = typer.Option(None, "--image-map", help="image_map.yaml path"),
+    template: Optional[Path] = typer.Option(None, "--template", help="docxtpl template path"),
+    mock: Optional[Path] = typer.Option(None, "--mock", help="Use mock_results.json instead of ANSYS"),
+    golden_dpf: bool = typer.Option(False, "--golden-dpf", help="Use golden modal/static when DPF unavailable"),
+    no_pdf: bool = typer.Option(False, "--no-pdf", help="Skip PDF export"),
+    no_ai: bool = typer.Option(False, "--no-ai", help="Disable AI narrative polish"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Generate DOCX (and optionally PDF) report."""
+    _setup_logging(verbose)
+    cfg = _resolve_paths(config, project_dir, image_map, template)
+    mock_data = load_mock_results(mock) if mock else None
+    _execute_build(
+        cfg,
+        out=out,
+        mock_data=mock_data,
+        golden_dpf=golden_dpf,
+        no_pdf=no_pdf,
+        no_ai=no_ai,
+        verbose=verbose,
+    )
 
 
 @app.command()
