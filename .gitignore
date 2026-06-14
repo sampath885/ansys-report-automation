@@ -15,8 +15,9 @@ output/
 .ruff_cache/
 .mypy_cache/
 *.pdf
-# EP2737 case data lives at E:/EP 2737 (outside repo)
+# EP2737 case data (large binaries — outside git)
 EP 2737/
+ansys_automation_files/
 *.wbjn
 *.wbpj
 *.cnd

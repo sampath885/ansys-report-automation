@@ -28,9 +28,9 @@ ansys_version: "2025 R2"
 
 
 
-project_dir: "../../EP 2737/Structural Analysis_EP2737"
+project_dir: "../ansys_automation_files/Structural Analysis_EP2737"
 
-case_root: "../../EP 2737"
+case_root: "../ansys_automation_files"
 
 image_folder: "exports"
 
@@ -58,7 +58,7 @@ use_dpf_golden_fallback: false
 
 standards_tables_path: "../config/ep2737_standards_tables.yaml"
 
-skip_images: true
+skip_images: false
 
 
 

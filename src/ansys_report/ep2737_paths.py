@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-_DEFAULT_CASE_ROOT = Path("E:/EP 2737")
+_DEFAULT_CASE_ROOT = Path(__file__).resolve().parents[2] / "ansys_automation_files"
 
 
 def ep2737_case_root() -> Path:

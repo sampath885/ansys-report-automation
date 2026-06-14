@@ -24,7 +24,7 @@ def repo_root() -> Path:
 @pytest.fixture(scope="session")
 def ep2737_data_root():
     if not ep2737_available():
-        pytest.skip("EP2737 case data not found (expected at E:/EP 2737 or EP2737_CASE_ROOT)")
+        pytest.skip("EP2737 case data not found (expected at ansys_automation_files/ or EP2737_CASE_ROOT)")
     return ep2737_case_root()
 
 

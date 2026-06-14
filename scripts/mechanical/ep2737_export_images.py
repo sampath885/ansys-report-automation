@@ -11,7 +11,7 @@ The script detects which Workbench system you opened (SYS, SYS-1, ... SYS-10),
 or exports ALL analyses when they share one combined Mechanical session
 (EP2737 default layout). PNGs are saved under:
 
-  E:\\EP 2737\\exports\\...
+  c:\\Users\\jaswa\\OneDrive\\Desktop\\ansys automation\\ansys_automation_files\\exports\\...
 
 Log file:  <exports>/export_log_<SYS>.txt
 
@@ -59,8 +59,8 @@ def print(*args, **kwargs):  # noqa: A001 — Mechanical needs ASCII-safe output
 # =============================================================================
 # EDIT THESE TWO PATHS IF YOUR MACHINE USES DIFFERENT LOCATIONS
 # =============================================================================
-OUTPUT_ROOT = r"E:\EP 2737\exports"
-MANIFEST_PATH = r"E:\ansys-report-automation\config\ep2737_mechanical_export.json"
+OUTPUT_ROOT = r"c:\Users\jaswa\OneDrive\Desktop\ansys automation\ansys_automation_files\exports"
+MANIFEST_PATH = r"c:\Users\jaswa\OneDrive\Desktop\ansys automation\config\ep2737_mechanical_export.json"
 
 # Set to "SYS", "SYS-1", ... "SYS-10" to force one system only (otherwise leave None)
 SYSTEM_OVERRIDE = None

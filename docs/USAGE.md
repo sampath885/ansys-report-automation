@@ -43,8 +43,11 @@ Optional AI polish requires an API key in `.env` and `pip install -e ".[ai]"`.
 
 ## Exit codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | Unexpected error |
-| 2 | Validation warnings/errors |
+
+| Code | Meaning                    |
+| ---- | -------------------------- |
+| 0    | Success                    |
+| 1    | Unexpected error           |
+| 2    | Validation warnings/errors |
+
+

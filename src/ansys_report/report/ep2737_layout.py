@@ -5,7 +5,7 @@ from __future__ import annotations
 import copy
 import io
 import logging
-import shutil
+import re
 import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -15,6 +15,100 @@ logger = logging.getLogger(__name__)
 W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 NS = {"w": W_NS}
 DEFAULT_CONTENT_START_MARKER = "Revision log"
+
+
+REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
+
+
+def _collect_relationship_ids(document_xml: str) -> set[str]:
+    return set(re.findall(r'r:(?:embed|link)="(rId\d+)"', document_xml))
+
+
+def _relationship_targets(root: ET.Element) -> dict[str, str]:
+    targets: dict[str, str] = {}
+    for rel in root:
+        if rel.tag != f"{{{REL_NS}}}Relationship":
+            continue
+        rel_id = rel.get("Id")
+        target = rel.get("Target")
+        if rel_id and target:
+            targets[rel_id] = target
+    return targets
+
+
+def _merge_document_relationships(
+    reference_rels: bytes,
+    generated_rels: bytes,
+    document_xml: str,
+) -> bytes:
+    """Keep reference rels and append generated image/media rels referenced by *document_xml*."""
+    needed = _collect_relationship_ids(document_xml)
+    ref_root = ET.fromstring(reference_rels)
+    ref_ids = {rel.get("Id") for rel in ref_root if rel.tag == f"{{{REL_NS}}}Relationship"}
+
+    gen_root = ET.fromstring(generated_rels)
+    for rel in gen_root:
+        if rel.tag != f"{{{REL_NS}}}Relationship":
+            continue
+        rel_id = rel.get("Id")
+        if rel_id in needed and rel_id not in ref_ids:
+            ref_root.append(copy.deepcopy(rel))
+            ref_ids.add(rel_id)
+
+    xml = ET.tostring(ref_root, encoding="unicode", xml_declaration=False)
+    return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + xml).encode("utf-8")
+
+
+def _media_paths_for_relationships(rels_xml: bytes, rel_ids: set[str]) -> set[str]:
+    root = ET.fromstring(rels_xml)
+    targets = _relationship_targets(root)
+    paths: set[str] = set()
+    for rel_id in rel_ids:
+        target = targets.get(rel_id)
+        if not target:
+            continue
+        if target.startswith("/"):
+            target = target.lstrip("/")
+        if not target.startswith("word/"):
+            target = f"word/{target}"
+        paths.add(target)
+    return paths
+
+
+def _write_merged_package(
+    reference_path: Path,
+    generated_path: Path,
+    output_path: Path,
+    document_xml: str,
+) -> None:
+    """Write reference DOCX shell with merged body and generated embedded media."""
+    needed_ids = _collect_relationship_ids(document_xml)
+
+    with zipfile.ZipFile(reference_path, "r") as zref:
+        ref_rels = zref.read("word/_rels/document.xml.rels")
+
+    with zipfile.ZipFile(generated_path, "r") as zgen:
+        gen_rels = zgen.read("word/_rels/document.xml.rels")
+        merged_rels = _merge_document_relationships(ref_rels, gen_rels, document_xml)
+        media_paths = _media_paths_for_relationships(gen_rels, needed_ids)
+
+        entries: dict[str, bytes] = {}
+        with zipfile.ZipFile(reference_path, "r") as zin:
+            for info in zin.infolist():
+                entries[info.filename] = zin.read(info.filename)
+
+        entries["word/document.xml"] = document_xml.encode("utf-8")
+        entries["word/_rels/document.xml.rels"] = merged_rels
+        for media_path in media_paths:
+            if media_path in zgen.namelist():
+                entries[media_path] = zgen.read(media_path)
+
+        out_buf = io.BytesIO()
+        with zipfile.ZipFile(out_buf, "w", zipfile.ZIP_DEFLATED) as zout:
+            for name, data in entries.items():
+                zout.writestr(name, data)
+
+    output_path.write_bytes(out_buf.getvalue())
 
 
 def _body_children(root: ET.Element) -> list[ET.Element]:
@@ -120,17 +214,7 @@ def merge_reference_front_matter(
         ref_root, encoding="unicode", xml_declaration=False
     )
 
-    shutil.copy2(reference_path, output_path)
-    buffer = output_path.read_bytes()
-    out_buf = io.BytesIO()
-    with zipfile.ZipFile(io.BytesIO(buffer), "r") as zin:
-        with zipfile.ZipFile(out_buf, "w", zipfile.ZIP_DEFLATED) as zout:
-            for info in zin.infolist():
-                data = zin.read(info.filename)
-                if info.filename == "word/document.xml":
-                    data = new_doc_xml.encode("utf-8")
-                zout.writestr(info, data)
-    output_path.write_bytes(out_buf.getvalue())
+    _write_merged_package(reference_path, generated_path, output_path, new_doc_xml)
     logger.info(
         "Merged reference front matter (%d elements) with generated body (%d elements)",
         len(front_matter),

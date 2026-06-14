@@ -253,7 +253,12 @@ def load_thresholds(path: Path | None = None) -> ThresholdsConfig:
 
 
 def load_image_map(path: Path) -> ImageMapConfig:
-    return ImageMapConfig.from_mapping(_load_yaml(path))
+    data = _load_yaml(path)
+    if "slots" in data and isinstance(data["slots"], dict):
+        slots = {str(k): str(v) for k, v in data["slots"].items()}
+    else:
+        slots = {str(k): str(v) for k, v in data.items() if isinstance(v, str)}
+    return ImageMapConfig(slots=slots)
 
 
 def ai_enabled(no_ai: bool = False) -> bool:

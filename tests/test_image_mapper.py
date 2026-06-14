@@ -1,7 +1,17 @@
 """Image mapper tests."""
 
-from ansys_report.config import ImageMapConfig
+from pathlib import Path
+
+from ansys_report.config import ImageMapConfig, load_image_map
 from ansys_report.images.mapper import resolve_assets
+
+REPO = Path(__file__).resolve().parents[1]
+
+
+def test_load_ep2737_image_map():
+    imap = load_image_map(REPO / "config" / "ep2737_image_map.yaml")
+    assert imap.slots["modal_mode1"] == "modal/mode_01.png"
+    assert imap.slots["harmonic_x_stress_asm"] == "harmonic/x/vonmises_assembly.png"
 
 
 def test_resolve_present_image(tmp_path, tiny_png):
