@@ -89,15 +89,14 @@ class ModellingSection(_StaticSection):
         super().__init__("modelling", "Modelling", "")
 
     def extract(self, inventory: ProjectInventory, cfg: ProjectConfig) -> dict[str, Any]:
-        import os
-
+        from ansys_report.extract.dpf_base import dpf_available
         from ansys_report.extract.dpf_mesh import extract_mesh_quality
         from ansys_report.extract.metadata import extract_modelling_metadata, _static_system
 
         meta = extract_modelling_metadata(inventory)
         payload = meta.model_dump(mode="json")
 
-        if os.getenv("ANSYS_AVAILABLE") == "1":
+        if dpf_available():
             static = _static_system(inventory)
             if static and static.primary_rst:
                 quality = extract_mesh_quality(static.primary_rst)

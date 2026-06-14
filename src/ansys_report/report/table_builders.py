@@ -88,6 +88,11 @@ def enrich_context_tables(context: dict[str, Any], cfg: ProjectConfig) -> None:
     if vib:
         context["vibration_conclusion"] = {"rows": vib}
 
+    if not context.get("methodology"):
+        from ansys_report.narrative.methodology import build_methodology, polish_methodology
+
+        context["methodology"] = polish_methodology(build_methodology(context, cfg))
+
 
 def load_standards_tables(cfg: ProjectConfig) -> dict[str, Any]:
     path = getattr(cfg, "standards_tables_path", None)

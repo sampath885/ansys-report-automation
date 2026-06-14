@@ -7,7 +7,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from ansys_report.extract.dpf_base import open_model, run_dpf_subprocess
+from ansys_report.extract.dpf_base import dpf_available, open_model, run_dpf_subprocess
 from ansys_report.models import MeshResult
 
 logger = logging.getLogger(__name__)
@@ -36,8 +36,8 @@ def extract_mesh(rst_path: Path) -> MeshResult:
 
 
 def extract_mesh_quality(rst_path: Path, *, timeout_s: float | None = None) -> dict[str, dict[str, float | None]]:
-    """Live mesh quality metrics; prefers subprocess when ANSYS is enabled."""
-    if os.getenv("ANSYS_AVAILABLE") != "1":
+    """Live mesh quality metrics; prefers subprocess when DPF is available."""
+    if not dpf_available():
         return {}
     if os.getenv("DPF_MESH_QUALITY_SUBPROCESS", "1") == "1":
         payload = run_dpf_subprocess("mesh_quality", rst_path, timeout_s=timeout_s)

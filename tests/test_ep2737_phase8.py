@@ -93,7 +93,7 @@ def test_enrich_loads_report_defaults_not_word_yaml(ep2737_cfg):
 
 
 def test_section_validate_runs(ep2737_cfg, monkeypatch):
-    monkeypatch.delenv("ANSYS_AVAILABLE", raising=False)
+    monkeypatch.setenv("ANSYS_AVAILABLE", "0")
     from ansys_report.report.context_builder import build_context
     from ansys_report.report.section_validate import validate_section_content
     from ansys_report.report.table_builders import enrich_context_tables
@@ -113,7 +113,7 @@ def test_section_validate_runs(ep2737_cfg, monkeypatch):
 
 
 def test_report_context_has_live_excel_and_standards(ep2737_cfg, monkeypatch):
-    monkeypatch.delenv("ANSYS_AVAILABLE", raising=False)
+    monkeypatch.setenv("ANSYS_AVAILABLE", "0")
     from ansys_report.report.context_builder import build_context
     from ansys_report.report.table_builders import enrich_context_tables
     from ansys_report.scanner import scan_project

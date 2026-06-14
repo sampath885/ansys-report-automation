@@ -132,7 +132,7 @@
       }
     ],
     "node_count": 294165,
-    "element_count": 202546,
+    "element_count": 170440,
     "mesh_source": "solve.out",
     "manual_fields": []
   },
@@ -256,7 +256,7 @@
     ],
     "mesh": {
       "node_count": 294165,
-      "element_count": 202546,
+      "element_count": 170440,
       "quality_metrics": {},
       "manual_fields": []
     },

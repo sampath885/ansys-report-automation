@@ -23,10 +23,23 @@ _HARMONIC_GOLDEN = {
 }
 
 
+def _modal_has_freqs(modal: dict[str, Any]) -> bool:
+    return any(m.get("freq_hz") is not None for m in modal.get("modes", []))
+
+
 def needs_golden_overlay(ctx: dict[str, Any]) -> bool:
-    modal = ctx.get("modal", {})
-    static = ctx.get("static", {})
-    return not modal.get("modes") or static.get("max_stress_mpa") is None
+    """True if any result block is missing live values and could use a golden fill."""
+    if not _modal_has_freqs(ctx.get("modal", {})):
+        return True
+    if (ctx.get("static") or {}).get("max_stress_mpa") is None:
+        return True
+    for key in ("harmonic_x", "harmonic_y", "harmonic_z"):
+        if (ctx.get(key) or {}).get("peak_displacement_mm") is None:
+            return True
+    shock = ctx.get("shock") or {}
+    if any(d.get("max_stress_mpa") is None for d in shock.get("directions", [])):
+        return True
+    return False
 
 
 def apply_golden_dpf_overlay(
@@ -46,7 +59,7 @@ def apply_golden_dpf_overlay(
     patched = False
 
     modal = ctx.get("modal", {})
-    if force or not modal.get("modes"):
+    if force or not _modal_has_freqs(modal):
         path = root / "2a_modal.json"
         if path.exists():
             data = json.loads(path.read_text(encoding="utf-8"))
@@ -111,31 +124,55 @@ def apply_golden_dpf_overlay(
         logger.info("Harmonic %s filled from golden fixture", direction)
 
     shock = ctx.get("shock", {})
+    live_directions = shock.get("directions", [])
     shock_needs = force or any(
-        d.get("max_stress_mpa") is None for d in shock.get("directions", [])
+        d.get("max_stress_mpa") is None for d in live_directions
     )
     if shock_needs:
         path = root / "7_shock_all.json"
         if path.exists():
             data = json.loads(path.read_text(encoding="utf-8"))
-            directions = []
-            for item in data["directions"]:
+            golden_by_key = {item.get("key"): item for item in data["directions"]}
+            source_dirs = live_directions or list(golden_by_key.values())
+
+            merged: list[dict[str, Any]] = []
+            filled_from_golden = 0
+            for live in source_dirs:
+                # Keep live results that were extracted from a real .rst
+                if not force and live.get("max_stress_mpa") is not None:
+                    merged.append(live)
+                    continue
+                golden = golden_by_key.get(live.get("key"))
+                if golden is None:
+                    merged.append(live)
+                    continue
                 static = StaticResult(
-                    max_stress_mpa=item.get("max_stress_mpa"),
-                    max_deformation_mm=item.get("max_deformation_mm"),
-                    fos=item.get("fos"),
+                    max_stress_mpa=golden.get("max_stress_mpa"),
+                    max_deformation_mm=golden.get("max_deformation_mm"),
+                    fos=golden.get("fos"),
                     manual_fields=[],
                 )
-                directions.append({**item, **static.model_dump()})
-            shock_data = {"directions": directions, "manual_fields": []}
+                merged_item = {**golden, **live, **static.model_dump()}
+                # Preserve any live bolt loads already resolved for this direction
+                if live.get("bolt_loads"):
+                    merged_item["bolt_loads"] = live["bolt_loads"]
+                merged.append(merged_item)
+                filled_from_golden += 1
+
+            shock_data = {"directions": merged, "manual_fields": []}
             if cfg.use_word_table_data or cfg.use_dpf_golden_fallback:
                 _attach_shock_bolt_loads(shock_data["directions"], root)
             from ansys_report.sections.shock import ShockSection
 
             narrative = ShockSection().narrate(shock_data, cfg)
-            ctx["shock"] = {**shock_data, "narrative": narrative, "source": "golden"}
+            source = "golden" if filled_from_golden == len(merged) else "mixed"
+            ctx["shock"] = {**shock_data, "narrative": narrative, "source": source}
             patched = True
-            logger.info("Shock results filled from golden fixture")
+            logger.info(
+                "Shock results filled from golden fixture (%d/%d directions)",
+                filled_from_golden,
+                len(merged),
+            )
 
     _apply_bolt_fixture_fallback(ctx, cfg, golden_dir)
     return patched

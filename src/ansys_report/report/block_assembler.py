@@ -76,14 +76,8 @@ def assemble_ep2737_document(
             )
         )
 
-    exec_summary = (context.get("narrative") or {}).get("executive_summary")
-    if exec_summary:
-        doc.sections.append(
-            RenderSection(
-                key="executive_summary",
-                blocks=[RenderBlock(kind="paragraph", text=f"Executive summary: {exec_summary}")],
-            )
-        )
+    # The reference EP2737 report has no auto-generated executive-summary block,
+    # so it is intentionally omitted here to match the client report format.
     return doc
 
 

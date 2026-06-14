@@ -16,6 +16,17 @@ CONFIG = REPO / "config"
 TEMPLATE = REPO / "templates" / "EP1763_report_template.docx"
 
 
+@pytest.fixture(autouse=True)
+def _disable_dpf_by_default(monkeypatch):
+    """Keep the suite deterministic.
+
+    DPF extraction now auto-detects availability (enabled whenever ansys-dpf-core
+    is importable), so force-disable it by default. Tests that need live DPF set
+    ANSYS_AVAILABLE=1 explicitly (and are guarded by skipif).
+    """
+    monkeypatch.setenv("ANSYS_AVAILABLE", "0")
+
+
 @pytest.fixture(scope="session")
 def repo_root() -> Path:
     return REPO

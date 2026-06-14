@@ -20,3 +20,12 @@ EXECUTIVE_PROMPT = """Summarize this engineering assessment in 2-3 sentences for
 Input JSON:
 {payload}
 """
+
+METHODOLOGY_PROMPT = """You are a senior CAE report writer. Improve the clarity and flow of the
+following engineering methodology paragraph for the '{section}' section of a structural analysis
+report. Keep all technical facts, numbers and units exactly as given; do not invent new numbers.
+Return only the improved paragraph text.
+
+Draft:
+{draft}
+"""

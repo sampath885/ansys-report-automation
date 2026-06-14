@@ -54,7 +54,7 @@ use_word_table_data: false
 
 report_defaults_path: "../config/ep2737_report_defaults.yaml"
 
-use_dpf_golden_fallback: false
+use_dpf_golden_fallback: true
 
 standards_tables_path: "../config/ep2737_standards_tables.yaml"
 
@@ -71,6 +71,8 @@ equipment_spec:
   drawing_mass_kg: "1.94±3%"
 
   fe_mass_note: "Model Mass (Excluding Extended pipes & Counter Flanges)"
+
+  verified_cog_mm: [-1.5, 0, 0]
 
 
 

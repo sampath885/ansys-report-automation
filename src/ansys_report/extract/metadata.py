@@ -175,17 +175,29 @@ def parse_mesh_from_solve(solve_path: Path) -> MeshResult:
 
     text = _read_text(solve_path)
     node_count = None
-    element_count = None
+    total_element_count = None
+    solid_element_count = None
     for line in text.splitlines():
         low = line.lower()
         if "number of total nodes" in low:
             m = re.search(r"=\s*(\d+)", line)
             if m:
                 node_count = int(m.group(1))
+        if "number of solid elements" in low:
+            m = re.search(r"=\s*(\d+)", line)
+            if m:
+                solid_element_count = int(m.group(1))
         if "number of total elements" in low:
             m = re.search(r"=\s*(\d+)", line)
             if m:
-                element_count = int(m.group(1))
+                total_element_count = int(m.group(1))
+
+    # Mechanical's mesh statistics report the solid body element count. The
+    # solver "total elements" additionally includes contact/target/surface and
+    # beam (pretension) elements, so prefer the solid count to match the report.
+    element_count = (
+        solid_element_count if solid_element_count is not None else total_element_count
+    )
 
     manual: list[str] = []
     if node_count is None:

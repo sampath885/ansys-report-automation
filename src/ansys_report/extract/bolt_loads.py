@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 from pathlib import Path
 from typing import Any
 
+from ansys_report.extract.dpf_base import dpf_available
 from ansys_report.extract.dpf_bolt import BoltExtractionMode, parse_pretension_preload_n
 
 logger = logging.getLogger(__name__)
@@ -101,7 +101,7 @@ def resolve_static_bolt_loads(
     golden_dir: Path | None = None,
     allow_word_golden: bool = False,
 ) -> list[dict[str, Any]]:
-    if os.getenv("ANSYS_AVAILABLE") == "1":
+    if rst_path is not None and dpf_available():
         mode: BoltExtractionMode = "envelope"
         uniform_axial = None
         if cfg is not None:
@@ -136,7 +136,7 @@ def resolve_shock_bolt_loads(
     golden_dir: Path | None = None,
     allow_word_golden: bool = False,
 ) -> list[dict[str, Any]]:
-    if os.getenv("ANSYS_AVAILABLE") == "1":
+    if rst_path is not None and dpf_available():
         mode: BoltExtractionMode = "envelope"
         sort_by_position = False
         if cfg is not None:

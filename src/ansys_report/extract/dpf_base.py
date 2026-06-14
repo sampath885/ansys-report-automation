@@ -20,6 +20,40 @@ def _default_open_timeout() -> float:
         return 180.0
 
 
+_DISABLE_TOKENS = {"0", "false", "no", "off"}
+
+
+def _dpf_force_disabled() -> bool:
+    """True only when ANSYS_AVAILABLE is explicitly set to a falsey value."""
+    raw = os.getenv("ANSYS_AVAILABLE")
+    if raw is None:
+        return False
+    return raw.strip().lower() in _DISABLE_TOKENS
+
+
+_dpf_importable_cache: bool | None = None
+
+
+def dpf_available() -> bool:
+    """Whether DPF can be used: not force-disabled and ansys.dpf.core importable.
+
+    Auto-detects rather than requiring ANSYS_AVAILABLE=1. Set ANSYS_AVAILABLE=0
+    (or false/no/off) to force-disable extraction (e.g. CI without a DPF server).
+    The actual ability to open a given RST is still verified by the subprocess ping.
+    """
+    global _dpf_importable_cache
+    if _dpf_force_disabled():
+        return False
+    if _dpf_importable_cache is None:
+        try:
+            import ansys.dpf.core  # noqa: F401
+
+            _dpf_importable_cache = True
+        except Exception:
+            _dpf_importable_cache = False
+    return _dpf_importable_cache
+
+
 def _subprocess_ping(rst_path: Path, timeout_s: float) -> bool:
     """Verify RST opens in an isolated process before loading DPF in-process."""
     cmd = [
@@ -108,7 +142,7 @@ def run_dpf_subprocess(
 
 def open_model(rst_path: Path, *, timeout_s: float | None = None):
     """Open a DPF Model; returns None if DPF/ANSYS unavailable or open times out."""
-    if os.getenv("ANSYS_AVAILABLE") != "1":
+    if not dpf_available():
         return None
 
     timeout = _default_open_timeout() if timeout_s is None else timeout_s

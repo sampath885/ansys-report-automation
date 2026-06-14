@@ -104,9 +104,19 @@ def narrate_modal(
             recommendations.append("Verify damping, detuning, or operational avoidance.")
 
     if not conclusions:
-        conclusions.append(
-            f"No natural frequencies found within the operating band ({low}-{high} Hz)."
-        )
+        freqs = [mode.freq_hz for mode in modal.modes if mode.freq_hz is not None]
+        if freqs:
+            fundamental = min(freqs)
+            conclusions.append(
+                f"The fundamental natural frequency is {fundamental:.2f} Hz, which is well above "
+                f"the operating frequency range ({low}-{high} Hz). No natural frequency lies within "
+                f"the operating band, so resonance is not expected and the design is acceptable for "
+                f"modal behaviour."
+            )
+        else:
+            conclusions.append(
+                f"No natural frequencies found within the operating band ({low}-{high} Hz)."
+            )
 
     return Narrative(
         observations=observations,

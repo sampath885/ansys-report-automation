@@ -19,7 +19,7 @@ def build_live_reference_tables(context: dict[str, Any], cfg: ProjectConfig) -> 
     if mass:
         tables["mass_balance"] = mass
 
-    cog = build_centre_of_gravity_table(equipment)
+    cog = build_centre_of_gravity_table(equipment, cfg)
     if cog:
         tables["centre_of_gravity"] = cog
 
@@ -93,14 +93,21 @@ def build_mass_balance_table(equipment: dict[str, Any], cfg: ProjectConfig) -> d
     }
 
 
-def build_centre_of_gravity_table(equipment: dict[str, Any]) -> dict[str, Any] | None:
-    assembly = equipment.get("assembly") or {}
-    cog = assembly.get("cog_mm") or {}
-    if not cog:
-        return None
-    x = cog.get("x_mm", 0)
-    y = cog.get("y_mm", 0)
-    z = cog.get("z_mm", 0)
+def build_centre_of_gravity_table(
+    equipment: dict[str, Any],
+    cfg: ProjectConfig | None = None,
+) -> dict[str, Any] | None:
+    verified = getattr(cfg.equipment_spec, "verified_cog_mm", None) if cfg else None
+    if verified and len(verified) == 3:
+        x, y, z = verified
+    else:
+        assembly = equipment.get("assembly") or {}
+        cog = assembly.get("cog_mm") or {}
+        if not cog:
+            return None
+        x = cog.get("x_mm", 0)
+        y = cog.get("y_mm", 0)
+        z = cog.get("z_mm", 0)
     text = (
         f"From the reference coordinate cg. Wt= ∫ x dw "
         f"XCG = {x:.4g} mm YCG = {y:.4g} mm ZCG = {z:.4g} mm"

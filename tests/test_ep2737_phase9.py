@@ -65,7 +65,7 @@ def test_loads_summary_table_from_caerep():
 
 
 def test_loads_section_extracts_caerep(ep2737_cfg, monkeypatch):
-    monkeypatch.delenv("ANSYS_AVAILABLE", raising=False)
+    monkeypatch.setenv("ANSYS_AVAILABLE", "0")
     from ansys_report.report.context_builder import build_context
     from ansys_report.scanner import scan_project
 
@@ -121,7 +121,7 @@ def test_open_model_subprocess_ping(monkeypatch, tmp_path):
 
 
 def test_mesh_quality_overrides_report_defaults(ep2737_cfg, monkeypatch):
-    monkeypatch.delenv("ANSYS_AVAILABLE", raising=False)
+    monkeypatch.setenv("ANSYS_AVAILABLE", "0")
     from ansys_report.report.context_builder import build_context
     from ansys_report.report.table_builders import enrich_context_tables
     from ansys_report.scanner import scan_project

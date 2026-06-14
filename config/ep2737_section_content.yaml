@@ -51,6 +51,11 @@ sections:
     heading_level: 1
     blocks:
       - type: heading
+        text: Working Principle
+        level: 2
+      - type: paragraph
+        template: "{methodology.working_principle}"
+      - type: heading
         text: Model
         level: 2
       - type: figure
@@ -86,6 +91,13 @@ sections:
     heading: Modelling details
     heading_level: 1
     blocks:
+      - type: heading
+        text: Modelling Approach
+        level: 2
+      - type: paragraph
+        template: "{methodology.modelling_approach}"
+      - type: paragraph
+        template: "{methodology.bolted_joint_method}"
       - type: paragraph
         template: "Project: {project_name}"
       - type: paragraph
@@ -179,6 +191,11 @@ sections:
     heading_level: 2
     parent_section: Results & Discussions
     blocks:
+      - type: heading
+        text: Methodology
+        level: 3
+      - type: paragraph
+        template: "{methodology.modal_methodology}"
       - type: table
         caption: "Table 14: Modal Frequencies"
         headers: ["Mode", "Frequency (Hz)"]
@@ -408,6 +425,11 @@ sections:
     heading_level: 2
     parent_section: Results & Discussions
     blocks:
+      - type: heading
+        text: Methodology
+        level: 3
+      - type: paragraph
+        template: "{methodology.shock_justification}"
       - type: repeat
         items_path: directions
         item_prefix: shock_item
@@ -484,6 +506,8 @@ sections:
       - type: heading
         text: Fatigue Strength Calculations
         level: 2
+      - type: paragraph
+        template: "{methodology.fatigue_theory}"
       - type: reference_table
         ref_key: fatigue_strength_calculations
       - type: reference_table

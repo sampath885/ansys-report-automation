@@ -49,6 +49,10 @@ class EquipmentSpecConfig(BaseModel):
     material_grade: str = "ASTM A 182 F32100"
     drawing_mass_kg: str = "1.94±3%"
     fe_mass_note: str = "Model Mass (Excluding Extended pipes & Counter Flanges)"
+    # Verified design centre of gravity [x, y, z] in mm. When set, overrides the
+    # raw CAERep solver centroid (which references the global origin, not the
+    # drawing datum) in the Centre of Gravity table.
+    verified_cog_mm: list[float] | None = None
 
 
 class BoltConfig(BaseModel):
