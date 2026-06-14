@@ -60,8 +60,10 @@ class BoltConfig(BaseModel):
     load_step: int = 1
     extraction_mode: str = "envelope"
     static_extraction_mode: str | None = None
-    shock_extraction_mode: str = "first"
+    shock_extraction_mode: str = "envelope"
     uniform_axial_from_preload: bool = True
+    sort_by_position: bool = True
+    shock_sort_by_position: bool = False
 
 
 class ModalConfig(BaseModel):

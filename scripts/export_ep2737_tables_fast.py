@@ -7,8 +7,10 @@ import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
+from ansys_report.ep2737_paths import ep2737_reference_docx
+
 ROOT = Path(__file__).resolve().parents[1]
-REF = ROOT / "EP 2737" / "Design Report_EP2737_UPDATED.docx"
+REF = ep2737_reference_docx()
 REF_TABLES_OUT = ROOT / "config" / "ep2737_reference_tables.yaml"
 STATIC_BOLT_OUT = ROOT / "tests" / "fixtures" / "ep2737_golden" / "7_static_bolt_loads.json"
 

@@ -6,7 +6,9 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-ROOT = Path(__file__).resolve().parents[2] / "EP 2737"
+from ansys_report.ep2737_paths import ep2737_case_root
+
+ROOT = ep2737_case_root()
 WB = ROOT / "OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx"
 
 

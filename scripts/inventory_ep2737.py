@@ -9,10 +9,16 @@ import openpyxl
 import yaml
 from docx import Document
 
-ROOT = Path(__file__).resolve().parents[1] / "EP 2737"
-WB = ROOT / "Structural Analysis_EP2737"
-DP0 = WB / "EP2737_files" / "dp0"
+from ansys_report.ep2737_paths import ep2737_case_root, ep2737_dp0, ep2737_workbench_dir
+
+ROOT = ep2737_case_root()
+WB = ep2737_workbench_dir()
+DP0 = ep2737_dp0()
 OUT = Path(__file__).resolve().parents[1] / "docs" / "ep2737_data_spec.yaml"
+
+
+def _case_path(*parts: str) -> str:
+    return str(ROOT.joinpath(*parts)).replace("\\", "/")
 
 
 def parse_reference_docx() -> dict:
@@ -372,14 +378,16 @@ def build_spec() -> dict:
             },
         ],
         "paths": {
-            "case_root": "EP 2737",
-            "workbench_project": "EP 2737/Structural Analysis_EP2737",
-            "wbpj": "EP 2737/Structural Analysis_EP2737/EP2737.wbpj",
-            "cad_step": "EP 2737/11-EP2737.STEP",
-            "geometry_scdocx": "EP 2737/Structural Analysis_EP2737/EP2737_files/dp0/SYS/DM/SYS.scdocx",
-            "exports": "EP 2737/exports",
-            "excel_design_calcs": "EP 2737/OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx",
-            "excel_bolt_preload": "EP 2737/Bolt pre load.xlsx",
+            "case_root": _case_path(),
+            "workbench_project": _case_path("Structural Analysis_EP2737"),
+            "wbpj": _case_path("Structural Analysis_EP2737", "EP2737.wbpj"),
+            "cad_step": _case_path("11-EP2737.STEP"),
+            "geometry_scdocx": _case_path(
+                "Structural Analysis_EP2737", "EP2737_files", "dp0", "SYS", "DM", "SYS.scdocx"
+            ),
+            "exports": _case_path("exports"),
+            "excel_design_calcs": _case_path("OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx"),
+            "excel_bolt_preload": _case_path("Bolt pre load.xlsx"),
         },
         "ansys_environment": {
             "version": "2025 R2",
@@ -415,7 +423,7 @@ def build_spec() -> dict:
             },
         ],
         "images": {
-            "exports_root": "EP 2737/exports",
+            "exports_root": _case_path("exports"),
             "status": "present" if png_count else "missing",
             "png_jpg_count": png_count,
         },

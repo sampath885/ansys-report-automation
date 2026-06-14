@@ -1,0 +1,503 @@
+{
+  "version": 1,
+  "description": "EP2737 Mechanical batch image export — run scripts/mechanical/ep2737_export_images.py inside each Workbench system.",
+  "output_root": "E:/EP 2737/exports",
+  "image_width": 1920,
+  "image_height": 1080,
+  "systems": {
+    "SYS": {
+      "label": "Static Structural",
+      "workbench_hint": "Open Static Structural → right-click Model → Edit (Mechanical)",
+      "exports": [
+        {
+          "slot": "geometry_model_orientation",
+          "file": "geometry/model_orientation.png",
+          "type": "viewport",
+          "activate": ["Geometry"],
+          "view": "isometric",
+          "required": false
+        },
+        {
+          "slot": "mesh_global",
+          "file": "mesh/mesh_global.png",
+          "type": "viewport",
+          "activate": ["Mesh"],
+          "view": "isometric",
+          "required": false
+        },
+        {
+          "slot": "mesh_quality_aspect",
+          "file": "mesh/aspect_ratio.png",
+          "type": "result",
+          "keywords": ["Aspect Ratio", "Element Aspect Ratio"],
+          "required": false
+        },
+        {
+          "slot": "mesh_skewness",
+          "file": "mesh/skewness.png",
+          "type": "result",
+          "keywords": ["Skewness", "Element Skewness"],
+          "required": false
+        },
+        {
+          "slot": "mesh_jacobian",
+          "file": "mesh/jacobian_ratio.png",
+          "type": "result",
+          "keywords": ["Jacobian", "Jacobian Ratio"],
+          "required": false
+        },
+        {
+          "slot": "modelling_contacts",
+          "file": "modelling/contacts.png",
+          "type": "viewport",
+          "activate": ["Connections", "Contacts"],
+          "view": "isometric",
+          "required": false
+        },
+        {
+          "slot": "static_earth_gravity",
+          "file": "static/earth_gravity.png",
+          "type": "viewport",
+          "activate": ["Static Structural"],
+          "show_loads": true,
+          "keywords": ["Standard Earth Gravity", "Earth Gravity", "Gravity"],
+          "view": "isometric",
+          "required": false
+        },
+        {
+          "slot": "static_fixed_support",
+          "file": "static/fixed_support.png",
+          "type": "viewport",
+          "show_loads": true,
+          "keywords": ["Fixed Support", "Fixed"],
+          "view": "isometric",
+          "required": false
+        },
+        {
+          "slot": "static_pressure",
+          "file": "static/pressure.png",
+          "type": "viewport",
+          "show_loads": true,
+          "keywords": ["Pressure"],
+          "view": "isometric",
+          "required": false
+        },
+        {
+          "slot": "static_total_deformation",
+          "file": "static/total_deformation.png",
+          "type": "result",
+          "keywords": ["Total Deformation"],
+          "scope": "assembly",
+          "load_step": "last",
+          "view": "isometric",
+          "required": true
+        },
+        {
+          "slot": "static_vonmises_stress",
+          "file": "static/vonmises_assembly.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "Equivalent (von-Mises)", "von-Mises", "Von Mises"],
+          "scope": "assembly",
+          "load_step": "last",
+          "view": "isometric",
+          "required": true
+        },
+        {
+          "slot": "static_vonmises_flange",
+          "file": "static/vonmises_flange.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "Equivalent (von-Mises)", "von-Mises", "Von Mises"],
+          "scope": "flange",
+          "load_step": "last",
+          "view": "isometric",
+          "required": true
+        }
+      ]
+    },
+    "SYS-1": {
+      "label": "Modal",
+      "workbench_hint": "Open Modal → right-click Model → Edit (Mechanical)",
+      "exports": [
+        {
+          "slot": "modal_mode1",
+          "file": "modal/mode_01.png",
+          "type": "result",
+          "keywords": ["Total Deformation", "Deformation"],
+          "mode": 1,
+          "view": "isometric",
+          "required": true
+        },
+        {
+          "slot": "modal_mode2",
+          "file": "modal/mode_02.png",
+          "type": "result",
+          "keywords": ["Total Deformation", "Deformation"],
+          "mode": 2,
+          "view": "isometric",
+          "required": true
+        },
+        {
+          "slot": "modal_mode3",
+          "file": "modal/mode_03.png",
+          "type": "result",
+          "keywords": ["Total Deformation", "Deformation"],
+          "mode": 3,
+          "view": "isometric",
+          "required": true
+        },
+        {
+          "slot": "modal_mode4",
+          "file": "modal/mode_04.png",
+          "type": "result",
+          "keywords": ["Total Deformation", "Deformation"],
+          "mode": 4,
+          "view": "isometric",
+          "required": true
+        },
+        {
+          "slot": "modal_mode5",
+          "file": "modal/mode_05.png",
+          "type": "result",
+          "keywords": ["Total Deformation", "Deformation"],
+          "mode": 5,
+          "view": "isometric",
+          "required": true
+        },
+        {
+          "slot": "modal_mode6",
+          "file": "modal/mode_06.png",
+          "type": "result",
+          "keywords": ["Total Deformation", "Deformation"],
+          "mode": 6,
+          "view": "isometric",
+          "required": true
+        }
+      ]
+    },
+    "SYS-2": {
+      "label": "Harmonic Response X",
+      "workbench_hint": "Open Harmonic Response (X) → Model → Edit",
+      "exports": [
+        {
+          "slot": "harmonic_x_location",
+          "file": "harmonic/x/response_location.png",
+          "type": "result",
+          "keywords": ["Frequency Response", "Response", "Phase", "Chart"],
+          "required": false
+        },
+        {
+          "slot": "harmonic_x_accel_plot",
+          "file": "harmonic/x/acceleration_plot.png",
+          "type": "result",
+          "keywords": ["Acceleration", "A-N", "Chart"],
+          "required": false
+        },
+        {
+          "slot": "harmonic_x_deformation",
+          "file": "harmonic/x/total_deformation.png",
+          "type": "result",
+          "keywords": ["Total Deformation"],
+          "scope": "assembly",
+          "view": "isometric",
+          "required": true
+        },
+        {
+          "slot": "harmonic_x_stress_asm",
+          "file": "harmonic/x/vonmises_assembly.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises", "Von Mises"],
+          "scope": "assembly",
+          "view": "isometric",
+          "required": true
+        },
+        {
+          "slot": "harmonic_x_stress_flange",
+          "file": "harmonic/x/vonmises_flange.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises", "Von Mises"],
+          "scope": "flange",
+          "view": "isometric",
+          "required": true
+        }
+      ]
+    },
+    "SYS-3": {
+      "label": "Harmonic Response Y",
+      "exports": [
+        {
+          "slot": "harmonic_y_location",
+          "file": "harmonic/y/response_location.png",
+          "type": "result",
+          "keywords": ["Frequency Response", "Response", "Chart"],
+          "required": false
+        },
+        {
+          "slot": "harmonic_y_accel_plot",
+          "file": "harmonic/y/acceleration_plot.png",
+          "type": "result",
+          "keywords": ["Acceleration", "Chart"],
+          "required": false
+        },
+        {
+          "slot": "harmonic_y_deformation",
+          "file": "harmonic/y/total_deformation.png",
+          "type": "result",
+          "keywords": ["Total Deformation"],
+          "scope": "assembly",
+          "required": true
+        },
+        {
+          "slot": "harmonic_y_stress_asm",
+          "file": "harmonic/y/vonmises_assembly.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "assembly",
+          "required": true
+        },
+        {
+          "slot": "harmonic_y_stress_flange",
+          "file": "harmonic/y/vonmises_flange.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "flange",
+          "required": true
+        }
+      ]
+    },
+    "SYS-4": {
+      "label": "Harmonic Response Z",
+      "exports": [
+        {
+          "slot": "harmonic_z_location",
+          "file": "harmonic/z/response_location.png",
+          "type": "result",
+          "keywords": ["Frequency Response", "Response", "Chart"],
+          "required": false
+        },
+        {
+          "slot": "harmonic_z_accel_plot",
+          "file": "harmonic/z/acceleration_plot.png",
+          "type": "result",
+          "keywords": ["Acceleration", "Chart"],
+          "required": false
+        },
+        {
+          "slot": "harmonic_z_deformation",
+          "file": "harmonic/z/total_deformation.png",
+          "type": "result",
+          "keywords": ["Total Deformation"],
+          "scope": "assembly",
+          "required": true
+        },
+        {
+          "slot": "harmonic_z_stress_asm",
+          "file": "harmonic/z/vonmises_assembly.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "assembly",
+          "required": true
+        },
+        {
+          "slot": "harmonic_z_stress_flange",
+          "file": "harmonic/z/vonmises_flange.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "flange",
+          "required": true
+        }
+      ]
+    },
+    "SYS-5": {
+      "label": "Shock +X",
+      "exports": [
+        {
+          "slot": "shock_plus_x_deformation",
+          "file": "shock/plus_x/total_deformation.png",
+          "type": "result",
+          "keywords": ["Total Deformation"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_plus_x_stress_asm",
+          "file": "shock/plus_x/vonmises_assembly.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_plus_x_stress_flange",
+          "file": "shock/plus_x/vonmises_flange.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "flange",
+          "load_step": "last",
+          "required": true
+        }
+      ]
+    },
+    "SYS-6": {
+      "label": "Shock +Y",
+      "exports": [
+        {
+          "slot": "shock_plus_y_deformation",
+          "file": "shock/plus_y/total_deformation.png",
+          "type": "result",
+          "keywords": ["Total Deformation"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_plus_y_stress_asm",
+          "file": "shock/plus_y/vonmises_assembly.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_plus_y_stress_flange",
+          "file": "shock/plus_y/vonmises_flange.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "flange",
+          "load_step": "last",
+          "required": true
+        }
+      ]
+    },
+    "SYS-7": {
+      "label": "Shock +Z",
+      "exports": [
+        {
+          "slot": "shock_plus_z_deformation",
+          "file": "shock/plus_z/total_deformation.png",
+          "type": "result",
+          "keywords": ["Total Deformation"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_plus_z_stress_asm",
+          "file": "shock/plus_z/vonmises_assembly.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_plus_z_stress_flange",
+          "file": "shock/plus_z/vonmises_flange.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "flange",
+          "load_step": "last",
+          "required": true
+        }
+      ]
+    },
+    "SYS-8": {
+      "label": "Shock -X",
+      "exports": [
+        {
+          "slot": "shock_minus_x_deformation",
+          "file": "shock/minus_x/total_deformation.png",
+          "type": "result",
+          "keywords": ["Total Deformation"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_minus_x_stress_asm",
+          "file": "shock/minus_x/vonmises_assembly.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_minus_x_stress_flange",
+          "file": "shock/minus_x/vonmises_flange.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "flange",
+          "load_step": "last",
+          "required": true
+        }
+      ]
+    },
+    "SYS-9": {
+      "label": "Shock -Y",
+      "exports": [
+        {
+          "slot": "shock_minus_y_deformation",
+          "file": "shock/minus_y/total_deformation.png",
+          "type": "result",
+          "keywords": ["Total Deformation"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_minus_y_stress_asm",
+          "file": "shock/minus_y/vonmises_assembly.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_minus_y_stress_flange",
+          "file": "shock/minus_y/vonmises_flange.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "flange",
+          "load_step": "last",
+          "required": true
+        }
+      ]
+    },
+    "SYS-10": {
+      "label": "Shock -Z",
+      "exports": [
+        {
+          "slot": "shock_minus_z_deformation",
+          "file": "shock/minus_z/total_deformation.png",
+          "type": "result",
+          "keywords": ["Total Deformation"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_minus_z_stress_asm",
+          "file": "shock/minus_z/vonmises_assembly.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "assembly",
+          "load_step": "last",
+          "required": true
+        },
+        {
+          "slot": "shock_minus_z_stress_flange",
+          "file": "shock/minus_z/vonmises_flange.png",
+          "type": "result",
+          "keywords": ["Equivalent Stress", "von-Mises"],
+          "scope": "flange",
+          "load_step": "last",
+          "required": true
+        }
+      ]
+    }
+  }
+}

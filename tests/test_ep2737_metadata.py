@@ -5,16 +5,18 @@ from pathlib import Path
 
 import pytest
 
+from ansys_report.ep2737_paths import ep2737_dp0
+
 REPO = Path(__file__).resolve().parents[1]
 GOLDEN = Path(__file__).resolve().parent / "fixtures" / "ep2737_golden"
 CONFIG = REPO / "config" / "project.ep2737.yaml"
-WB = REPO / "EP 2737" / "Structural Analysis_EP2737" / "EP2737_files" / "dp0"
+WB = ep2737_dp0()
 
 
 @pytest.fixture
-def ep2737_case():
+def ep2737_case(ep2737_data_root):
     if not (WB / "SYS" / "MECH" / "CAERep.xml").exists():
-        pytest.skip("EP2737 CAERep not in workspace")
+        pytest.skip("EP2737 CAERep not available")
 
 
 @pytest.fixture

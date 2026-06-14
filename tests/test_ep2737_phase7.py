@@ -6,10 +6,12 @@ from pathlib import Path
 
 import pytest
 
+from ansys_report.ep2737_paths import ep2737_dp0
+
 REPO = Path(__file__).resolve().parents[1]
 GOLDEN = Path(__file__).resolve().parent / "fixtures" / "ep2737_golden"
 CONFIG = REPO / "config" / "project.ep2737.yaml"
-WB = REPO / "EP 2737" / "Structural Analysis_EP2737" / "EP2737_files" / "dp0"
+WB = ep2737_dp0()
 
 pytestmark_harmonic = pytest.mark.skipif(
     os.getenv("ANSYS_AVAILABLE") != "1",
@@ -18,9 +20,7 @@ pytestmark_harmonic = pytest.mark.skipif(
 
 
 @pytest.fixture
-def ep2737_cfg():
-    if not (REPO / "EP 2737").exists():
-        pytest.skip("EP2737 not in workspace")
+def ep2737_cfg(ep2737_data_root):
     from ansys_report.config import load_project_config
 
     return load_project_config(CONFIG)

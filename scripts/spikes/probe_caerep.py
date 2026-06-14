@@ -1,8 +1,9 @@
 """Quick probe of CAERep.xml structure for Phase 3."""
 import re
-from pathlib import Path
 
-p = Path(__file__).resolve().parents[2] / "EP 2737/Structural Analysis_EP2737/EP2737_files/dp0/SYS/MECH/CAERep.xml"
+from ansys_report.ep2737_paths import ep2737_dp0
+
+p = ep2737_dp0() / "SYS" / "MECH" / "CAERep.xml"
 t = p.read_text(encoding="utf-8")
 
 for block in re.finditer(r"<BodyAttributes[^>]*>(.*?)</BodyAttributes>", t, re.S):
@@ -47,7 +48,7 @@ for m in re.finditer(r"<FixedSurface[^>]*>(.*?)</FixedSurface>", t, re.S):
     cap = re.search(r'<Caption PropType="string">([^<]*)</Caption>', m.group(1))
     print("fixed", cap.group(1) if cap else "?")
 
-so = Path(__file__).resolve().parents[2] / "EP 2737/Structural Analysis_EP2737/EP2737_files/dp0/SYS/MECH/solve.out"
+so = ep2737_dp0() / "SYS" / "MECH" / "solve.out"
 for line in so.read_text(encoding="utf-8").splitlines():
     if "total nodes" in line.lower() or "total elements" in line.lower():
         print("solve", line.strip())

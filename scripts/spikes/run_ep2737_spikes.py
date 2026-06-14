@@ -7,9 +7,11 @@ import json
 import sys
 from pathlib import Path
 
+from ansys_report.ep2737_paths import ep2737_case_root, ep2737_dp0, ep2737_rst_relpath
+
 REPO = Path(__file__).resolve().parents[2]
-CASE = REPO / "EP 2737"
-WB = CASE / "Structural Analysis_EP2737" / "EP2737_files" / "dp0"
+CASE = ep2737_case_root()
+WB = ep2737_dp0()
 GOLDEN_DIR = REPO / "tests" / "fixtures" / "ep2737_golden"
 YIELD_MPA = 170.0  # ASTM 182 F 321 static allowable order-of-magnitude
 TOL_FREQ = 0.01  # Hz
@@ -28,7 +30,7 @@ def spike_modal(num_modes: int = 6) -> dict:
     result = extract_modal(path, num_modes)
     return {
         "spike": "2a_modal",
-        "rst": str(path.relative_to(REPO)),
+        "rst": ep2737_rst_relpath(path),
         "modes": [m.model_dump() for m in result.modes],
         "manual_fields": result.manual_fields,
     }
@@ -41,7 +43,7 @@ def spike_static(load_step: int = 3) -> dict:
     result = extract_static(path, YIELD_MPA, load_step=load_step)
     return {
         "spike": "2b_static",
-        "rst": str(path.relative_to(REPO)),
+        "rst": ep2737_rst_relpath(path),
         "load_step": load_step,
         **result.model_dump(),
     }
@@ -54,7 +56,7 @@ def spike_harmonic_x() -> dict:
     result = extract_harmonic_peak(path)
     return {
         "spike": "2c_harmonic_x",
-        "rst": str(path.relative_to(REPO)),
+        "rst": ep2737_rst_relpath(path),
         **result.model_dump(),
     }
 
@@ -66,7 +68,7 @@ def spike_shock_plus_x() -> dict:
     result = extract_static(path, YIELD_MPA, load_step=1)
     return {
         "spike": "2d_shock_plus_x",
-        "rst": str(path.relative_to(REPO)),
+        "rst": ep2737_rst_relpath(path),
         **result.model_dump(),
     }
 

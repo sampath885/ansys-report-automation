@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from ansys_report.config import ProjectConfig, load_project_config
+from ansys_report.ep2737_paths import ep2737_reference_docx
 from ansys_report.report.block_assembler import assemble_ep2737_document, validate_assembled_document
 from ansys_report.report.block_render import render_blocks_document
 from ansys_report.report.table_builders import enrich_context_tables
@@ -47,7 +48,7 @@ def _resolve_reference_layout(cfg: ProjectConfig) -> Path | None:
     path = getattr(cfg, "reference_layout_path", None)
     if path is not None and Path(path).exists():
         return Path(path)
-    default = Path(__file__).resolve().parents[3] / "EP 2737" / "Design Report_EP2737_UPDATED.docx"
+    default = ep2737_reference_docx()
     return default if default.exists() else None
 
 

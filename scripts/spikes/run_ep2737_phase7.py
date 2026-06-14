@@ -7,9 +7,11 @@ import json
 import sys
 from pathlib import Path
 
+from ansys_report.ep2737_paths import ep2737_dp0, ep2737_rst_relpath
+
 REPO = Path(__file__).resolve().parents[2]
 GOLDEN_DIR = REPO / "tests" / "fixtures" / "ep2737_golden"
-WB = REPO / "EP 2737" / "Structural Analysis_EP2737" / "EP2737_files" / "dp0"
+WB = ep2737_dp0()
 YIELD_MPA = 170.0
 TOL_DISP = 0.05
 TOL_STRESS = 0.5
@@ -26,7 +28,7 @@ def spike_harmonic(folder: str, spike_id: str) -> dict:
     result = extract_harmonic_peak(path)
     return {
         "spike": spike_id,
-        "rst": str(path.relative_to(REPO)),
+        "rst": ep2737_rst_relpath(path),
         **result.model_dump(),
     }
 

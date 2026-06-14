@@ -5,17 +5,19 @@ from pathlib import Path
 
 import pytest
 
+from ansys_report.ep2737_paths import ep2737_case_root
+
 REPO = Path(__file__).resolve().parents[1]
 GOLDEN = Path(__file__).resolve().parent / "fixtures" / "ep2737_golden"
 CONFIG = REPO / "config" / "project.ep2737.yaml"
 MAP = REPO / "config" / "ep2737_excel_map.yaml"
-CASE = REPO / "EP 2737"
+CASE = ep2737_case_root()
 
 
 @pytest.fixture
-def ep2737_excel():
+def ep2737_excel(ep2737_data_root):
     if not (CASE / "OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx").exists():
-        pytest.skip("EP2737 Excel files not in workspace")
+        pytest.skip("EP2737 Excel files not available")
 
 
 @pytest.fixture

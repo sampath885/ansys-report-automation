@@ -8,6 +8,8 @@ import pytest
 from openpyxl import Workbook
 from PIL import Image
 
+from ansys_report.ep2737_paths import ep2737_available, ep2737_case_root, ep2737_dp0
+
 FIXTURES = Path(__file__).parent / "fixtures"
 REPO = FIXTURES.parent.parent
 CONFIG = REPO / "config"
@@ -17,6 +19,18 @@ TEMPLATE = REPO / "templates" / "EP1763_report_template.docx"
 @pytest.fixture(scope="session")
 def repo_root() -> Path:
     return REPO
+
+
+@pytest.fixture(scope="session")
+def ep2737_data_root():
+    if not ep2737_available():
+        pytest.skip("EP2737 case data not found (expected at E:/EP 2737 or EP2737_CASE_ROOT)")
+    return ep2737_case_root()
+
+
+@pytest.fixture(scope="session")
+def ep2737_dp0_dir(ep2737_data_root):
+    return ep2737_dp0()
 
 
 @pytest.fixture(scope="session")

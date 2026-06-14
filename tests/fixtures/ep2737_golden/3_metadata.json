@@ -3,11 +3,11 @@
   "bom_id": "EP 2737",
   "title": "WELDED PLANE PIPE FLANGE",
   "ansys_version": null,
-  "cad_step": "EP 2737\\11-EP2737.STEP",
+  "cad_step": "E:/EP 2737/11-EP2737.STEP",
   "equipment": {
     "bom_id": "EP 2737",
     "title": "WELDED PLANE PIPE FLANGE",
-    "cad_step": "EP 2737\\11-EP2737.STEP",
+    "cad_step": "E:/EP 2737/11-EP2737.STEP",
     "bodies": [
       {
         "name": "Cut-Extrude1",
@@ -260,6 +260,6 @@
       "quality_metrics": {},
       "manual_fields": []
     },
-    "source_mech_dir": "EP 2737\\Structural Analysis_EP2737\\EP2737_files\\dp0\\SYS\\MECH"
+    "source_mech_dir": "Structural Analysis_EP2737/EP2737_files/dp0/SYS/MECH"
   }
 }
