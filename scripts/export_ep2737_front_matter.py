@@ -7,8 +7,10 @@ from pathlib import Path
 import yaml
 from docx import Document
 
+from ansys_report.ep2737_paths import ep2737_reference_docx
+
 ROOT = Path(__file__).resolve().parents[1]
-REF = ROOT / "EP 2737" / "Design Report_EP2737_UPDATED.docx"
+REF = ep2737_reference_docx()
 OUT = ROOT / "config" / "ep2737_front_matter.yaml"
 
 

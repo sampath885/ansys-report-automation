@@ -11,9 +11,7 @@ CONFIG = REPO / "config" / "project.ep2737.yaml"
 
 
 @pytest.fixture
-def ep2737_cfg():
-    if not (REPO / "EP 2737" / "Structural Analysis_EP2737").exists():
-        pytest.skip("EP2737 project not in workspace")
+def ep2737_cfg(ep2737_data_root):
     from ansys_report.config import load_project_config
 
     return load_project_config(CONFIG)

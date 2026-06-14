@@ -28,9 +28,9 @@ ansys_version: "2025 R2"
 
 
 
-project_dir: "../EP 2737/Structural Analysis_EP2737"
+project_dir: "../../EP 2737/Structural Analysis_EP2737"
 
-case_root: "../EP 2737"
+case_root: "../../EP 2737"
 
 image_folder: "exports"
 
@@ -86,9 +86,13 @@ bolts:
 
   extraction_mode: envelope
 
-  shock_extraction_mode: first
+  shock_extraction_mode: envelope
 
   uniform_axial_from_preload: true
+
+  sort_by_position: true
+
+  shock_sort_by_position: false
 
 
 

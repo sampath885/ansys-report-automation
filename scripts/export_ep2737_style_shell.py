@@ -7,8 +7,10 @@ from pathlib import Path
 from ansys_report.report.docx_sanitize import sanitize_docx_for_word
 from ansys_report.report.ep2737_styles import create_style_shell
 
+from ansys_report.ep2737_paths import ep2737_reference_docx
+
 ROOT = Path(__file__).resolve().parents[1]
-REF = ROOT / "EP 2737" / "Design Report_EP2737_UPDATED.docx"
+REF = ep2737_reference_docx()
 OUT = ROOT / "templates" / "EP2737_style_shell.docx"
 
 

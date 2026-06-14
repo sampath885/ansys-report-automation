@@ -1,6 +1,6 @@
 {
   "spike": "2e_harmonic_y",
-  "rst": "EP 2737\\Structural Analysis_EP2737\\EP2737_files\\dp0\\SYS-3\\MECH\\file.rst",
+  "rst": "Structural Analysis_EP2737/EP2737_files/dp0/SYS-3/MECH/file.rst",
   "peak_displacement_mm": 11.38412723488932,
   "peak_frequency_hz": 3.909090909090909,
   "num_frequency_sets": 15,

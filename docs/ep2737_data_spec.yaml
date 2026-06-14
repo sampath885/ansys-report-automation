@@ -705,14 +705,14 @@ report_to_ansys_mapping:
   system_key: excel
   workbench_folder: N/A
 paths:
-  case_root: EP 2737
-  workbench_project: EP 2737/Structural Analysis_EP2737
-  wbpj: EP 2737/Structural Analysis_EP2737/EP2737.wbpj
-  cad_step: EP 2737/11-EP2737.STEP
-  geometry_scdocx: EP 2737/Structural Analysis_EP2737/EP2737_files/dp0/SYS/DM/SYS.scdocx
-  exports: EP 2737/exports
-  excel_design_calcs: EP 2737/OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx
-  excel_bolt_preload: EP 2737/Bolt pre load.xlsx
+  case_root: E:/EP 2737
+  workbench_project: E:/EP 2737/Structural Analysis_EP2737
+  wbpj: E:/EP 2737/Structural Analysis_EP2737/EP2737.wbpj
+  cad_step: E:/EP 2737/11-EP2737.STEP
+  geometry_scdocx: E:/EP 2737/Structural Analysis_EP2737/EP2737_files/dp0/SYS/DM/SYS.scdocx
+  exports: E:/EP 2737/exports
+  excel_design_calcs: E:/EP 2737/OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx
+  excel_bolt_preload: E:/EP 2737/Bolt pre load.xlsx
 ansys_environment:
   version: 2025 R2
   version_build: 25.2.1.0
@@ -1329,7 +1329,7 @@ excel_report_tables:
   workbook: OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx
   sheet: bolt pre load
 images:
-  exports_root: EP 2737/exports
+  exports_root: E:/EP 2737/exports
   status: missing
   png_jpg_count: 0
 known_issues:

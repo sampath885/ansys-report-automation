@@ -66,6 +66,7 @@ def extract_bolt_loads_from_rst(
     *,
     mode: BoltExtractionMode = "envelope",
     uniform_axial_n: float | None = None,
+    sort_by_position: bool | None = None,
 ) -> list[dict[str, Any]]:
     """Extract per-bolt axial/shear from pretension beam results via DPF."""
     if rst_path is None or not rst_path.exists():
@@ -74,10 +75,16 @@ def extract_bolt_loads_from_rst(
         from ansys_report.extract.dpf_bolt import extract_bolt_loads_dpf
 
         kwargs = _bolt_kwargs(cfg)
+        sort = sort_by_position
+        if sort is None and cfg is not None:
+            bolts = getattr(cfg, "bolts", None)
+            if bolts is not None:
+                sort = getattr(bolts, "sort_by_position", None)
         return extract_bolt_loads_dpf(
             rst_path,
             mode=mode,
             uniform_axial_n=uniform_axial_n,
+            sort_by_position=True if sort is None else sort,
             **kwargs,
         )
     except ImportError:
@@ -130,13 +137,23 @@ def resolve_shock_bolt_loads(
     allow_word_golden: bool = False,
 ) -> list[dict[str, Any]]:
     if os.getenv("ANSYS_AVAILABLE") == "1":
-        mode: BoltExtractionMode = "first"
+        mode: BoltExtractionMode = "envelope"
+        sort_by_position = False
         if cfg is not None:
             bolts = getattr(cfg, "bolts", None)
             if bolts is not None:
-                mode = getattr(bolts, "shock_extraction_mode", None) or "first"
+                mode = getattr(bolts, "shock_extraction_mode", None) or getattr(
+                    bolts, "extraction_mode", "envelope"
+                )
+                sort_by_position = getattr(bolts, "shock_sort_by_position", False)
 
-        live = extract_bolt_loads_from_rst(rst_path, cfg=cfg, mode=mode)
+        live = extract_bolt_loads_from_rst(
+            rst_path,
+            cfg=cfg,
+            mode=mode,
+            uniform_axial_n=None,
+            sort_by_position=sort_by_position,
+        )
         if live:
             return live
     if allow_word_golden:

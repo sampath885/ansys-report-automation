@@ -24,9 +24,8 @@ def ep2737_template(repo_root) -> Path:
 
 
 @pytest.fixture
-def ep2737_case():
-    if not (REPO / "EP 2737" / "Structural Analysis_EP2737").exists():
-        pytest.skip("EP2737 project not in workspace")
+def ep2737_case(ep2737_data_root):
+    """Require EP2737 case data at E:/EP 2737."""
 
 
 @pytest.fixture

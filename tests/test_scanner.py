@@ -1,26 +1,24 @@
 """Tests for Workbench project scanner (Phase 1)."""
 
-from pathlib import Path
-
 import pytest
 
 from ansys_report.config import load_project_config
+from ansys_report.ep2737_paths import ep2737_workbench_dir
 from ansys_report.scanner import scan_project
 
-EP2737_WB = Path("EP 2737/Structural Analysis_EP2737")
-EP2737_CASE = Path("EP 2737")
+EP2737_WB = ep2737_workbench_dir()
 
 
 @pytest.fixture
-def ep2737_available(repo_root):
-    wb = repo_root / EP2737_WB
+def ep2737_scan_inputs(ep2737_data_root):
+    wb = EP2737_WB
     if not wb.exists():
-        pytest.skip("EP 2737 Workbench project not in workspace")
-    return wb, repo_root / EP2737_CASE
+        pytest.skip("EP 2737 Workbench project not available")
+    return wb, ep2737_data_root
 
 
-def test_scan_ep2737_finds_eleven_systems(repo_root, ep2737_available):
-    wb, case = ep2737_available
+def test_scan_ep2737_finds_eleven_systems(repo_root, ep2737_scan_inputs):
+    wb, case = ep2737_scan_inputs
     inv = scan_project(
         wb,
         "exports",
@@ -38,15 +36,15 @@ def test_scan_ep2737_finds_eleven_systems(repo_root, ep2737_available):
     assert inv.cad_step is not None
 
 
-def test_inventory_json_serializable(repo_root, ep2737_available):
-    wb, case = ep2737_available
+def test_inventory_json_serializable(repo_root, ep2737_scan_inputs):
+    wb, case = ep2737_scan_inputs
     inv = scan_project(wb, "exports", "OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx", case_root=case)
     data = inv.to_json_dict()
     assert data["systems"]["vibration_x"]["folder"] == "SYS-2"
     assert len(data["systems"]) == 11
 
 
-def test_ep2737_config_loads(repo_root, ep2737_available):
+def test_ep2737_config_loads(repo_root, ep2737_scan_inputs):
     cfg_path = repo_root / "config" / "project.ep2737.yaml"
     if not cfg_path.exists():
         pytest.skip("project.ep2737.yaml missing")

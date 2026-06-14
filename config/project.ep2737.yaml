@@ -13,9 +13,9 @@ approved_by:
 ansys_version: "2025 R2"
 
 # Workbench project folder (relative to repo root when loading from config/)
-project_dir: "../EP 2737/Structural Analysis_EP2737"
-# Case folder: Excel, STEP, exports live here
-case_root: "../EP 2737"
+project_dir: "../../EP 2737/Structural Analysis_EP2737"
+# Case folder: Excel, STEP, exports live here (moved out of repo to E:\EP 2737)
+case_root: "../../EP 2737"
 image_folder: "exports"
 excel_calcs: "OLF Mechanical Calculation of BOM IDs EP2737_1.xlsx"
 excel_bolt_preload: "Bolt pre load.xlsx"
