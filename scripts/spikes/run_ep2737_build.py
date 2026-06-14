@@ -40,13 +40,25 @@ def run_build(
     )
     validation = validate_project_paths(cfg)
 
+    images_ctx: dict = {}
+    if not cfg.skip_images and cfg.image_map_path and cfg.image_map_path.exists():
+        from ansys_report.config import load_image_map
+        from ansys_report.images.mapper import assets_to_validation, resolve_assets
+
+        imap = load_image_map(cfg.image_map_path)
+        image_root = inventory.image_root if inventory.image_root.exists() else cfg.image_root
+        assets = resolve_assets(image_root, imap)
+        validation.merge(assets_to_validation(assets))
+        images_ctx = {slot: path for slot, path in assets.resolved.items()}
+        print(f"Images: {len(images_ctx)} resolved under {image_root}")
+
     dpf_keys = {"modal", "static", "harmonic_x", "harmonic_y", "harmonic_z", "shock"}
     saved_sections = None
     if golden_dpf:
         saved_sections = list(cfg.sections_enabled)
         cfg.sections_enabled = [s for s in saved_sections if s not in dpf_keys]
 
-    ctx, build_val = build_context(cfg, inventory=inventory, use_ai=False)
+    ctx, build_val = build_context(cfg, inventory=inventory, use_ai=False, images=images_ctx)
     validation.merge(build_val)
 
     if golden_dpf and saved_sections:

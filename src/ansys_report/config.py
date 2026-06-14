@@ -190,8 +190,10 @@ class ImageMapConfig(BaseModel):
     slots: dict[str, str]
 
     @classmethod
-    def from_mapping(cls, mapping: dict[str, str]) -> ImageMapConfig:
-        return cls(slots=mapping)
+    def from_mapping(cls, mapping: dict[str, Any]) -> ImageMapConfig:
+        if "slots" in mapping and isinstance(mapping["slots"], dict):
+            return cls(slots={str(k): str(v) for k, v in mapping["slots"].items()})
+        return cls(slots={str(k): str(v) for k, v in mapping.items()})
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
@@ -236,6 +238,9 @@ def load_project_config(
     if data.get("section_content_path"):
         base = config_path.parent
         data["section_content_path"] = str((base / data["section_content_path"]).resolve())
+    if data.get("image_map_path"):
+        base = config_path.parent
+        data["image_map_path"] = str((base / data["image_map_path"]).resolve())
     cfg = ProjectConfig(**data)
     cfg.project_dir = cfg.project_dir.resolve()
     if cfg.case_root:

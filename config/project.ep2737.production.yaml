@@ -58,7 +58,9 @@ use_dpf_golden_fallback: false
 
 standards_tables_path: "../config/ep2737_standards_tables.yaml"
 
-skip_images: true
+skip_images: false
+
+image_map_path: "../config/ep2737_image_map.yaml"
 
 
 
