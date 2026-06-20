@@ -7,13 +7,33 @@ RUN INSIDE MECHANICAL (not Workbench, not this repo's terminal):
   main() runs automatically (Mechanical does not set __name__ == "__main__").
   If needed, type main() in the Shell panel.
 
-The script detects which Workbench system you opened (SYS, SYS-1, ... SYS-10),
-or exports ALL analyses when they share one combined Mechanical session
-(EP2737 default layout). PNGs are saved under:
+AUTO-DISCOVER MODE (default, AUTO_DISCOVER = True)
+---------------------------------------------------
+The script walks the ENTIRE solved Mechanical tree and exports a PNG for
+EVERY result node it finds - deformation, stress, strain, frequency response
+charts, phase angle charts, contact results, safety factors, probes, etc.
+No manifest is required.  Works for ANY project / analysis type.
 
-  c:\\Users\\jaswa\\OneDrive\\Desktop\\ansys automation\\ansys_automation_files\\exports\\...
+Output structure:
+  exports/
+    common/
+      geometry_isometric.png
+      mesh_isometric.png
+      contacts_isometric.png
+      coordinate_systems_isometric.png
+    <sanitised_analysis_name>/     e.g. static_structural/
+      total_deformation.png
+      equivalent_stress_von-mises_.png
+      ...
+    <next_analysis>/
+      ...
+    auto_discover_log.txt
 
-Log file:  <exports>/export_log_<SYS>.txt
+MANIFEST MODE (AUTO_DISCOVER = False)
+--------------------------------------
+Uses config/ep2737_mechanical_export.json to drive exports with explicit
+slots, keywords and scope (assembly / flange).  Falls back to this mode
+only when AUTO_DISCOVER is set False at the top of this file.
 
 Requires: solved model with Solution results visible in the tree.
 IronPython 2.7 or CPython 3 (Ansys 2025 R2) - both supported.
@@ -56,17 +76,52 @@ def print(*args, **kwargs):  # noqa: A001 — Mechanical needs ASCII-safe output
         kwargs["end"] = _safe_str(kwargs["end"])
     _builtins.print(*args, **kwargs)
 
+
 # =============================================================================
 # EDIT THESE TWO PATHS IF YOUR MACHINE USES DIFFERENT LOCATIONS
 # =============================================================================
-OUTPUT_ROOT = r"c:\Users\jaswa\OneDrive\Desktop\ansys automation\ansys_automation_files\exports"
-MANIFEST_PATH = r"c:\Users\jaswa\OneDrive\Desktop\ansys automation\config\ep2737_mechanical_export.json"
+OUTPUT_ROOT = r"C:\Users\krant\Desktop\ansys\ansys-report-automation\ouputs"
+MANIFEST_PATH = r"C:\Users\krant\Desktop\ansys\ansys-report-automation\config\ep2737_mechanical_export.json"
 
-# Set to "SYS", "SYS-1", ... "SYS-10" to force one system only (otherwise leave None)
+# Set to "SYS", "SYS-1", ... "SYS-10" to force one system only (manifest mode)
 SYSTEM_OVERRIDE = None
 
-# When multiple analyses live in one Mechanical session, export ALL of them in one Run.
+# When multiple analyses live in one Mechanical session, export ALL of them.
 EXPORT_ALL_IF_COMBINED = True
+
+# ---------------------------------------------------------------------------
+# AUTO-DISCOVER SETTINGS
+# ---------------------------------------------------------------------------
+# True  → walk the ENTIRE solved tree; export every result found.
+#         Works for any project.  Manifest is optional (used for image size).
+# False → use the JSON manifest exclusively (original behaviour).
+AUTO_DISCOVER = True
+
+# Also capture Geometry, Mesh, Connections, Coordinate Systems as common views.
+AUTO_DISCOVER_SETUP_VIEWS = True
+
+# Node names (lower-case prefix match) to skip COMPLETELY during auto-discover
+# (neither export them nor walk their children).
+_AUTO_SKIP_PREFIXES = (
+    "solution information",
+    "analysis settings",
+    "convergence",
+    "newton-raphson",
+    "named selections",
+    "named selection manager",
+)
+
+# Node names to skip exporting but STILL recurse into (transparent containers).
+_AUTO_CONTAINER_PREFIXES = (
+    "contact tool",
+    "stress tool",
+    "fatigue tool",
+    "beam tool",
+)
+
+# Hard safety cap: stop after this many PNGs regardless of tree size.
+# Set to 0 to disable the cap entirely.
+MAX_EXPORTS = 500
 # =============================================================================
 
 SYSTEM_ORDER = ["SYS"] + ["SYS-%d" % i for i in range(1, 11)]
@@ -80,6 +135,11 @@ class ExportError(Exception):
     """Raised instead of sys.exit so Mechanical Shell does not show SystemExitException."""
 
 
+# ---------------------------------------------------------------------------
+# Entry points
+# ---------------------------------------------------------------------------
+
+
 def main():
     try:
         _main_impl()
@@ -90,6 +150,34 @@ def main():
 
 def _main_impl():
     _require_mechanical()
+
+    model = ExtAPI.DataModel.Project.Model  # noqa: F821
+
+    if AUTO_DISCOVER:
+        try:
+            proj = ExtAPI.DataModel.Project.ProjectDirectory  # noqa: F821
+        except Exception:
+            proj = "?"
+        print("EP2737 Auto-Discover Export")
+        print("Project : %s" % proj)
+        print("")
+
+        # Try to pick up image-size override from manifest (optional).
+        manifest = _try_load_manifest()
+        if manifest:
+            if manifest.get("image_width"):
+                global IMAGE_WIDTH, IMAGE_HEIGHT
+                IMAGE_WIDTH = int(manifest["image_width"])
+                IMAGE_HEIGHT = int(manifest["image_height"])
+
+        output_root = os.path.normpath(OUTPUT_ROOT)
+        if manifest and manifest.get("output_root"):
+            output_root = os.path.normpath(manifest["output_root"])
+
+        _auto_discover_and_export(model, output_root)
+        return
+
+    # ---------- Original manifest-driven flow ----------
     manifest = _load_manifest()
     if manifest.get("image_width"):
         global IMAGE_WIDTH, IMAGE_HEIGHT
@@ -99,9 +187,7 @@ def _main_impl():
     output_root = manifest.get("output_root") or OUTPUT_ROOT
     output_root = os.path.normpath(output_root)
 
-    model = ExtAPI.DataModel.Project.Model  # noqa: F821 - provided by Mechanical
     mapped = _map_analyses_to_systems(model)
-
     _print_detection_debug(model, mapped)
 
     if SYSTEM_OVERRIDE:
@@ -147,6 +233,342 @@ def _main_impl():
         "Set SYSTEM_OVERRIDE = 'SYS-3' (etc.) at the top of this script."
         % hint
     )
+
+
+# ---------------------------------------------------------------------------
+# AUTO-DISCOVER ENGINE
+# ---------------------------------------------------------------------------
+
+
+def _sanitize_filename(name):
+    """Convert an arbitrary tree node name into a safe filename component."""
+    s = _safe_str(name).strip().lower()
+    # Keep alphanumerics, hyphens, underscores, dots; replace the rest with _
+    s = re.sub(r"[^\w.\-]", "_", s)
+    s = re.sub(r"_+", "_", s).strip("_")
+    return s[:80] or "unnamed"
+
+
+def _unique_path(path):
+    """Append _2, _3 … to the stem if the file already exists."""
+    if not os.path.exists(path):
+        return path
+    base, ext = os.path.splitext(path)
+    counter = 2
+    while True:
+        candidate = "%s_%d%s" % (base, counter, ext)
+        if not os.path.exists(candidate):
+            return candidate
+        counter += 1
+
+
+def _auto_discover_and_export(model, output_root):
+    """Walk the full Mechanical tree and export a PNG for every result found."""
+    log_lines = [
+        "EP2737 Auto-Discover Export",
+        "Time   : %s" % time.strftime("%Y-%m-%d %H:%M:%S"),
+        "Output : %s" % output_root,
+        "-" * 60,
+    ]
+    ok = 0
+    total_nodes = 0
+    interrupted = False
+
+    def _flush_log(note=""):
+        log_lines.append("-" * 60)
+        msg = "Total result nodes: %d   PNGs exported: %d" % (total_nodes, ok)
+        if note:
+            msg += "  [%s]" % note
+        log_lines.append(msg)
+        log_path = os.path.join(output_root, "auto_discover_log.txt")
+        _write_log(log_path, log_lines)
+        return log_path
+
+    try:
+        # 1. Common setup views
+        if AUTO_DISCOVER_SETUP_VIEWS:
+            n_ok, n_nodes, lines = _export_setup_views(model, output_root)
+            ok += n_ok
+            total_nodes += n_nodes
+            log_lines.extend(lines)
+
+        # 2. Per-analysis results
+        analyses = _get_all_analyses(model)
+        if not analyses:
+            print("WARNING: No analyses found in the Mechanical tree.")
+            log_lines.append("WARNING: No analyses found.")
+        else:
+            print("Found %d analysis/analyses." % len(analyses))
+            if MAX_EXPORTS > 0:
+                print("Safety cap: MAX_EXPORTS = %d" % MAX_EXPORTS)
+            print("")
+
+        for analysis in analyses:
+            if MAX_EXPORTS > 0 and ok >= MAX_EXPORTS:
+                print("")
+                print("STOPPED: reached MAX_EXPORTS limit (%d)." % MAX_EXPORTS)
+                print("Raise MAX_EXPORTS at the top of the script to export more.")
+                log_lines.append("STOPPED: MAX_EXPORTS cap (%d) reached." % MAX_EXPORTS)
+                break
+
+            a_name = _node_name(analysis)
+            a_folder = _sanitize_filename(a_name)
+            if not a_folder:
+                a_folder = "analysis"
+
+            sol_node = _find_solution_node(analysis)
+            if sol_node is None:
+                msg = "No Solution node found under '%s' - skipped." % a_name
+                print("  SKIP " + msg)
+                log_lines.append("SKIP [%s] %s" % (a_name, msg))
+                continue
+
+            result_nodes = list(_collect_result_nodes_under(sol_node))
+
+            print("-" * 60)
+            print("Analysis : %s" % a_name)
+            print("Folder   : %s" % a_folder)
+            print("Results  : %d node(s)" % len(result_nodes))
+            print("")
+            total_nodes += len(result_nodes)
+
+            if not result_nodes:
+                log_lines.append("SKIP [%s] 0 result nodes found" % a_name)
+                continue
+
+            for node in result_nodes:
+                # --- Keyboard interrupt check (Ctrl+C / Ctrl+Break) ---
+                # This try/except is checked once per node so the user can
+                # interrupt the export at any time without losing progress.
+                try:
+                    if MAX_EXPORTS > 0 and ok >= MAX_EXPORTS:
+                        print("")
+                        print("STOPPED: reached MAX_EXPORTS limit (%d)." % MAX_EXPORTS)
+                        log_lines.append("STOPPED: MAX_EXPORTS cap (%d) reached." % MAX_EXPORTS)
+                        raise KeyboardInterrupt
+
+                    r_name = _node_name(node)
+                    fname = _sanitize_filename(r_name) + ".png"
+                    dest = os.path.join(output_root, a_folder, fname)
+                    dest = _unique_path(dest)
+
+                    _restore_all_bodies_visible(model)
+                    _activate(node)
+                    try:
+                        ExtAPI.Graphics.Refresh()  # noqa: F821
+                    except Exception:
+                        pass
+                    _apply_view("isometric")
+                    _export_png(dest, IMAGE_WIDTH, IMAGE_HEIGHT)
+                    ok += 1
+                    print("  OK   [%d] %s" % (ok, r_name))
+                    log_lines.append("OK   [%s / %s] -> %s" % (a_name, r_name, dest))
+
+                except KeyboardInterrupt:
+                    interrupted = True
+                    raise  # bubble up to outer handler
+
+                except Exception as exc:
+                    msg = _safe_str(exc)
+                    print("  ERR  %s  (%s)" % (_node_name(node), msg))
+                    log_lines.append("ERR  [%s / %s] %s" % (a_name, _node_name(node), msg))
+
+    except KeyboardInterrupt:
+        interrupted = True
+        print("")
+        print("*** INTERRUPTED by user (Ctrl+C / Ctrl+Break) ***")
+        print("Saving partial log...")
+
+    finally:
+        note = "INTERRUPTED" if interrupted else ""
+        log_path = _flush_log(note)
+        print("")
+        print("=" * 60)
+        if interrupted:
+            print("Export INTERRUPTED after %d PNG(s)." % ok)
+        else:
+            print("Auto-discover complete.")
+        print("Result nodes found : %d" % total_nodes)
+        print("PNGs exported      : %d" % ok)
+        print("Output folder      : %s" % output_root)
+        print("Log                : %s" % log_path)
+        print("=" * 60)
+
+    return ok
+
+
+def _get_all_analyses(model):
+    """Return list of every Analysis node in the model."""
+    analyses = []
+    seen_ids = set()
+
+    def _add(node):
+        try:
+            nid = id(node)
+            if nid in seen_ids:
+                return
+            seen_ids.add(nid)
+            analyses.append(node)
+        except Exception:
+            pass
+
+    # Primary: model.Analyses property (most reliable)
+    try:
+        for a in model.Analyses:
+            _add(a)
+        if analyses:
+            return analyses
+    except Exception:
+        pass
+
+    # Fallback: walk the tree and pick Analysis-typed nodes
+    for node in _walk_tree(model):
+        try:
+            t = node.GetType().Name
+        except Exception:
+            continue
+        if "Analysis" in t and "Settings" not in t and "Information" not in t:
+            _add(node)
+
+    return analyses
+
+
+def _find_solution_node(analysis):
+    """Return the Solution node that lives directly under an analysis."""
+    # Direct attribute (most reliable)
+    try:
+        sol = analysis.Solution
+        if sol is not None:
+            return sol
+    except Exception:
+        pass
+
+    # Walk immediate children
+    for child in _iter_children(analysis):
+        name = _node_name(child).lower()
+        if name == "solution":
+            return child
+        try:
+            t = child.GetType().Name
+            if (
+                "Solution" in t
+                and "Settings" not in t
+                and "Information" not in t
+                and "SolutionConfiguration" not in t
+            ):
+                return child
+        except Exception:
+            pass
+
+    return None
+
+
+def _is_skip_prefix(name_lower):
+    """Return True if a node's name matches the skip-completely list."""
+    for prefix in _AUTO_SKIP_PREFIXES:
+        if name_lower.startswith(prefix):
+            return True
+    return False
+
+
+def _is_container_prefix(name_lower):
+    """Return True if a node is a transparent container (recurse but don't export)."""
+    for prefix in _AUTO_CONTAINER_PREFIXES:
+        if name_lower.startswith(prefix):
+            return True
+    return False
+
+
+def _collect_result_nodes_under(sol_node, _visited=None):
+    """
+    Walk *sol_node* (the Solution branch) and yield every exportable result
+    node in depth-first order.
+
+    Rules:
+      - Nodes matching _AUTO_SKIP_PREFIXES → skip node AND all its children.
+      - Nodes matching _AUTO_CONTAINER_PREFIXES → don't export the node itself
+        but DO recurse into its children (e.g. Contact Tool > Contact Pressure).
+      - Everything else → yield the node, then recurse into its children.
+    Cycle protection via _visited id-set prevents infinite loops.
+    """
+    if _visited is None:
+        _visited = set()
+
+    for child in _iter_children(sol_node):
+        try:
+            cid = id(child)
+        except Exception:
+            continue
+        if cid in _visited:
+            continue
+        _visited.add(cid)
+
+        name = _node_name(child).lower().strip()
+        if not name:
+            continue
+
+        if _is_skip_prefix(name):
+            continue
+
+        if _is_container_prefix(name):
+            for sub in _collect_result_nodes_under(child, _visited):
+                yield sub
+        else:
+            yield child
+            for sub in _collect_result_nodes_under(child, _visited):
+                yield sub
+
+
+def _export_setup_views(model, output_root):
+    """
+    Export common geometry/mesh/connections views into output_root/common/.
+    Returns (ok_count, node_count, log_lines).
+    """
+    common_dir = os.path.join(output_root, "common")
+    targets = [
+        ("Geometry", "geometry_isometric.png", True),
+        ("Mesh", "mesh_isometric.png", True),
+        ("Connections", "contacts_isometric.png", True),
+        ("Coordinate Systems", "coordinate_systems_isometric.png", True),
+    ]
+
+    ok = 0
+    log_lines = []
+    print("--- Common setup views ---")
+
+    for label, fname, partial in targets:
+        node = _find_by_name(model, label, partial=False)
+        if node is None and partial:
+            node = _find_by_name(model, label, partial=True)
+        if node is None:
+            print("  SKIP common/%s (not found)" % fname)
+            continue
+
+        dest = os.path.join(common_dir, fname)
+        try:
+            _restore_all_bodies_visible(model)
+            _activate(node)
+            try:
+                ExtAPI.Graphics.Refresh()  # noqa: F821
+            except Exception:
+                pass
+            _apply_view("isometric")
+            _export_png(dest, IMAGE_WIDTH, IMAGE_HEIGHT)
+            ok += 1
+            print("  OK   common/%s" % fname)
+            log_lines.append("OK   [common / %s] -> %s" % (label, dest))
+        except Exception as exc:
+            msg = _safe_str(exc)
+            print("  ERR  common/%s  (%s)" % (fname, msg))
+            log_lines.append("ERR  [common / %s] %s" % (label, msg))
+
+    print("")
+    return ok, len(targets), log_lines
+
+
+# ---------------------------------------------------------------------------
+# Manifest-driven export (kept for backward compatibility / AUTO_DISCOVER=False)
+# ---------------------------------------------------------------------------
 
 
 def _export_system(model, manifest, output_root, system_key, analysis_root, quiet_summary=False):
@@ -276,8 +698,16 @@ def _iter_children(obj):
 
 def _walk_tree(root):
     stack = [root]
+    visited = set()
     while stack:
         node = stack.pop()
+        try:
+            nid = id(node)
+        except Exception:
+            continue
+        if nid in visited:
+            continue
+        visited.add(nid)
         yield node
         for child in _iter_children(node):
             stack.append(child)
@@ -343,14 +773,12 @@ def _find_result_object(search_root, job):
                 mode_hits.append(node)
         if mode_hits:
             return mode_hits[0]
-        # Fallback: nth deformation result under Solution
         deform = [n for n in candidates if "deformation" in _node_name(n).lower()]
         idx = int(mode) - 1
         if 0 <= idx < len(deform):
             return deform[idx]
 
     if candidates:
-        # Prefer shortest name match (usually the parent result, not sub-features)
         candidates.sort(key=lambda n: len(_node_name(n)))
         return candidates[0]
     return None
@@ -404,7 +832,6 @@ def _export_png(path, width, height):
     graphics = ExtAPI.Graphics  # noqa: F821
     errors = []
 
-    # ANSYS versions use slightly different ExportImage signatures
     try:
         graphics.ExportImage(path, width, height)
         return
@@ -468,7 +895,6 @@ def _apply_flange_scope(model):
                 pass
 
     if shown == 0:
-        # Try named selection
         for node in _walk_tree(model):
             lname = _node_name(node).lower()
             if "named selection" in lname or lname == "flange":
@@ -497,7 +923,6 @@ def _try_set_load_step(model, result_obj, load_step):
         return
     if str(load_step).lower() != "last":
         return
-    # Walk up to Solution / analysis and pick last step if API exists
     node = result_obj
     for _ in range(12):
         if node is None:
@@ -516,7 +941,7 @@ def _try_set_load_step(model, result_obj, load_step):
 
 
 # ---------------------------------------------------------------------------
-# Manifest / environment
+# Manifest / environment helpers
 # ---------------------------------------------------------------------------
 
 
@@ -528,8 +953,18 @@ def _load_manifest():
         return json.load(fh)
 
 
+def _try_load_manifest():
+    """Non-fatal version: returns None if the manifest is absent or broken."""
+    if not os.path.isfile(MANIFEST_PATH):
+        return None
+    try:
+        with open(MANIFEST_PATH, "r") as fh:
+            return json.load(fh)
+    except Exception:
+        return None
+
+
 def _detect_system_key(model):
-    """Prefer active/selected analysis (combined Mechanical tree), then folder path."""
     active = _detect_system_from_active(model)
     if active:
         return active
@@ -564,7 +999,6 @@ def _detect_system_from_path():
 
 
 def _detect_system_from_active(model):
-    """Map clicked/active result to SYS key via parent analysis name."""
     obj = _get_activated_object(model)
     node = obj
     for _ in range(30):
@@ -585,16 +1019,6 @@ def _detect_system_from_active(model):
             node = node.Parent
         except Exception:
             break
-
-    # Fallback: only one harmonic/modal/etc. with results - scan top-level analyses
-    try:
-        for analysis in model.Analyses:
-            sys_key = _map_analysis_label_to_sys(_node_name(analysis))
-            if sys_key:
-                # If multiple, don't guess - active walk should have worked
-                pass
-    except Exception:
-        pass
     return None
 
 
@@ -664,11 +1088,11 @@ def _map_analysis_label_to_sys(label):
             return "SYS-6"
         if re.search(r"[+]\s*z\b|plus\s*z|\+\s*z", n):
             return "SYS-7"
-        if re.search(r"[-−]\s*x\b|minus\s*x|\-\s*x", n):
+        if re.search(r"[-\u2212]\s*x\b|minus\s*x|\-\s*x", n):
             return "SYS-8"
-        if re.search(r"[-−]\s*y\b|minus\s*y|\-\s*y", n):
+        if re.search(r"[-\u2212]\s*y\b|minus\s*y|\-\s*y", n):
             return "SYS-9"
-        if re.search(r"[-−]\s*z\b|minus\s*z|\-\s*z", n):
+        if re.search(r"[-\u2212]\s*z\b|minus\s*z|\-\s*z", n):
             return "SYS-10"
 
     return None
@@ -774,3 +1198,7 @@ except ExportError:
     pass
 except SystemExit:
     pass
+except KeyboardInterrupt:
+    print("")
+    print("Export stopped by user.")
+    print("")
