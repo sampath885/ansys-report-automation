@@ -12,6 +12,22 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_EXPORT_DIRS = ("exports", "report_assets", "images")
 
+
+def _read_text_head(path: Path, max_chars: int = 100_000) -> str:
+    """Read only the first max_chars — ds.dat can be gigabytes."""
+    with path.open(encoding="utf-8", errors="replace") as handle:
+        return handle.read(max_chars)
+
+
+def _read_text_tail(path: Path, max_bytes: int = 500_000) -> str:
+    """Read the tail of a file — solve.out grows with every run."""
+    size = path.stat().st_size
+    with path.open("rb") as handle:
+        if size > max_bytes:
+            handle.seek(-max_bytes, 2)
+        data = handle.read()
+    return data.decode("utf-8", errors="replace")
+
 # Workbench folder → report / pipeline key (EP2737 convention)
 FOLDER_TO_KEY: dict[str, str] = {
     "SYS": "static_structural",
@@ -81,7 +97,7 @@ def _detect_antype(mech_dir: Path) -> str | None:
     ds = mech_dir / "ds.dat"
     if not ds.exists():
         return None
-    head = ds.read_text(encoding="utf-8", errors="replace")[:100_000]
+    head = _read_text_head(ds, 100_000)
     if "antype,harm" in head:
         return "harmonic"
     if "antype,modal" in head or (mech_dir / "file.db").exists():
@@ -93,7 +109,7 @@ def _mapdl_error_count(mech_dir: Path) -> int | str | None:
     solve = mech_dir / "solve.out"
     if not solve.exists():
         return None
-    sout = solve.read_text(encoding="utf-8", errors="replace")
+    sout = _read_text_tail(solve)
     m = re.search(r"NUMBER OF ERROR MESSAGES\s+=\s+(\d+)", sout)
     if m:
         return int(m.group(1))

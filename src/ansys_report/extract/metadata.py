@@ -27,10 +27,10 @@ _STATIC_SYSTEM_KEY = "static_structural"
 
 
 def _read_text(path: Path, limit: int | None = None) -> str:
-    text = path.read_text(encoding="utf-8", errors="replace")
-    if limit is not None:
-        return text[:limit]
-    return text
+    with path.open(encoding="utf-8", errors="replace") as handle:
+        if limit is not None:
+            return handle.read(limit)
+        return handle.read()
 
 
 def parse_caerep_bodies(text: str) -> list[BodyMetadata]:

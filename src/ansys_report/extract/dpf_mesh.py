@@ -39,10 +39,17 @@ def extract_mesh_quality(rst_path: Path, *, timeout_s: float | None = None) -> d
     """Live mesh quality metrics; prefers subprocess when DPF is available."""
     if not dpf_available():
         return {}
+    if os.getenv("DPF_SKIP_MESH_QUALITY", "").strip().lower() in ("1", "true", "yes"):
+        logger.info("Skipping mesh quality (DPF_SKIP_MESH_QUALITY is set)")
+        return {}
     if os.getenv("DPF_MESH_QUALITY_SUBPROCESS", "1") == "1":
         payload = run_dpf_subprocess("mesh_quality", rst_path, timeout_s=timeout_s)
         if payload and payload.get("ok"):
             return payload.get("metrics") or {}
+        if payload is None:
+            # Subprocess timed out or failed — avoid a second slow in-process pass on large RSTs.
+            logger.warning("Mesh quality subprocess failed; skipping in-process fallback")
+            return {}
     return _compute_mesh_quality_inprocess(rst_path)
 
 
