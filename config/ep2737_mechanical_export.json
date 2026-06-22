@@ -1,7 +1,7 @@
 {
   "version": 1,
   "description": "EP2737 Mechanical batch image export — run scripts/mechanical/ep2737_export_images.py inside each Workbench system.",
-  "output_root": "c:/Users/jaswa/OneDrive/Desktop/ansys automation/ansys_automation_files/exports",
+  "output_root": null,
   "image_width": 1920,
   "image_height": 1080,
   "systems": {
