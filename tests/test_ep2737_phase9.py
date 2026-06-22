@@ -106,18 +106,62 @@ def test_init_project_dry_run(ep2737_cfg):
 def test_open_model_subprocess_ping(monkeypatch, tmp_path):
     from ansys_report.extract import dpf_base
 
+    dpf_base.clear_dpf_cache()
     rst = tmp_path / "file.rst"
     rst.write_text("stub")
 
     monkeypatch.setenv("ANSYS_AVAILABLE", "1")
     monkeypatch.setenv("DPF_OPEN_TIMEOUT", "5")
 
-    with patch.object(dpf_base, "_subprocess_ping", return_value=False):
+    with patch.object(dpf_base, "_subprocess_ping", return_value=False) as ping:
         assert dpf_base.open_model(rst) is None
+        assert ping.call_count == 1
 
-    with patch.object(dpf_base, "_subprocess_ping", return_value=True):
+    dpf_base.clear_dpf_cache()
+    with patch.object(dpf_base, "_subprocess_ping", return_value=True) as ping:
         with patch("ansys.dpf.core.Model", side_effect=RuntimeError("boom")):
             assert dpf_base.open_model(rst) is None
+        assert ping.call_count == 1
+
+
+def test_open_model_reuses_cache(monkeypatch, tmp_path):
+    from ansys_report.extract import dpf_base
+
+    dpf_base.clear_dpf_cache()
+    rst = tmp_path / "file.rst"
+    rst.write_text("stub")
+
+    monkeypatch.setenv("ANSYS_AVAILABLE", "1")
+    sentinel = object()
+
+    with patch.object(dpf_base, "_subprocess_ping", return_value=True) as ping:
+        with patch("ansys.dpf.core.Model", return_value=sentinel):
+            assert dpf_base.open_model(rst) is sentinel
+            assert dpf_base.open_model(rst) is sentinel
+        assert ping.call_count == 1
+
+
+def test_subprocess_ping_first_only(monkeypatch, tmp_path):
+    from unittest.mock import patch
+
+    from ansys_report.extract import dpf_base
+
+    dpf_base.clear_dpf_cache()
+    rst_a = tmp_path / "a.rst"
+    rst_b = tmp_path / "b.rst"
+    rst_a.write_text("stub")
+    rst_b.write_text("stub")
+
+    monkeypatch.setenv("ANSYS_AVAILABLE", "1")
+    monkeypatch.setenv("DPF_SUBPROCESS_PING", "first")
+    model_a = object()
+    model_b = object()
+
+    with patch.object(dpf_base, "_subprocess_ping", return_value=True) as ping:
+        with patch("ansys.dpf.core.Model", side_effect=[model_a, model_b]):
+            assert dpf_base.open_model(rst_a) is model_a
+            assert dpf_base.open_model(rst_b) is model_b
+        assert ping.call_count == 1
 
 
 def test_mesh_quality_overrides_report_defaults(ep2737_cfg, monkeypatch):

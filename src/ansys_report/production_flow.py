@@ -134,10 +134,18 @@ def apply_production_inputs(cfg, inputs: ProductionInputs) -> None:
     case_root = _infer_case_root(inputs)
     cfg.project_dir = inputs.project_dir
     cfg.case_root = case_root
-    cfg.image_folder = str(inputs.image_assets)
-    cfg.excel_calcs = str(inputs.excel_calcs)
+    assets = inputs.image_assets.resolve()
+    for base in (inputs.project_dir.resolve(), case_root):
+        try:
+            cfg.image_folder = str(assets.relative_to(base))
+            break
+        except ValueError:
+            continue
+    else:
+        cfg.image_folder = str(assets)
+    cfg.excel_calcs = str(inputs.excel_calcs.resolve())
     cfg.excel_bolt_preload = (
-        str(inputs.excel_bolt_preload) if inputs.excel_bolt_preload else None
+        str(inputs.excel_bolt_preload.resolve()) if inputs.excel_bolt_preload else None
     )
     cfg.skip_images = False
 

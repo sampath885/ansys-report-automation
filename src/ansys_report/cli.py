@@ -125,6 +125,9 @@ def _execute_build(
     verbose: bool = False,
 ) -> Path:
     """Scan, validate, render DOCX (and optional PDF). Returns path to DOCX."""
+    from ansys_report.extract.dpf_base import clear_dpf_cache
+
+    clear_dpf_cache()
     inventory = None
     if not mock_data:
         inventory = _scan(cfg)

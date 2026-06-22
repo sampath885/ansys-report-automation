@@ -163,13 +163,60 @@ def _resolve_asset_path(
     project_dir: Path,
     case_root: Path | None,
 ) -> Path | None:
+    path = Path(name)
+    if path.is_absolute():
+        return path.resolve() if path.exists() else None
     candidates = [project_dir / name]
     if case_root:
         candidates.insert(0, case_root / name)
-    for path in candidates:
-        if path.exists():
-            return path.resolve()
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate.resolve()
     return None
+
+
+def _discover_image_root(
+    project_dir: Path,
+    case_root: Path | None,
+    image_folder: str,
+) -> tuple[Path, list[str]]:
+    """Resolve exported figure folder; warn if nothing exists on disk."""
+    warnings: list[str] = []
+    image_root = None
+    image_path = Path(image_folder)
+
+    for root in filter(None, [case_root, project_dir]):
+        candidate = image_path if image_path.is_absolute() else root / image_folder
+        if candidate.exists():
+            image_root = candidate.resolve()
+            break
+
+    if image_root is None:
+        search_roots: list[Path] = []
+        for root in filter(None, [case_root, project_dir]):
+            search_roots.append(root)
+        files_root = _find_files_root(project_dir)
+        if files_root:
+            search_roots.append(files_root)
+
+        for root in search_roots:
+            for name in DEFAULT_EXPORT_DIRS:
+                candidate = root / name
+                if candidate.exists():
+                    image_root = candidate.resolve()
+                    logger.info("Using image root: %s", image_root)
+                    break
+            if image_root:
+                break
+
+    if image_root is None:
+        if image_path.is_absolute():
+            image_root = image_path
+        else:
+            image_root = (case_root or project_dir) / image_folder
+        warnings.append(f"image_folder not found: {image_root}")
+
+    return image_root.resolve(), warnings
 
 
 def scan_project(
@@ -230,26 +277,9 @@ def scan_project(
             f"No primary file.rst found under {project_dir}; run the solve or check project_dir."
         )
 
-    # Image root: case_root first (EP2737 layout), then project_dir, then defaults
-    image_root = None
-    for root in filter(None, [case_root, project_dir]):
-        candidate = root / image_folder
-        if candidate.exists():
-            image_root = candidate
-            break
-    if image_root is None:
-        for root in filter(None, [case_root, project_dir]):
-            for name in DEFAULT_EXPORT_DIRS:
-                candidate = root / name
-                if candidate.exists():
-                    image_root = candidate
-                    logger.info("Using image root: %s", image_root)
-                    break
-            if image_root:
-                break
-    if image_root is None:
-        image_root = (case_root or project_dir) / image_folder
-        warnings.append(f"image_folder not found: {image_root}")
+    # Image root: explicit path, then common export folders (incl. Workbench *_files/exports)
+    image_root, image_warnings = _discover_image_root(project_dir, case_root, image_folder)
+    warnings.extend(image_warnings)
 
     excel_path = _resolve_asset_path(excel_calcs, project_dir, case_root)
     if excel_path is None:

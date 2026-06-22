@@ -44,8 +44,21 @@ def test_inventory_json_serializable(repo_root, ep2737_scan_inputs):
     assert len(data["systems"]) == 11
 
 
+def test_discover_image_root_under_workbench_files(tmp_path):
+    from ansys_report.scanner import _discover_image_root
+
+    project = tmp_path / "EP_2741"
+    files_root = project / "EP_2741_files"
+    exports = files_root / "exports"
+    (files_root / "dp0").mkdir(parents=True)
+    exports.mkdir(parents=True)
+
+    root, warnings = _discover_image_root(project, None, "missing/exports")
+    assert root == exports.resolve()
+    assert warnings == []
+
+
 def test_ep2737_config_loads(repo_root, ep2737_scan_inputs):
-    cfg_path = repo_root / "config" / "project.ep2737.yaml"
     if not cfg_path.exists():
         pytest.skip("project.ep2737.yaml missing")
     cfg = load_project_config(cfg_path)

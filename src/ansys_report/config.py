@@ -153,11 +153,17 @@ class ProjectConfig(BaseModel):
 
     @property
     def image_root(self) -> Path:
+        folder = Path(self.image_folder)
+        if folder.is_absolute():
+            return folder
         root = self.case_root if self.case_root else self.project_dir
         return root / self.image_folder
 
     @property
     def excel_path(self) -> Path:
+        workbook = Path(self.excel_calcs)
+        if workbook.is_absolute():
+            return workbook
         root = self.case_root if self.case_root else self.project_dir
         return root / self.excel_calcs
 

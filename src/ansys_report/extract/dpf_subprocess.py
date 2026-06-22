@@ -11,13 +11,9 @@ from pathlib import Path
 def _ping_model(rst_path: Path) -> dict:
     from ansys.dpf import core as dpf
 
-    model = dpf.Model(str(rst_path))
-    mesh = model.metadata.meshed_region
-    return {
-        "ok": True,
-        "nodes": int(mesh.nodes.n_nodes),
-        "elements": int(mesh.elements.n_elements),
-    }
+    # Opening the model is enough; avoid loading the full mesh in the ping worker.
+    dpf.Model(str(rst_path))
+    return {"ok": True}
 
 
 def _mesh_quality(rst_path: Path) -> dict:

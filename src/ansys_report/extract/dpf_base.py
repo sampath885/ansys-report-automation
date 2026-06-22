@@ -8,8 +8,12 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
+
+_model_cache: dict[str, Any] = {}
+_ping_ok_cache: set[str] = set()
 
 
 def _default_open_timeout() -> float:
@@ -34,6 +38,103 @@ def _dpf_force_disabled() -> bool:
 _dpf_importable_cache: bool | None = None
 
 
+def clear_dpf_cache() -> None:
+    """Drop cached DPF models and ping results (for tests or between builds)."""
+    _model_cache.clear()
+    _ping_ok_cache.clear()
+
+
+def _rst_cache_key(rst_path: Path) -> str:
+    return str(rst_path.resolve())
+
+
+def _skip_subprocess_ping() -> bool:
+    return os.getenv("DPF_SKIP_SUBPROCESS_PING", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _subprocess_ping_mode() -> str:
+    """How often to run the isolated DPF open check before in-process loads.
+
+    ``first`` (default): ping only until the first RST opens successfully in-process.
+    ``all``: ping every unique RST (slowest, safest on corrupt files).
+    ``none``: never ping (fastest; use when RST files are trusted).
+    """
+    raw = os.getenv("DPF_SUBPROCESS_PING", "first").strip().lower()
+    if raw in {"all", "every", "always"}:
+        return "all"
+    if raw in {"0", "false", "no", "off", "none", "skip"}:
+        return "none"
+    return "first"
+
+
+def _needs_subprocess_ping(cache_key: str) -> bool:
+    if _skip_subprocess_ping() or _subprocess_ping_mode() == "none":
+        return False
+    if cache_key in _ping_ok_cache:
+        return False
+    if _subprocess_ping_mode() == "first" and _model_cache:
+        return False
+    return True
+
+
+def _terminate_process_tree(proc: subprocess.Popen) -> None:
+    """Kill a subprocess and any children (important for DPF workers on Windows)."""
+    if proc.poll() is not None:
+        return
+    if sys.platform == "win32":
+        subprocess.run(
+            ["taskkill", "/F", "/T", "/PID", str(proc.pid)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    else:
+        proc.terminate()
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+
+
+def _run_subprocess_json(
+    cmd: list[str],
+    *,
+    env: dict[str, str],
+    timeout_s: float,
+    label: str,
+    rst_path: Path,
+) -> dict | None:
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        env=env,
+    )
+    try:
+        stdout, stderr = proc.communicate(timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        _terminate_process_tree(proc)
+        proc.communicate()
+        logger.error("%s timed out after %.0fs: %s", label, timeout_s, rst_path)
+        return None
+
+    if proc.returncode != 0:
+        logger.warning(
+            "%s failed for %s: %s",
+            label,
+            rst_path,
+            (stderr or stdout or "").strip(),
+        )
+        return None
+
+    try:
+        return json.loads(stdout.strip().splitlines()[-1])
+    except (json.JSONDecodeError, IndexError, AttributeError):
+        logger.warning("%s returned invalid JSON for %s", label, rst_path)
+        return None
+
+
 def dpf_available() -> bool:
     """Whether DPF can be used: not force-disabled and ansys.dpf.core importable.
 
@@ -56,6 +157,10 @@ def dpf_available() -> bool:
 
 def _subprocess_ping(rst_path: Path, timeout_s: float) -> bool:
     """Verify RST opens in an isolated process before loading DPF in-process."""
+    cache_key = _rst_cache_key(rst_path)
+    if cache_key in _ping_ok_cache:
+        return True
+
     cmd = [
         sys.executable,
         "-m",
@@ -64,32 +169,19 @@ def _subprocess_ping(rst_path: Path, timeout_s: float) -> bool:
         str(rst_path),
     ]
     env = {**os.environ, "ANSYS_AVAILABLE": "1"}
-    try:
-        completed = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout_s,
-            env=env,
-            check=False,
-        )
-    except subprocess.TimeoutExpired:
-        logger.error("DPF open timed out after %.0fs: %s", timeout_s, rst_path)
-        return False
-
-    if completed.returncode != 0:
-        err = (completed.stderr or completed.stdout or "").strip()
-        logger.warning("DPF subprocess ping failed for %s: %s", rst_path, err)
-        return False
-
-    try:
-        payload = json.loads(completed.stdout.strip().splitlines()[-1])
-    except (json.JSONDecodeError, IndexError):
-        logger.warning("DPF subprocess ping returned invalid JSON for %s", rst_path)
+    payload = _run_subprocess_json(
+        cmd,
+        env=env,
+        timeout_s=timeout_s,
+        label="DPF open",
+        rst_path=rst_path,
+    )
+    if payload is None:
         return False
     if not payload.get("ok"):
         logger.warning("DPF subprocess ping rejected %s: %s", rst_path, payload.get("error"))
         return False
+    _ping_ok_cache.add(cache_key)
     return True
 
 
@@ -111,33 +203,13 @@ def run_dpf_subprocess(
         str(rst_path),
     ]
     env = {**os.environ, "ANSYS_AVAILABLE": "1"}
-    try:
-        completed = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=timeout_s,
-            env=env,
-            check=False,
-        )
-    except subprocess.TimeoutExpired:
-        logger.error("DPF subprocess %s timed out after %.0fs: %s", command, timeout_s, rst_path)
-        return None
-
-    if completed.returncode != 0:
-        logger.warning(
-            "DPF subprocess %s failed for %s: %s",
-            command,
-            rst_path,
-            (completed.stderr or completed.stdout or "").strip(),
-        )
-        return None
-
-    try:
-        return json.loads(completed.stdout.strip().splitlines()[-1])
-    except (json.JSONDecodeError, IndexError):
-        logger.warning("DPF subprocess %s returned invalid JSON for %s", command, rst_path)
-        return None
+    return _run_subprocess_json(
+        cmd,
+        env=env,
+        timeout_s=timeout_s,
+        label=f"DPF subprocess {command}",
+        rst_path=rst_path,
+    )
 
 
 def open_model(rst_path: Path, *, timeout_s: float | None = None):
@@ -145,17 +217,26 @@ def open_model(rst_path: Path, *, timeout_s: float | None = None):
     if not dpf_available():
         return None
 
+    cache_key = _rst_cache_key(rst_path)
+    cached = _model_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     timeout = _default_open_timeout() if timeout_s is None else timeout_s
-    if timeout > 0 and not _subprocess_ping(rst_path, timeout):
+    if timeout > 0 and _needs_subprocess_ping(cache_key) and not _subprocess_ping(rst_path, timeout):
         return None
 
     try:
         from ansys.dpf import core as dpf
 
-        return dpf.Model(str(rst_path))
+        model = dpf.Model(str(rst_path))
     except Exception as exc:
         logger.warning("DPF unavailable for %s: %s", rst_path, exc)
         return None
+
+    _model_cache[cache_key] = model
+    _ping_ok_cache.add(cache_key)
+    return model
 
 
 def to_mpa(value: float | None, unit_hint: str = "Pa") -> float | None:
