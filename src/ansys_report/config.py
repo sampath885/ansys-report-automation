@@ -134,6 +134,8 @@ class ProjectConfig(BaseModel):
     modal: ModalConfig = Field(default_factory=ModalConfig)
     static: StaticConfig = Field(default_factory=StaticConfig)
     image_map_path: Path | None = None
+    image_match_rules_path: Path | None = None
+    image_resolve_mode: str = "hybrid"
     thresholds_path: Path | None = None
 
     @field_validator("sections_enabled")
@@ -246,6 +248,12 @@ def load_project_config(
     if data.get("section_content_path"):
         base = config_path.parent
         data["section_content_path"] = str((base / data["section_content_path"]).resolve())
+    if data.get("image_map_path"):
+        base = config_path.parent
+        data["image_map_path"] = str((base / data["image_map_path"]).resolve())
+    if data.get("image_match_rules_path"):
+        base = config_path.parent
+        data["image_match_rules_path"] = str((base / data["image_match_rules_path"]).resolve())
     cfg = ProjectConfig(**data)
     cfg.project_dir = cfg.project_dir.resolve()
     if cfg.case_root:

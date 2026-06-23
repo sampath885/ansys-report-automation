@@ -11,7 +11,8 @@ from rich.console import Console
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG = REPO_ROOT / "config" / "project.ep2737.production.yaml"
 DEFAULT_OUTPUT = Path("automated_scripts_output")
-DEFAULT_IMAGE_MAP = REPO_ROOT / "config" / "image_map.example.yaml"
+DEFAULT_IMAGE_MATCH_RULES = REPO_ROOT / "config" / "image_match_rules.yaml"
+DEFAULT_IMAGE_MAP = REPO_ROOT / "config" / "ep2737_image_map.yaml"
 
 
 @dataclass
@@ -134,15 +135,7 @@ def apply_production_inputs(cfg, inputs: ProductionInputs) -> None:
     case_root = _infer_case_root(inputs)
     cfg.project_dir = inputs.project_dir
     cfg.case_root = case_root
-    assets = inputs.image_assets.resolve()
-    for base in (inputs.project_dir.resolve(), case_root):
-        try:
-            cfg.image_folder = str(assets.relative_to(base))
-            break
-        except ValueError:
-            continue
-    else:
-        cfg.image_folder = str(assets)
+    cfg.image_folder = str(inputs.image_assets.resolve())
     cfg.excel_calcs = str(inputs.excel_calcs.resolve())
     cfg.excel_bolt_preload = (
         str(inputs.excel_bolt_preload.resolve()) if inputs.excel_bolt_preload else None
@@ -177,3 +170,7 @@ def default_production_config() -> Path:
 
 def default_image_map() -> Path | None:
     return DEFAULT_IMAGE_MAP if DEFAULT_IMAGE_MAP.exists() else None
+
+
+def default_image_match_rules() -> Path | None:
+    return DEFAULT_IMAGE_MATCH_RULES if DEFAULT_IMAGE_MATCH_RULES.exists() else None

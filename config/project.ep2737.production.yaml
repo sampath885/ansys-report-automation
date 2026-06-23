@@ -60,6 +60,10 @@ standards_tables_path: "../config/ep2737_standards_tables.yaml"
 
 skip_images: false
 
+image_map_path: "../config/ep2737_image_map.yaml"
+image_match_rules_path: "../config/image_match_rules.yaml"
+image_resolve_mode: hybrid
+
 
 
 equipment_spec:

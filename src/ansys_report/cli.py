@@ -19,10 +19,12 @@ from ansys_report.config import (
     load_project_config,
     validate_project_paths,
 )
+from ansys_report.images.auto_discover import load_image_match_rules, resolve_assets_smart
 from ansys_report.images.mapper import assets_to_validation, build_inline_images, resolve_assets
+from ansys_report.images.slots import figure_slots_for_config
 from ansys_report.production_flow import (
     apply_production_inputs,
-    default_image_map,
+    default_image_match_rules,
     default_production_config,
     inputs_from_flags,
     prompt_production_inputs,
@@ -103,15 +105,54 @@ def _resolve_paths(
 ) -> ProjectConfig:
     cfg = load_project_config(config, project_dir)
     repo = config.resolve().parent.parent
-    if image_map is None:
-        candidate = repo / "config" / "image_map.example.yaml"
-        image_map = candidate if candidate.exists() else None
+    if image_map is None and cfg.image_map_path is None:
+        ep2737_map = repo / "config" / "ep2737_image_map.yaml"
+        if ep2737_map.exists() and cfg.image_resolve_mode == "exact":
+            image_map = ep2737_map
     if template is None:
         template = cfg.template_path if cfg.template_path else default_template_path()
     cfg.thresholds_path = repo / "config" / "thresholds.yaml"
     cfg.template_path = template
-    cfg.image_map_path = image_map
+    cfg.image_map_path = image_map or cfg.image_map_path
+    if cfg.image_match_rules_path is None:
+        rules_default = default_image_match_rules()
+        if rules_default:
+            cfg.image_match_rules_path = rules_default
     return cfg
+
+
+def _resolve_image_assets(cfg: ProjectConfig) -> "MissingAssets | None":
+    from ansys_report.models import MissingAssets
+
+    if cfg.skip_images:
+        return None
+
+    mode = (cfg.image_resolve_mode or "hybrid").lower()
+    has_map = cfg.image_map_path and cfg.image_map_path.exists()
+    has_rules = cfg.image_match_rules_path and cfg.image_match_rules_path.exists()
+
+    if mode == "exact" and not has_map:
+        return None
+    if mode == "auto" and not has_rules:
+        return None
+    if mode == "hybrid" and not has_map and not has_rules:
+        return None
+
+    root = cfg.image_root if cfg.image_root.exists() else cfg.project_dir
+    if not root.exists():
+        return MissingAssets(missing_slots=figure_slots_for_config(cfg.section_content_path))
+
+    image_map = load_image_map(cfg.image_map_path) if has_map else None
+    rules = load_image_match_rules(cfg.image_match_rules_path) if has_rules else None
+    slots = figure_slots_for_config(cfg.section_content_path) or None
+
+    return resolve_assets_smart(
+        root,
+        slots=slots,
+        image_map=image_map,
+        rules=rules,
+        mode=mode,
+    )
 
 
 def _execute_build(
@@ -136,14 +177,12 @@ def _execute_build(
     images_ctx: dict = {}
     tpl_path = cfg.template_path or default_template_path()
 
-    if cfg.image_map_path and cfg.image_map_path.exists() and not cfg.skip_images:
-        imap = load_image_map(cfg.image_map_path)
-        root = cfg.image_root if cfg.image_root.exists() else cfg.project_dir
-        assets = resolve_assets(root, imap)
+    assets = _resolve_image_assets(cfg)
+    if assets is not None:
         validation.merge(assets_to_validation(assets))
         if tpl_path.exists() and "EP2737" in tpl_path.name.upper():
             images_ctx = dict(assets.resolved)
-        elif tpl_path.exists():
+        elif tpl_path.exists() and assets.resolved:
             from docxtpl import DocxTemplate
 
             tpl = DocxTemplate(str(tpl_path))
@@ -238,7 +277,7 @@ def run(
     """Production: prompt for paths, validate, and build report to automated_scripts_output."""
     _setup_logging(verbose)
     config_path = config or default_production_config()
-    cfg = _resolve_paths(config_path, None, default_image_map(), None)
+    cfg = _resolve_paths(config_path, None, None, None)
 
     flag_paths = [project_dir, image_assets, excel_calcs]
     if all(flag_paths):
@@ -265,10 +304,8 @@ def run(
 
     console.print("[bold]Step 2/3[/bold] Validating inputs…")
     validation = validate_project_paths(cfg)
-    if cfg.image_map_path and cfg.image_map_path.exists():
-        imap = load_image_map(cfg.image_map_path)
-        root = cfg.image_root if cfg.image_root.exists() else cfg.project_dir
-        assets = resolve_assets(root, imap)
+    assets = _resolve_image_assets(cfg)
+    if assets is not None:
         validation.merge(assets_to_validation(assets))
     _print_validation(validation)
     if validation.has_errors:
@@ -324,13 +361,11 @@ def validate(
         validation.add("paths", str(exc), "error")
         inventory = None
 
-    if inventory and cfg.image_map_path and cfg.image_map_path.exists():
-        imap = load_image_map(cfg.image_map_path)
-        root = cfg.image_root if cfg.image_root.exists() else cfg.project_dir
-        assets = resolve_assets(root, imap)
-        validation.merge(assets_to_validation(assets))
-
     if inventory:
+        assets = _resolve_image_assets(cfg)
+        if assets is not None:
+            validation.merge(assets_to_validation(assets))
+
         from ansys_report.report.context_builder import build_context
         from ansys_report.report.section_validate import validate_section_content
         from ansys_report.report.table_builders import enrich_context_tables
