@@ -241,7 +241,6 @@ def _materialize_block(
                     )
                 ]
             if not skip_images and caption:
-                doc.missing_figures.append(slot or caption)
                 return [
                     RenderBlock(
                         kind="pending",
