@@ -149,3 +149,35 @@ def test_resolve_exact_map_unchanged(tmp_path, tiny_png):
     imap = ImageMapConfig.from_mapping({"static_vonmises_stress": "static/vonmises.png"})
     assets = resolve_assets(tmp_path / "exports", imap, check_quality=False)
     assert "static_vonmises_stress" in assets.resolved
+
+
+def test_scoring_resolves_generic_static_structural_folder(tmp_path, tiny_png):
+    exports = tmp_path / "exports"
+    base = exports / "static_structural"
+    _write_png(base / "solution" / "total_deformation.png", tiny_png)
+    _write_png(base / "loading" / "fixed_support.png", tiny_png)
+
+    assets = resolve_assets_smart(
+        exports,
+        slots=["static_total_deformation", "static_fixed_support"],
+        mode="auto",
+        check_quality=False,
+    )
+    assert "static_total_deformation" in assets.resolved
+    assert "static_fixed_support" in assets.resolved
+
+
+def test_scoring_resolves_harmonic_without_vibration_keyword(tmp_path, tiny_png):
+    exports = tmp_path / "exports"
+    base = exports / "harmonic_response_x_direction"
+    _write_png(base / "solution" / "total_deformation.png", tiny_png)
+
+    assets = resolve_assets_smart(
+        exports,
+        slots=["harmonic_x_deformation"],
+        mode="auto",
+        check_quality=False,
+    )
+    assert assets.resolved["harmonic_x_deformation"].as_posix().endswith(
+        "harmonic_response_x_direction/solution/total_deformation.png"
+    )

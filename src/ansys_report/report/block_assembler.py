@@ -240,6 +240,17 @@ def _materialize_block(
                         note="Figure pending (skip_images)",
                     )
                 ]
+            if not skip_images and caption:
+                doc.missing_figures.append(slot or caption)
+                return [
+                    RenderBlock(
+                        kind="pending",
+                        caption=caption,
+                        slot=slot,
+                        pending=True,
+                        note=f"Image not found for slot: {slot or '(unnamed)'}",
+                    )
+                ]
             return []
         return [
             RenderBlock(

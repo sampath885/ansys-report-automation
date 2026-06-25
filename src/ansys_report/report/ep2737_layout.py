@@ -18,6 +18,7 @@ DEFAULT_CONTENT_START_MARKER = "Revision log"
 
 
 REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
+_REL_ID_NUM = re.compile(r"rId(\d+)")
 
 
 def _collect_relationship_ids(document_xml: str) -> set[str]:
@@ -36,43 +37,118 @@ def _relationship_targets(root: ET.Element) -> dict[str, str]:
     return targets
 
 
-def _merge_document_relationships(
-    reference_rels: bytes,
+def _next_rel_id(used_ids: set[str]) -> str:
+    nums = []
+    for rel_id in used_ids:
+        match = _REL_ID_NUM.match(rel_id or "")
+        if match:
+            nums.append(int(match.group(1)))
+    return f"rId{max(nums or [0]) + 1}"
+
+
+def _normalize_part_path(target: str) -> str:
+    if target.startswith("/"):
+        target = target.lstrip("/")
+    if not target.startswith("word/"):
+        target = f"word/{target}"
+    return target
+
+
+def _allocate_unique_media_path(target: str, occupied: set[str]) -> str:
+    norm = _normalize_part_path(target)
+    if norm not in occupied:
+        return norm
+    suffix = Path(norm).suffix or ".png"
+    index = 1
+    while True:
+        candidate = f"word/media/gen_{index:04d}{suffix}"
+        if candidate not in occupied:
+            return candidate
+        index += 1
+
+
+def _remap_generated_relationships(
+    generated_xml: str,
     generated_rels: bytes,
-    document_xml: str,
-) -> bytes:
-    """Keep reference rels and append generated image/media rels referenced by *document_xml*."""
-    needed = _collect_relationship_ids(document_xml)
+    reference_rels: bytes,
+    occupied_parts: set[str],
+) -> tuple[str, bytes, dict[str, str]]:
+    """
+    Assign fresh relationship IDs (and media part names) for generated embeds.
+
+    Reference front matter already owns many rIds and media parts; generated
+    python-docx output typically reuses rId1/image1.png which would otherwise
+    collide and break embedded figures after merge.
+    """
     ref_root = ET.fromstring(reference_rels)
-    ref_ids = {rel.get("Id") for rel in ref_root if rel.tag == f"{{{REL_NS}}}Relationship"}
+    used_ids = {rel.get("Id") for rel in ref_root if rel.tag == f"{{{REL_NS}}}Relationship"}
 
     gen_root = ET.fromstring(generated_rels)
-    for rel in gen_root:
-        if rel.tag != f"{{{REL_NS}}}Relationship":
+    gen_by_id = {
+        rel.get("Id"): rel
+        for rel in gen_root
+        if rel.tag == f"{{{REL_NS}}}Relationship"
+    }
+
+    needed = _collect_relationship_ids(generated_xml)
+    remapped_xml = generated_xml
+    id_map: dict[str, str] = {}
+
+    for old_id in sorted(needed, key=lambda rid: int(_REL_ID_NUM.match(rid).group(1))):  # type: ignore[union-attr]
+        rel = gen_by_id.get(old_id)
+        if rel is None:
             continue
-        rel_id = rel.get("Id")
-        if rel_id in needed and rel_id not in ref_ids:
-            ref_root.append(copy.deepcopy(rel))
-            ref_ids.add(rel_id)
 
-    xml = ET.tostring(ref_root, encoding="unicode", xml_declaration=False)
-    return ('<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + xml).encode("utf-8")
+        new_id = _next_rel_id(used_ids)
+        while new_id in used_ids:
+            new_id = _next_rel_id(used_ids | {new_id})
+        used_ids.add(new_id)
+        id_map[old_id] = new_id
+
+        new_rel = copy.deepcopy(rel)
+        new_rel.set("Id", new_id)
+
+        target = rel.get("Target") or ""
+        if "media/" in target.lower():
+            media_path = _allocate_unique_media_path(target, occupied_parts)
+            occupied_parts.add(media_path)
+            new_rel.set("Target", media_path.replace("word/", ""))
+        ref_root.append(new_rel)
+
+        remapped_xml = remapped_xml.replace(f'r:embed="{old_id}"', f'r:embed="{new_id}"')
+        remapped_xml = remapped_xml.replace(f'r:link="{old_id}"', f'r:link="{new_id}"')
+
+    merged_rels = (
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+        + ET.tostring(ref_root, encoding="unicode", xml_declaration=False)
+    ).encode("utf-8")
+    return remapped_xml, merged_rels, id_map
 
 
-def _media_paths_for_relationships(rels_xml: bytes, rel_ids: set[str]) -> set[str]:
-    root = ET.fromstring(rels_xml)
-    targets = _relationship_targets(root)
-    paths: set[str] = set()
-    for rel_id in rel_ids:
-        target = targets.get(rel_id)
-        if not target:
+def _media_copy_plan(
+    generated_rels: bytes,
+    merged_rels: bytes,
+    id_map: dict[str, str],
+) -> list[tuple[str, str]]:
+    """Map generated zip media path -> unique output media path."""
+    gen_targets = _relationship_targets(ET.fromstring(generated_rels))
+    merged_targets = _relationship_targets(ET.fromstring(merged_rels))
+
+    plan: list[tuple[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for old_id, new_id in id_map.items():
+        old_target = gen_targets.get(old_id)
+        new_target = merged_targets.get(new_id)
+        if not old_target or not new_target or "media/" not in old_target.lower():
             continue
-        if target.startswith("/"):
-            target = target.lstrip("/")
-        if not target.startswith("word/"):
-            target = f"word/{target}"
-        paths.add(target)
-    return paths
+        src = _normalize_part_path(old_target)
+        dest = _normalize_part_path(new_target)
+        key = (src, dest)
+        if key in seen:
+            continue
+        seen.add(key)
+        plan.append(key)
+    return plan
 
 
 def _write_merged_package(
@@ -80,33 +156,27 @@ def _write_merged_package(
     generated_path: Path,
     output_path: Path,
     document_xml: str,
+    merged_rels: bytes,
+    media_plan: list[tuple[str, str]],
 ) -> None:
     """Write reference DOCX shell with merged body and generated embedded media."""
-    needed_ids = _collect_relationship_ids(document_xml)
+    entries: dict[str, bytes] = {}
+    with zipfile.ZipFile(reference_path, "r") as zin:
+        for info in zin.infolist():
+            entries[info.filename] = zin.read(info.filename)
 
-    with zipfile.ZipFile(reference_path, "r") as zref:
-        ref_rels = zref.read("word/_rels/document.xml.rels")
+    entries["word/document.xml"] = document_xml.encode("utf-8")
+    entries["word/_rels/document.xml.rels"] = merged_rels
 
     with zipfile.ZipFile(generated_path, "r") as zgen:
-        gen_rels = zgen.read("word/_rels/document.xml.rels")
-        merged_rels = _merge_document_relationships(ref_rels, gen_rels, document_xml)
-        media_paths = _media_paths_for_relationships(gen_rels, needed_ids)
+        for src, dest in media_plan:
+            if src in zgen.namelist():
+                entries[dest] = zgen.read(src)
 
-        entries: dict[str, bytes] = {}
-        with zipfile.ZipFile(reference_path, "r") as zin:
-            for info in zin.infolist():
-                entries[info.filename] = zin.read(info.filename)
-
-        entries["word/document.xml"] = document_xml.encode("utf-8")
-        entries["word/_rels/document.xml.rels"] = merged_rels
-        for media_path in media_paths:
-            if media_path in zgen.namelist():
-                entries[media_path] = zgen.read(media_path)
-
-        out_buf = io.BytesIO()
-        with zipfile.ZipFile(out_buf, "w", zipfile.ZIP_DEFLATED) as zout:
-            for name, data in entries.items():
-                zout.writestr(name, data)
+    out_buf = io.BytesIO()
+    with zipfile.ZipFile(out_buf, "w", zipfile.ZIP_DEFLATED) as zout:
+        for name, data in entries.items():
+            zout.writestr(name, data)
 
     output_path.write_bytes(out_buf.getvalue())
 
@@ -183,9 +253,19 @@ def merge_reference_front_matter(
         header_sect_pr = _find_sect_pr_with_headers(ref_children)
         if sect_pr is not None and header_sect_pr is not None:
             _apply_header_footer_refs(sect_pr, header_sect_pr)
+        ref_rels = zref.read("word/_rels/document.xml.rels")
+
+    occupied_parts = {name for name in zipfile.ZipFile(reference_path).namelist() if name.startswith("word/")}
 
     with zipfile.ZipFile(generated_path, "r") as zgen:
-        gen_root = ET.fromstring(zgen.read("word/document.xml"))
+        gen_xml = zgen.read("word/document.xml").decode("utf-8")
+        gen_rels = zgen.read("word/_rels/document.xml.rels")
+        remapped_gen_xml, merged_rels, id_map = _remap_generated_relationships(
+            gen_xml, gen_rels, ref_rels, occupied_parts
+        )
+        media_plan = _media_copy_plan(gen_rels, merged_rels, id_map)
+
+        gen_root = ET.fromstring(remapped_gen_xml)
         generated = [
             copy.deepcopy(el)
             for el in _body_children(gen_root)
@@ -210,14 +290,25 @@ def merge_reference_front_matter(
     ET.register_namespace("mc", "http://schemas.openxmlformats.org/markup-compatibility/2006")
     ET.register_namespace("w14", "http://schemas.microsoft.com/office/word/2010/wordml")
     ET.register_namespace("w15", "http://schemas.microsoft.com/office/word/2012/wordml")
+    ET.register_namespace("wp", "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing")
+    ET.register_namespace("a", "http://schemas.openxmlformats.org/drawingml/2006/main")
+    ET.register_namespace("pic", "http://schemas.openxmlformats.org/drawingml/2006/picture")
     new_doc_xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + ET.tostring(
         ref_root, encoding="unicode", xml_declaration=False
     )
 
-    _write_merged_package(reference_path, generated_path, output_path, new_doc_xml)
+    _write_merged_package(
+        reference_path,
+        generated_path,
+        output_path,
+        new_doc_xml,
+        merged_rels,
+        media_plan,
+    )
     logger.info(
-        "Merged reference front matter (%d elements) with generated body (%d elements)",
+        "Merged reference front matter (%d elements) with generated body (%d elements, %d media)",
         len(front_matter),
         len(generated),
+        len(media_plan),
     )
     return output_path

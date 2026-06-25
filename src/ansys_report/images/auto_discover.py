@@ -85,6 +85,208 @@ def _normalize_rel(path: str) -> str:
     return path.replace("\\", "/").lstrip("./")
 
 
+def _path_tokens(rel_path: str) -> set[str]:
+    return {token for token in re.split(r"[/_\-\s]+", rel_path.lower()) if token}
+
+
+def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
+    """Build a best-effort match rule from a slot name (project-agnostic)."""
+    s = slot.lower().strip()
+    if not s:
+        return None
+
+    if s in {"cad_isometric", "cad_section", "geometry_model_orientation"}:
+        return ImageMatchRule(path_glob="geometry/*.png")
+
+    if s == "mesh_global":
+        return ImageMatchRule(path_glob="mesh/mesh*.png")
+    if s.startswith("mesh_"):
+        metric = s.replace("mesh_quality_", "").replace("mesh_", "")
+        return ImageMatchRule(folder_keywords=["mesh"], file=f"{metric}.png")
+
+    if s == "modelling_contacts":
+        return ImageMatchRule(path_glob="connections/*.png")
+
+    if s.startswith("static_"):
+        load_files = {
+            "earth_gravity": "loading/standard_earth_gravity.png",
+            "fixed_support": "loading/fixed_support.png",
+            "pressure": "loading/pressure.png",
+            "total_deformation": "solution/total_deformation.png",
+            "vonmises_stress": "solution/equivalent_stress.png",
+            "vonmises_flange": "solution/equivalent_stress.png",
+        }
+        tail = s[len("static_") :]
+        file_name = load_files.get(tail)
+        if file_name:
+            return ImageMatchRule(folder_keywords=["static"], file=file_name)
+
+    mode_match = re.match(r"modal_mode(\d+)$", s)
+    if mode_match:
+        mode_no = int(mode_match.group(1))
+        file_name = (
+            "solution/total_deformation.png"
+            if mode_no == 1
+            else f"solution/total_deformation_{mode_no}.png"
+        )
+        return ImageMatchRule(folder_keywords=["modal"], file=file_name)
+
+    harmonic_match = re.match(r"harmonic_([xyz])_(.+)$", s)
+    if harmonic_match:
+        axis = harmonic_match.group(1)
+        tail = harmonic_match.group(2)
+        axis_keywords = {
+            "x": ["x", "x_direction", "horizontal", "horizantal"],
+            "y": ["y", "y_direction", "vertical"],
+            "z": ["z", "z_direction", "longitudinal"],
+        }
+        file_map = {
+            "location": "loading/acceleration.png",
+            "accel_plot": "solution/graphs/frequency_response.png",
+            "deformation": "solution/total_deformation.png",
+            "stress_asm": "solution/equivalent_stress.png",
+            "stress_flange": "solution/equivalent_stress.png",
+        }
+        folder_keywords = ["harmonic", "vibration", axis] + axis_keywords.get(axis, [])
+        file_name = file_map.get(tail)
+        if file_name:
+            return ImageMatchRule(folder_keywords=folder_keywords, file=file_name)
+
+    shock_match = re.match(r"shock_(plus|minus)_([xyz])_(.+)$", s)
+    if shock_match:
+        sign, axis, tail = shock_match.groups()
+        sign_keywords = ["plus", "+"] if sign == "plus" else ["minus", "-"]
+        axis_keywords = {
+            "x": ["x", "horizontal", "horizantal"],
+            "y": ["y", "vertical"],
+            "z": ["z", "longitudinal"],
+        }
+        file_map = {
+            "deformation": "solution/total_deformation.png",
+            "stress_asm": "solution/equivalent_stress_maximum_overtime.png",
+            "stress_flange": "solution/equivalent_stress.png",
+        }
+        folder_keywords = ["shock", "transient", "equivalent", sign] + sign_keywords + [axis]
+        folder_keywords.extend(axis_keywords.get(axis, []))
+        file_name = file_map.get(tail)
+        if file_name:
+            return ImageMatchRule(folder_keywords=folder_keywords, file=file_name)
+
+    return None
+
+
+def _score_path_for_slot(slot: str, rel_path: str) -> int:
+    """Heuristic score for matching an export path to a logical figure slot."""
+    s = slot.lower()
+    p = rel_path.lower()
+    tokens = _path_tokens(rel_path)
+    score = 0
+
+    families: list[tuple[str, int]] = []
+    if s.startswith("static_") or s.startswith("modelling_"):
+        families.extend([("static", 12), ("structural", 10)])
+    if s.startswith("modal_"):
+        families.append(("modal", 14))
+    if s.startswith("harmonic_"):
+        families.extend([("harmonic", 12), ("vibration", 12)])
+    if s.startswith("shock_"):
+        families.extend([("shock", 12), ("transient", 10), ("equivalent", 8)])
+    if s.startswith("mesh_") or s == "modelling_contacts":
+        families.append(("mesh", 8))
+    if s.startswith("cad_") or s.startswith("geometry_"):
+        families.append(("geometry", 12))
+    if s == "modelling_contacts":
+        families.append(("connection", 12))
+
+    for token, points in families:
+        if token in p or token in tokens:
+            score += points
+
+    for axis in "xyz":
+        axis_refs = (
+            f"harmonic_{axis}",
+            f"_{axis}_",
+            f"plus_{axis}",
+            f"minus_{axis}",
+            f"_{axis}_direction",
+        )
+        if any(ref in s for ref in axis_refs):
+            if axis in tokens or f"{axis}_direction" in p or f"_{axis}_" in p:
+                score += 18
+            for other in "xyz":
+                if other != axis and (other in tokens or f"{other}_direction" in p):
+                    score -= 12
+
+    if "plus" in s or "plus_" in s:
+        if "plus" in tokens or "+x" in p or "+y" in p or "+z" in p:
+            score += 10
+        if "minus" in tokens:
+            score -= 10
+    if "minus" in s:
+        if "minus" in tokens or "-x" in p or "-y" in p or "-z" in p:
+            score += 10
+        if "plus" in tokens:
+            score -= 10
+
+    mode_match = re.search(r"modal_mode(\d+)", s)
+    if mode_match:
+        mode_no = int(mode_match.group(1))
+        if mode_no == 1 and p.endswith("solution/total_deformation.png"):
+            score += 25
+        elif p.endswith(f"solution/total_deformation_{mode_no}.png"):
+            score += 25
+        elif "total_deformation" in p:
+            score += 5
+
+    if "deformation" in s and "total_deformation" in p:
+        score += 20
+    if ("stress" in s or "vonmises" in s) and (
+        "equivalent_stress" in p or "von_mises" in p or "vonmises" in p
+    ):
+        score += 20
+    if "accel" in s and ("frequency_response" in p or "acceleration" in p):
+        score += 20
+    if "location" in s and ("loading" in p or "acceleration" in p):
+        score += 12
+    if "earth_gravity" in s and "gravity" in p:
+        score += 20
+    if "fixed_support" in s and "fixed_support" in p:
+        score += 20
+    if "pressure" in s and "pressure" in p:
+        score += 20
+    if s == "mesh_global" and p.startswith("mesh/") and "mesh" in Path(p).name:
+        score += 20
+    if s.startswith("mesh_") and s.replace("mesh_quality_", "").replace("mesh_", "") in p:
+        score += 15
+
+    if "graphs/" in p and "accel" in s:
+        score += 8
+    if "loading/" in p and any(k in s for k in ("gravity", "support", "pressure", "location")):
+        score += 6
+
+    return score
+
+
+def _resolve_slot_by_scoring(
+    slot: str,
+    image_root: Path,
+    indexed_paths: list[str],
+    *,
+    min_score: int = 18,
+) -> Path | None:
+    ranked = sorted(
+        ((rel, _score_path_for_slot(slot, rel)) for rel in indexed_paths),
+        key=lambda item: (-item[1], item[0].count("/"), len(item[0]), item[0].lower()),
+    )
+    if not ranked or ranked[0][1] < min_score:
+        return None
+    best_rel, best_score = ranked[0]
+    if len(ranked) > 1 and ranked[1][1] == best_score:
+        logger.debug("Ambiguous image match for %s: %s vs %s", slot, ranked[0][0], ranked[1][0])
+    path = image_root / best_rel
+    return path.resolve() if path.exists() else None
+
+
 def _matches_rule(rel_path: str, rule: ImageMatchRule) -> bool:
     rel_lower = rel_path.lower()
     if rule.exclude_keywords and any(kw.lower() in rel_lower for kw in rule.exclude_keywords):
@@ -137,6 +339,39 @@ def resolve_slot_with_rules(
     return path.resolve() if path.exists() else None
 
 
+def resolve_slot_for_exports(
+    slot: str,
+    image_root: Path,
+    indexed_paths: list[str],
+    rules: ImageMatchRulesConfig | None = None,
+) -> Path | None:
+    """Resolve one slot using YAML rules, inferred rules, then scoring."""
+    candidates: list[ImageMatchRule] = []
+    if rules and rules.rules.get(slot):
+        candidates.append(rules.rules[slot])
+    inferred = infer_rule_from_slot(slot)
+    if inferred is not None:
+        candidates.append(inferred)
+
+    seen_signatures: set[tuple] = set()
+    for rule in candidates:
+        signature = (
+            rule.path,
+            rule.path_glob,
+            tuple(rule.folder_keywords),
+            rule.file,
+            rule.subpath,
+        )
+        if signature in seen_signatures:
+            continue
+        seen_signatures.add(signature)
+        path = resolve_slot_with_rules(slot, rule, image_root, indexed_paths)
+        if path is not None:
+            return path
+
+    return _resolve_slot_by_scoring(slot, image_root, indexed_paths)
+
+
 def resolve_assets_auto_discover(
     image_root: Path,
     rules: ImageMatchRulesConfig,
@@ -153,11 +388,7 @@ def resolve_assets_auto_discover(
     resolved: dict[str, Path] = {}
 
     for slot in target_slots:
-        rule = rules.rules.get(slot)
-        if rule is None:
-            missing.append(slot)
-            continue
-        path = resolve_slot_with_rules(slot, rule, image_root, indexed)
+        path = resolve_slot_for_exports(slot, image_root, indexed, rules)
         if path is None:
             missing.append(slot)
             continue
@@ -204,10 +435,10 @@ def resolve_assets_smart(
 
     pending = [slot for slot in requested if slot not in resolved]
 
-    if mode in {"auto", "hybrid"} and rules and rules.rules:
+    if mode in {"auto", "hybrid"}:
         auto = resolve_assets_auto_discover(
             image_root,
-            rules,
+            rules or ImageMatchRulesConfig(),
             slots=pending or None,
             check_quality=check_quality,
         )

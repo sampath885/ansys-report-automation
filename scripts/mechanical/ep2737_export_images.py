@@ -80,7 +80,10 @@ def print(*args, **kwargs):  # noqa: A001 — Mechanical needs ASCII-safe output
 
 # =============================================================================
 # OPTIONAL OVERRIDES — leave None to auto-detect (works on any machine).
-# Set only if exports land in the wrong folder or manifest is not found.
+# Exports default to <case_folder>/exports where case_folder is:
+#   1) the folder containing this script (when opened from ep2731/, etc.), then
+#   2) the active Mechanical MECH path, then Workbench project paths.
+# Set OUTPUT_ROOT only if auto-detect still lands in the wrong folder.
 # =============================================================================
 OUTPUT_ROOT = None
 MANIFEST_PATH = None
@@ -1567,21 +1570,163 @@ def _script_dir():
         return None
 
 
-def _project_folder(raw_path):
+_WB_FILES_DP0_RE = re.compile(
+    r"^(.*)[\\/][^\\/]+_files[\\/]dp0(?:[\\/]|$)", re.IGNORECASE
+)
+_WB_MECH_PATH_RE = re.compile(
+    r"^(.*)[\\/][^\\/]+_files[\\/]dp0[\\/]SYS(?:-\d+)?[\\/]MECH",
+    re.IGNORECASE,
+)
+_WB_SYS_MECH_RE = re.compile(
+    r"[\\/]dp0[\\/](SYS(?:-\d+)?)[\\/]MECH", re.IGNORECASE
+)
+
+
+def _is_repo_script_dir(path):
+    norm = os.path.normpath(path).replace("\\", "/").lower()
+    return norm.endswith("/scripts/mechanical")
+
+
+def _looks_like_case_folder(folder):
+    """True when *folder* looks like a Workbench case directory on disk."""
+    if not folder or not os.path.isdir(folder):
+        return False
+    try:
+        for name in os.listdir(folder):
+            low = name.lower()
+            if low.endswith(".wbpj") or low.endswith("_files"):
+                return True
+        for sub in ("exports", "images", "figures"):
+            if os.path.isdir(os.path.join(folder, sub)):
+                return True
+    except Exception:
+        pass
+    return False
+
+
+def _folder_from_workbench_path(raw_path):
     """Workbench project folder (directory containing the .wbpj), if inferrable."""
     if not raw_path or raw_path == "?":
         return None
     norm = str(raw_path).replace("/", "\\")
-    match = re.search(r"^(.*)[\\/][^\\/]+_files[\\/]dp0[\\/]", norm, re.IGNORECASE)
+    match = _WB_FILES_DP0_RE.search(norm)
     if match:
-        return match.group(1)
+        return os.path.normpath(match.group(1))
     norm_path = os.path.normpath(norm)
     if norm_path.lower().endswith(".wbpj"):
         return os.path.dirname(norm_path)
     if os.path.isdir(norm_path):
+        if _looks_like_case_folder(norm_path):
+            return norm_path
+        # A plain directory path from ExtAPI — only trust it when it is a real folder.
         return norm_path
     parent = os.path.dirname(norm_path)
     return parent or None
+
+
+def _project_folder(raw_path):
+    """Backward-compatible alias for workbench path parsing."""
+    return _folder_from_workbench_path(raw_path)
+
+
+def _mech_project_folder(raw_path):
+    """Project folder when *raw_path* points inside dp0/SYS*/MECH."""
+    if not raw_path or raw_path == "?":
+        return None
+    norm = str(raw_path).replace("/", "\\")
+    match = _WB_MECH_PATH_RE.search(norm)
+    if match:
+        return os.path.normpath(match.group(1))
+    return _folder_from_workbench_path(raw_path)
+
+
+def _case_folder_from_script():
+    """Folder containing this script when run from a copied-in case directory."""
+    script = _script_dir()
+    if not script or _is_repo_script_dir(script):
+        return None
+    folder = os.path.normpath(script)
+    if _looks_like_case_folder(folder):
+        return folder
+    # Script was opened from a case folder even before exports/.wbpj exist.
+    return folder
+
+
+def _collect_mech_project_folders():
+    """Unique case folders inferred from active Mechanical / Workbench paths."""
+    folders = []
+    seen = set()
+    for raw in _project_path_candidates():
+        folder = _mech_project_folder(raw)
+        if not folder:
+            continue
+        key = os.path.normcase(folder)
+        if key in seen:
+            continue
+        seen.add(key)
+        folders.append(folder)
+    return folders
+
+
+def _pick_mech_project_folder(mech_folders):
+    """Choose one case folder when several MECH paths are visible."""
+    if not mech_folders:
+        return None
+    if len(mech_folders) == 1:
+        return mech_folders[0]
+
+    active_sys = _detect_system_from_path()
+    if active_sys:
+        sys_pattern = re.compile(
+            r"[\\/]dp0[\\/]" + re.escape(active_sys) + r"[\\/]MECH",
+            re.IGNORECASE,
+        )
+        for raw in _project_path_candidates():
+            if not raw:
+                continue
+            norm = str(raw).replace("/", "\\")
+            if sys_pattern.search(norm):
+                folder = _mech_project_folder(raw)
+                if folder:
+                    return folder
+
+    script_folder = _case_folder_from_script()
+    if script_folder:
+        script_key = os.path.normcase(script_folder)
+        for folder in mech_folders:
+            if os.path.normcase(folder) == script_key:
+                return folder
+        for folder in mech_folders:
+            if script_key.startswith(os.path.normcase(folder) + os.sep):
+                return script_folder
+            if os.path.normcase(folder).startswith(script_key + os.sep):
+                return script_folder
+
+    return mech_folders[0]
+
+
+def _resolve_project_folder():
+    """
+    Best-effort case folder for exports/manifest.
+
+    Priority:
+      1. Script directory (when not the repo copy — user opened script in their case)
+      2. Active MECH session path from ExtAPI
+      3. Other Workbench paths from ExtAPI / cwd
+    """
+    script_folder = _case_folder_from_script()
+    if script_folder:
+        return script_folder
+
+    mech_folder = _pick_mech_project_folder(_collect_mech_project_folders())
+    if mech_folder:
+        return mech_folder
+
+    for raw in _project_path_candidates():
+        folder = _folder_from_workbench_path(raw)
+        if folder:
+            return folder
+    return None
 
 
 def _path_parent_exists(path):
@@ -1611,8 +1756,19 @@ def _resolve_manifest_path():
             if os.path.isfile(path):
                 return path
 
+    folder = _resolve_project_folder()
+    if folder:
+        for rel in (
+            os.path.join("config", "ep2737_mechanical_export.json"),
+            os.path.join("..", "config", "ep2737_mechanical_export.json"),
+            os.path.join("..", "..", "config", "ep2737_mechanical_export.json"),
+        ):
+            path = os.path.normpath(os.path.join(folder, rel))
+            if os.path.isfile(path):
+                return path
+
     for raw in _project_path_candidates():
-        folder = _project_folder(raw)
+        folder = _folder_from_workbench_path(raw)
         if not folder:
             continue
         for rel in (
@@ -1631,15 +1787,14 @@ def _resolve_output_root(manifest=None):
     if OUTPUT_ROOT:
         return os.path.normpath(OUTPUT_ROOT)
 
+    folder = _resolve_project_folder()
+    if folder:
+        return os.path.join(folder, "exports")
+
     if manifest and manifest.get("output_root"):
         candidate = os.path.normpath(str(manifest["output_root"]))
         if _path_parent_exists(candidate):
             return candidate
-
-    for raw in _project_path_candidates():
-        folder = _project_folder(raw)
-        if folder:
-            return os.path.join(folder, "exports")
 
     try:
         return os.path.join(os.getcwd(), "exports")
@@ -1670,22 +1825,52 @@ def _project_path_candidates():
     candidates = []
     project = _extapi_get(lambda: ExtAPI.DataModel.Project)  # noqa: F821
     if project is not None:
-        for prop in ("ProjectDirectory", "RootDirectory", "ProjectPath"):
+        for prop in (
+            "ProjectPath",
+            "ProjectDirectory",
+            "RootDirectory",
+            "FilePath",
+            "WorkingDirectory",
+            "Directory",
+            "Location",
+        ):
             try:
                 value = getattr(project, prop, None)
             except:
                 value = None
             if value:
                 candidates.append(value)
+    script = _script_dir()
+    if script:
+        candidates.append(script)
     try:
         candidates.append(os.getcwd())
     except:
         pass
-    return candidates
+
+    mech_first = []
+    other = []
+    seen = set()
+    for raw in candidates:
+        if not raw:
+            continue
+        key = os.path.normcase(str(raw))
+        if key in seen:
+            continue
+        seen.add(key)
+        norm = str(raw).replace("/", "\\")
+        if _WB_SYS_MECH_RE.search(norm) or "_files" in norm.lower():
+            mech_first.append(raw)
+        else:
+            other.append(raw)
+    return mech_first + other
 
 
 def _get_project_directory():
     """Best-effort project folder for logging; never raises."""
+    folder = _resolve_project_folder()
+    if folder:
+        return folder
     for raw in _project_path_candidates():
         if raw:
             return str(raw)
@@ -1695,12 +1880,11 @@ def _get_project_directory():
 def _detect_system_from_path():
     candidates = _project_path_candidates()
 
-    pattern = re.compile(r"[\\/]dp0[\\/](SYS(?:-\d+)?)[\\/]MECH", re.IGNORECASE)
     for raw in candidates:
         if not raw:
             continue
         norm = str(raw).replace("/", "\\")
-        match = pattern.search(norm)
+        match = _WB_SYS_MECH_RE.search(norm)
         if match:
             return match.group(1).upper()
     return None

@@ -130,61 +130,61 @@ rules:
     file: solution/equivalent_stress.png
 
   shock_plus_x_deformation:
-    folder_keywords: [transient_shock, horizantal]
+    folder_keywords: [shock, plus, x]
     file: solution/total_deformation.png
   shock_plus_x_stress_asm:
-    folder_keywords: [transient_shock, horizantal]
+    folder_keywords: [shock, plus, x]
     file: solution/equivalent_stress_maximum_overtime.png
   shock_plus_x_stress_flange:
-    folder_keywords: [transient_shock, horizantal]
+    folder_keywords: [shock, plus, x]
     file: solution/equivalent_stress.png
 
   shock_plus_y_deformation:
-    folder_keywords: [transient_shock, vertical]
+    folder_keywords: [shock, plus, y]
     file: solution/total_deformation.png
   shock_plus_y_stress_asm:
-    folder_keywords: [transient_shock, vertical]
+    folder_keywords: [shock, plus, y]
     file: solution/equivalent_stress_maximum_overtime.png
   shock_plus_y_stress_flange:
-    folder_keywords: [transient_shock, vertical]
+    folder_keywords: [shock, plus, y]
     file: solution/equivalent_stress.png
 
   shock_plus_z_deformation:
-    folder_keywords: [transient_shock, longitudinal]
+    folder_keywords: [shock, plus, z]
     file: solution/total_deformation.png
   shock_plus_z_stress_asm:
-    folder_keywords: [transient_shock, longitudinal]
+    folder_keywords: [shock, plus, z]
     file: solution/equivalent_stress_maximum_overtime.png
   shock_plus_z_stress_flange:
-    folder_keywords: [transient_shock, longitudinal]
+    folder_keywords: [shock, plus, z]
     file: solution/equivalent_stress.png
 
   shock_minus_x_deformation:
-    folder_keywords: [transient_shock, minus, x]
+    folder_keywords: [shock, minus, x]
     file: solution/total_deformation.png
   shock_minus_x_stress_asm:
-    folder_keywords: [transient_shock, minus, x]
+    folder_keywords: [shock, minus, x]
     file: solution/equivalent_stress_maximum_overtime.png
   shock_minus_x_stress_flange:
-    folder_keywords: [transient_shock, minus, x]
+    folder_keywords: [shock, minus, x]
     file: solution/equivalent_stress.png
 
   shock_minus_y_deformation:
-    folder_keywords: [transient_shock, minus, y]
+    folder_keywords: [shock, minus, y]
     file: solution/total_deformation.png
   shock_minus_y_stress_asm:
-    folder_keywords: [transient_shock, minus, y]
+    folder_keywords: [shock, minus, y]
     file: solution/equivalent_stress_maximum_overtime.png
   shock_minus_y_stress_flange:
-    folder_keywords: [transient_shock, minus, y]
+    folder_keywords: [shock, minus, y]
     file: solution/equivalent_stress.png
 
   shock_minus_z_deformation:
-    folder_keywords: [transient_shock, minus, z]
+    folder_keywords: [shock, minus, z]
     file: solution/total_deformation.png
   shock_minus_z_stress_asm:
-    folder_keywords: [transient_shock, minus, z]
+    folder_keywords: [shock, minus, z]
     file: solution/equivalent_stress_maximum_overtime.png
   shock_minus_z_stress_flange:
-    folder_keywords: [transient_shock, minus, z]
+    folder_keywords: [shock, minus, z]
     file: solution/equivalent_stress.png

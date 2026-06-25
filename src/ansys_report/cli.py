@@ -133,9 +133,11 @@ def _resolve_image_assets(cfg: ProjectConfig) -> "MissingAssets | None":
 
     if mode == "exact" and not has_map:
         return None
-    if mode == "auto" and not has_rules:
+    if mode == "auto" and not has_rules and not figure_slots_for_config(cfg.section_content_path):
         return None
-    if mode == "hybrid" and not has_map and not has_rules:
+    if mode == "hybrid" and not has_map and not has_rules and not figure_slots_for_config(
+        cfg.section_content_path
+    ):
         return None
 
     root = cfg.image_root if cfg.image_root.exists() else cfg.project_dir
