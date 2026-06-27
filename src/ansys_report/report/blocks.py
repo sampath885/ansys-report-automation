@@ -66,3 +66,17 @@ def narrative_block(data: dict[str, Any]) -> RenderBlock | None:
         conclusions=[str(x) for x in con],
         recommendations=[str(x) for x in rec],
     )
+
+
+def merge_narrative_sources(keys: list[str], context: dict[str, Any]) -> RenderBlock | None:
+    """Build one narrative block from multiple context section keys."""
+    from ansys_report.narrative.harmonic_merge import (
+        HARMONIC_SECTION_KEYS,
+        merge_harmonic_conclusion_narrative,
+    )
+
+    if set(keys).issubset(set(HARMONIC_SECTION_KEYS)):
+        payload = merge_harmonic_conclusion_narrative(context, enabled_sections=set(keys))
+    else:
+        payload = merge_harmonic_conclusion_narrative(context, enabled_sections=set(keys))
+    return narrative_block({"narrative": payload})

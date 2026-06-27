@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from ansys_report.config import ProjectConfig
-from ansys_report.report.blocks import RenderBlock, RenderDocument, RenderSection, narrative_block
+from ansys_report.report.blocks import RenderBlock, RenderDocument, RenderSection, merge_narrative_sources, narrative_block
 from ansys_report.report.section_spec import BlockSpec, SectionContentSpec, SectionSpec, load_section_content_spec
 
 
@@ -86,6 +86,19 @@ def validate_assembled_document(doc: RenderDocument) -> list[str]:
     warnings.extend(f"Missing figure slot: {s}" for s in doc.missing_figures)
     warnings.extend(f"Pending block: {p}" for p in doc.pending_blocks)
     return warnings
+
+
+def _narrative_source(
+    spec: BlockSpec,
+    section_key: str,
+    context: dict[str, Any],
+    data: dict[str, Any],
+) -> dict[str, Any] | None:
+    """Resolve narrative payload unless narrative_from requests a multi-source merge."""
+    if isinstance(spec.narrative_from, list):
+        return None
+    src_key = spec.narrative_from or section_key
+    return context.get(src_key, data)
 
 
 def _section_enabled(section: SectionSpec, enabled: set[str]) -> bool:
@@ -278,9 +291,11 @@ def _materialize_block(
         ]
 
     if spec.type == "narrative":
-        src_key = spec.narrative_from or section_key
-        src = context.get(src_key, data)
-        nb = narrative_block(src)
+        if isinstance(spec.narrative_from, list):
+            nb = merge_narrative_sources(spec.narrative_from, context)
+        else:
+            src = _narrative_source(spec, section_key, context, data)
+            nb = narrative_block(src)
         return [nb] if nb else []
 
     return []

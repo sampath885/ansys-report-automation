@@ -270,6 +270,7 @@ class ProjectInventory(BaseModel):
 class MissingAssets(BaseModel):
     missing_slots: list[str] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
+    errors: list[str] = Field(default_factory=list)
     resolved: dict[str, Path] = Field(default_factory=dict)
 
     @property

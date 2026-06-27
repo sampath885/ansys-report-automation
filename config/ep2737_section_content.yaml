@@ -417,7 +417,6 @@ sections:
         rows_path: rows
         columns: [sr_no, analysis, component, material, peak_frequency_hz, peak_displacement_mm, remarks]
       - type: narrative
-        narrative_from: harmonic_x
 
   - key: shock
     section_key: shock

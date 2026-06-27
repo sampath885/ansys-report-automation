@@ -37,7 +37,7 @@ class BlockSpec(BaseModel):
     items_path: str | None = None
     item_prefix: str = "item"
     blocks: list[BlockSpec] = Field(default_factory=list)
-    narrative_from: str | None = None
+    narrative_from: str | list[str] | None = None
     ref_key: str | None = None
 
     model_config = {"extra": "ignore"}

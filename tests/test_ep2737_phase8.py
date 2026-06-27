@@ -43,10 +43,17 @@ def test_vibration_conclusion_table():
             "peak_frequency_hz": 3.91,
             "narrative": {"verdict": "CAUTION"},
         },
+        "harmonic_z": {
+            "direction": "Z",
+            "peak_displacement_mm": 9.2,
+            "peak_frequency_hz": 4.1,
+            "narrative": {"verdict": "PASS"},
+        },
     }
     rows = build_vibration_conclusion_table(ctx)
-    assert len(rows) == 2
+    assert len(rows) == 3
     assert rows[0]["analysis"] == "Harmonic Response X"
+    assert rows[2]["analysis"] == "Harmonic Response Z"
 
 
 def test_dpf_golden_fallback_disabled_by_default(ep2737_cfg):

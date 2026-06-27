@@ -50,7 +50,7 @@ def test_auto_discover_matches_mesh_and_modal(tmp_path, tiny_png):
 def test_auto_discover_harmonic_axes_are_distinct(tmp_path, tiny_png):
     exports = tmp_path / "exports"
     for axis in ("x", "y", "z"):
-        base = exports / f"vibration_resistance_analysis_{axis}_direction"
+        base = exports / f"vibration_resistance_analysis_{axis}"
         _write_png(base / "solution" / "total_deformation.png", tiny_png)
 
     rules = load_image_match_rules(REPO / "config" / "image_match_rules.yaml")
@@ -61,23 +61,25 @@ def test_auto_discover_harmonic_axes_are_distinct(tmp_path, tiny_png):
         check_quality=False,
     )
     assert assets.resolved["harmonic_x_deformation"].as_posix().endswith(
-        "vibration_resistance_analysis_x_direction/solution/total_deformation.png"
+        "vibration_resistance_analysis_x/solution/total_deformation.png"
     )
     assert assets.resolved["harmonic_y_deformation"].as_posix().endswith(
-        "vibration_resistance_analysis_y_direction/solution/total_deformation.png"
+        "vibration_resistance_analysis_y/solution/total_deformation.png"
     )
     assert assets.resolved["harmonic_z_deformation"].as_posix().endswith(
-        "vibration_resistance_analysis_z_direction/solution/total_deformation.png"
+        "vibration_resistance_analysis_z/solution/total_deformation.png"
     )
 
 
 def test_auto_discover_harmonic_vibration_layout(tmp_path, tiny_png):
     exports = tmp_path / "exports"
-    base = exports / "vibration_resistance_analysis_x_direction"
+    base = exports / "vibration_resistance_analysis_x"
     _write_png(base / "solution" / "total_deformation.png", tiny_png)
     _write_png(base / "solution" / "equivalent_stress.png", tiny_png)
     _write_png(base / "solution" / "equivalent_stress_flange.png", tiny_png)
     _write_png(base / "solution" / "graphs" / "frequency_response.png", tiny_png)
+    _write_png(base / "loading" / "acceleration.png", tiny_png)
+    _write_png(base / "loading" / "modal_modal.png", tiny_png)
 
     rules = load_image_match_rules(REPO / "config" / "image_match_rules.yaml")
     assets = resolve_assets_auto_discover(
@@ -98,11 +100,23 @@ def test_auto_discover_harmonic_vibration_layout(tmp_path, tiny_png):
     paths = {p.resolve() for p in assets.resolved.values()}
     assert len(paths) == 4
 
+    location_assets = resolve_assets_auto_discover(
+        exports,
+        rules,
+        slots=["harmonic_x_location"],
+        check_quality=False,
+    )
+    assert location_assets.resolved["harmonic_x_location"].name == "acceleration.png"
+
 
 def test_auto_discover_no_duplicate_paths_across_shock_directions(tmp_path, tiny_png):
     exports = tmp_path / "exports"
-    for direction in ("plus_x", "plus_y", "plus_z"):
-        base = exports / f"equivalent_static_shock_in_{direction}_direction"
+    for folder in (
+        "equivalent_static_analysis_posx",
+        "equivalent_static_analysis_posy",
+        "equivalent_static_analysis_posz",
+    ):
+        base = exports / folder
         _write_png(base / "solution" / "total_deformation.png", tiny_png)
         _write_png(base / "solution" / "equivalent_stress_maximum_overtime.png", tiny_png)
         _write_png(base / "solution" / "equivalent_stress_flange.png", tiny_png)
@@ -122,8 +136,9 @@ def test_auto_discover_no_duplicate_paths_across_shock_directions(tmp_path, tiny
     resolved_paths = [p.resolve() for p in assets.resolved.values()]
     assert len(resolved_paths) == len(set(resolved_paths))
     assert "shock_plus_x_deformation" in assets.resolved
-    assert "plus_x" in assets.resolved["shock_plus_x_deformation"].as_posix()
-    assert "plus_y" in assets.resolved["shock_plus_y_deformation"].as_posix()
+    assert "equivalent_static_analysis_posx" in assets.resolved["shock_plus_x_deformation"].as_posix()
+    assert "equivalent_static_analysis_posy" in assets.resolved["shock_plus_y_deformation"].as_posix()
+    assert not assets.errors
 
 
 def test_geometry_slots_resolve_distinct_files(tmp_path, tiny_png):
@@ -265,3 +280,60 @@ def test_scoring_resolves_harmonic_without_vibration_keyword(tmp_path, tiny_png)
     assert assets.resolved["harmonic_x_deformation"].as_posix().endswith(
         "harmonic_response_x_direction/solution/total_deformation.png"
     )
+
+
+def test_log_parser_maps_autodiscover_lines(tmp_path, tiny_png):
+    from ansys_report.images.log_slot_mapper import parse_autodiscover_export_log
+
+    exports = tmp_path / "exports"
+    rel = "equivalent_static_analysis_posx/solution/total_deformation.png"
+    _write_png(exports / rel, tiny_png)
+    log = exports / "auto_discover_log.txt"
+    log.write_text(
+        "OK [Equivalent_Static_Analysis_PosX/solution / Total Deformation] -> "
+        f"C:/Temp/exports/{rel}\n",
+        encoding="utf-8",
+    )
+    mapping = parse_autodiscover_export_log(log, exports)
+    assert mapping["shock_plus_x_deformation"] == rel
+
+
+def test_static_pressure_excludes_equivalent_static(tmp_path, tiny_png):
+    exports = tmp_path / "exports"
+    _write_png(exports / "static_structural" / "loading" / "pressure.png", tiny_png)
+    _write_png(exports / "equivalent_static_analysis_posx" / "loading" / "pressure.png", tiny_png)
+
+    assets = resolve_assets_smart(
+        exports,
+        slots=["static_pressure"],
+        mode="auto",
+        check_quality=False,
+    )
+    assert "static_structural" in assets.resolved["static_pressure"].as_posix()
+    assert "equivalent_static" not in assets.resolved["static_pressure"].as_posix()
+
+
+def test_modelling_contacts_uses_connections_not_pressure(tmp_path, tiny_png):
+    exports = tmp_path / "exports"
+    _write_png(exports / "connections" / "connections.png", tiny_png)
+    _write_png(exports / "static_structural" / "loading" / "pressure.png", tiny_png)
+
+    assets = resolve_assets_smart(
+        exports,
+        slots=["modelling_contacts"],
+        mode="auto",
+        check_quality=False,
+    )
+    assert "connections" in assets.resolved["modelling_contacts"].as_posix()
+    assert assets.resolved["modelling_contacts"].name != "pressure.png"
+
+
+def test_validation_errors_on_shock_path_mismatch(tmp_path, tiny_png):
+    from ansys_report.images.image_validation import validate_resolved_images
+
+    exports = tmp_path / "exports"
+    wrong = exports / "equivalent_static_analysis_negy" / "solution" / "total_deformation.png"
+    _write_png(wrong, tiny_png)
+    resolved = {"shock_plus_x_deformation": wrong.resolve()}
+    errors, warnings = validate_resolved_images(resolved, exports)
+    assert any("shock_plus_x_deformation" in msg for msg in errors)

@@ -84,9 +84,16 @@ def enrich_context_tables(context: dict[str, Any], cfg: ProjectConfig) -> None:
     if static:
         static["conclusion_table"] = build_static_conclusion_table(static, cfg)
 
+    from ansys_report.narrative.harmonic_merge import (
+        HARMONIC_SECTION_KEYS,
+        merge_harmonic_conclusion_narrative,
+    )
+
+    enabled = set(cfg.sections_enabled or [])
+    merged = merge_harmonic_conclusion_narrative(context, enabled_sections=enabled)
     vib = build_vibration_conclusion_table(context)
-    if vib:
-        context["vibration_conclusion"] = {"rows": vib}
+    if vib or any(key in enabled and key in context for key in HARMONIC_SECTION_KEYS):
+        context["vibration_conclusion"] = {"rows": vib, "narrative": merged}
 
     if not context.get("methodology"):
         from ansys_report.narrative.methodology import build_methodology, polish_methodology

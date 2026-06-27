@@ -10,6 +10,10 @@ from pathlib import Path
 from pydantic import BaseModel, Field
 
 from ansys_report.config import ImageMapConfig
+from ansys_report.images.analysis_registry import (
+    infer_folder_keywords_for_slot,
+    path_allowed_for_slot,
+)
 from ansys_report.models import MissingAssets
 
 logger = logging.getLogger(__name__)
@@ -212,8 +216,12 @@ def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
         tail = s[len("static_") :]
         file_name = load_files.get(tail)
         if file_name:
-            exclude = ["modal", "harmonic", "vibration", "shock", "transient"]
-            return ImageMatchRule(folder_keywords=["static"], file=file_name, exclude_keywords=exclude)
+            exclude = ["modal", "harmonic", "vibration", "shock", "transient", "equivalent_static"]
+            return ImageMatchRule(
+                folder_keywords=["static_structural"],
+                file=file_name,
+                exclude_keywords=exclude,
+            )
 
     mode_match = re.match(r"modal_mode(\d+)$", s)
     if mode_match:
@@ -229,11 +237,6 @@ def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
     if harmonic_match:
         axis = harmonic_match.group(1)
         tail = harmonic_match.group(2)
-        axis_keywords = {
-            "x": ["x", "x_direction", "horizontal", "horizantal"],
-            "y": ["y", "y_direction", "vertical"],
-            "z": ["z", "z_direction", "longitudinal"],
-        }
         file_map = {
             "location": "loading/acceleration.png",
             "accel_plot": "solution/graphs/frequency_response.png",
@@ -241,47 +244,39 @@ def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
             "stress_asm": "solution/equivalent_stress.png",
             "stress_flange": "solution/equivalent_stress_flange.png",
         }
-        other_axes = [a for a in "xyz" if a != axis]
-        folder_keywords = ["harmonic", "vibration", axis] + axis_keywords.get(axis, [])
         file_name = file_map.get(tail)
-        if file_name:
+        folder_keywords = infer_folder_keywords_for_slot(f"harmonic_{axis}_deformation")
+        if file_name and folder_keywords:
             return ImageMatchRule(
                 folder_keywords=folder_keywords,
                 file=file_name,
-                exclude_keywords=other_axes,
+                exclude_keywords=["modal_modal"],
             )
 
     shock_match = re.match(r"shock_(plus|minus)_([xyz])_(.+)$", s)
     if shock_match:
         sign, axis, tail = shock_match.groups()
-        sign_keywords = ["plus", "+"] if sign == "plus" else ["minus", "-"]
-        axis_keywords = {
-            "x": ["x", "horizontal", "horizantal"],
-            "y": ["y", "vertical"],
-            "z": ["z", "longitudinal"],
-        }
         file_map = {
             "deformation": "solution/total_deformation.png",
             "stress_asm": "solution/equivalent_stress_maximum_overtime.png",
             "stress_flange": "solution/equivalent_stress_flange.png",
         }
-        other_axes = [a for a in "xyz" if a != axis]
-        other_sign = ["minus", "-"] if sign == "plus" else ["plus", "+"]
-        folder_keywords = ["shock", "transient", "equivalent", sign] + sign_keywords + [axis]
-        folder_keywords.extend(axis_keywords.get(axis, []))
         file_name = file_map.get(tail)
-        if file_name:
-            return ImageMatchRule(
-                folder_keywords=folder_keywords,
-                file=file_name,
-                exclude_keywords=other_axes + other_sign,
-            )
+        if tail == "stress_asm":
+            file_name = "solution/equivalent_stress.png"
+        family = f"shock_{sign}_{axis}"
+        folder_keywords = infer_folder_keywords_for_slot(f"{family}_deformation")
+        if file_name and folder_keywords:
+            return ImageMatchRule(folder_keywords=folder_keywords, file=file_name)
 
     return None
 
 
 def _score_path_for_slot(slot: str, rel_path: str) -> int:
     """Heuristic score for matching an export path to a logical figure slot."""
+    if not path_allowed_for_slot(slot, rel_path):
+        return -999
+
     s = slot.lower()
     p = rel_path.lower()
     tokens = _path_tokens(rel_path)
@@ -323,15 +318,21 @@ def _score_path_for_slot(slot: str, rel_path: str) -> int:
                     score -= 12
 
     if "plus" in s or "plus_" in s:
-        if "plus" in tokens or "+x" in p or "+y" in p or "+z" in p:
-            score += 10
-        if "minus" in tokens:
-            score -= 10
+        for token in ("posx", "posy", "posz", "plus_x", "plus_y", "plus_z"):
+            if token in p:
+                score += 40
+        if "minus" in tokens or "neg" in p:
+            score -= 40
+        for wrong in ("negx", "negy", "negz", "minus_x", "minus_y", "minus_z"):
+            if wrong in p:
+                score -= 40
     if "minus" in s:
-        if "minus" in tokens or "-x" in p or "-y" in p or "-z" in p:
-            score += 10
-        if "plus" in tokens:
-            score -= 10
+        for token in ("negx", "negy", "negz", "minus_x", "minus_y", "minus_z"):
+            if token in p:
+                score += 40
+        for wrong in ("posx", "posy", "posz", "plus_x", "plus_y", "plus_z"):
+            if wrong in p:
+                score -= 40
 
     mode_match = re.search(r"modal_mode(\d+)", s)
     if mode_match:
@@ -369,12 +370,18 @@ def _score_path_for_slot(slot: str, rel_path: str) -> int:
         score += 20
     if "location" in s and ("loading" in p or "acceleration" in p):
         score += 12
+        if "modal_modal" in p:
+            score -= 50
     if "earth_gravity" in s and "gravity" in p:
         score += 20
     if "fixed_support" in s and "fixed_support" in p:
         score += 20
     if "pressure" in s and "pressure" in p:
         score += 20
+        if "static_structural" in p:
+            score += 30
+        if "equivalent_static" in p:
+            score -= 50
     if s == "mesh_global" and p.startswith("mesh/") and "mesh" in Path(p).name:
         score += 20
     if s.startswith("mesh_") and s.replace("mesh_quality_", "").replace("mesh_", "") in p:
@@ -424,8 +431,10 @@ def _resolve_slot_by_scoring(
     return path.resolve() if path.exists() else None
 
 
-def _matches_rule(rel_path: str, rule: ImageMatchRule) -> bool:
+def _matches_rule(rel_path: str, rule: ImageMatchRule, *, slot: str = "") -> bool:
     rel_lower = rel_path.lower()
+    if slot and not path_allowed_for_slot(slot, rel_path):
+        return False
     if rule.exclude_keywords and any(kw.lower() in rel_lower for kw in rule.exclude_keywords):
         return False
 
@@ -485,7 +494,7 @@ def resolve_slot_with_rules(
     used_paths: set[str],
 ) -> Path | None:
     available = _available_paths(image_root, indexed_paths, used_paths)
-    matches = [rel for rel in available if _matches_rule(rel, rule)]
+    matches = [rel for rel in available if _matches_rule(rel, rule, slot=slot)]
     chosen = _pick_best_match(matches, rule, slot=slot)
     if not chosen:
         return None
@@ -608,7 +617,11 @@ def resolve_assets_smart(
             used_paths.add(_path_key(path))
         warnings.extend(exact.warnings)
 
-    pending = [slot for slot in _sort_slots(requested) if slot not in resolved]
+    if mode in {"exact", "auto", "hybrid"}:
+        _apply_log_map(image_root, requested, resolved, used_paths)
+        pending = [slot for slot in _sort_slots(requested) if slot not in resolved]
+    else:
+        pending = [slot for slot in _sort_slots(requested) if slot not in resolved]
 
     if mode in {"auto", "hybrid"}:
         auto = resolve_assets_auto_discover(
@@ -625,6 +638,13 @@ def resolve_assets_smart(
 
     missing_after = [slot for slot in requested if slot not in resolved]
 
+    from ansys_report.images.image_validation import validate_resolved_images
+
+    validation_errors, validation_warnings = validate_resolved_images(resolved, image_root)
+    warnings.extend(validation_warnings)
+    errors: list[str] = []
+    errors.extend(validation_errors)
+
     seen: set[str] = set()
     unique_warnings: list[str] = []
     for msg in warnings:
@@ -635,5 +655,35 @@ def resolve_assets_smart(
     return MissingAssets(
         missing_slots=missing_after,
         warnings=unique_warnings,
+        errors=errors,
         resolved=resolved,
     )
+
+
+def _apply_log_map(
+    image_root: Path,
+    requested: list[str],
+    resolved: dict[str, Path],
+    used_paths: set[str],
+) -> None:
+    """Fill slots from auto_discover_log.txt when present."""
+    log_path = image_root / "auto_discover_log.txt"
+    if not log_path.exists():
+        return
+    from ansys_report.images.log_slot_mapper import parse_autodiscover_export_log
+
+    log_map = parse_autodiscover_export_log(log_path, image_root)
+    for slot in _sort_slots(requested):
+        if slot in resolved:
+            continue
+        rel = log_map.get(slot)
+        if not rel:
+            continue
+        path = image_root / rel
+        if not path.exists():
+            continue
+        key = _path_key(path, image_root)
+        if key in used_paths:
+            continue
+        resolved[slot] = path.resolve()
+        used_paths.add(key)

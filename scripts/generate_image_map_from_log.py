@@ -16,6 +16,7 @@ from ansys_report.images.auto_discover import (
     resolve_assets_smart,
     scan_image_folder,
 )
+from ansys_report.images.log_slot_mapper import parse_autodiscover_export_log
 from ansys_report.images.slots import figure_slots_for_config
 
 _LOG_LINE = re.compile(
@@ -60,6 +61,10 @@ def generate_map(
     slots = figure_slots_for_config(section_content) or sorted(rules.rules.keys())
 
     if log_path is not None and log_path.exists():
+        log_map = parse_autodiscover_export_log(log_path, exports_root)
+        if log_map:
+            return log_map
+
         manifest_map = parse_manifest_export_log(log_path, exports_root)
         if manifest_map:
             return dict(sorted(manifest_map.items()))

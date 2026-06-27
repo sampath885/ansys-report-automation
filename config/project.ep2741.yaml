@@ -1,0 +1,73 @@
+# EP2741 valve report — uses EP2737 section template; project-specific image map from export log.
+
+bom_id: "EP 2741"
+title: "VALVE ASSEMBLY"
+customer: "M/S ULTRA DIMENSIONS PVT. LTD., VISAKHAPATNAM"
+prepared_by:
+  name: "CAE Engineer"
+  role: "CAE Engr"
+checked_by:
+  name: "Checker"
+  role: "CAE Engr"
+approved_by:
+  name: "Approver"
+  role: "Sr. General Manager"
+ansys_version: "2025 R2"
+
+project_dir: "../ansys_automation_files/Structural Analysis_EP2741"
+case_root: "../ansys_automation_files"
+image_folder: "exports"
+excel_calcs: "OLF Mechanical Calculation of BOM IDs EP2741.xlsx"
+excel_map_path: "../config/ep2737_excel_map.yaml"
+template_path: "../templates/EP2737_report_template.docx"
+section_content_path: "../config/ep2737_section_content.yaml"
+style_shell_path: "../templates/EP2737_style_shell.docx"
+reference_layout_path: "../templates/EP2737_layout_template.docx"
+use_reference_front_matter: true
+use_word_table_data: false
+report_defaults_path: "../config/ep2737_report_defaults.yaml"
+use_dpf_golden_fallback: false
+standards_tables_path: "../config/ep2737_standards_tables.yaml"
+skip_images: false
+
+# Log-driven map for EP2741 folder naming (vibration_resistance_analysis_*, equivalent_static_analysis_*).
+image_map_path: "../config/image_map.ep2741.yaml"
+image_match_rules_path: "../config/image_match_rules.yaml"
+image_resolve_mode: hybrid
+
+sections_enabled:
+  - revision
+  - scope
+  - software
+  - references
+  - equipment
+  - modelling
+  - loads
+  - materials
+  - modal
+  - static
+  - harmonic_x
+  - harmonic_y
+  - harmonic_z
+  - shock
+  - design_calcs
+
+operating_freq_hz: [10, 200]
+materials:
+  - name: "ASTM 182 F 321"
+    yield_mpa: 205
+    uts_mpa: 515
+    elongation_pct: 30
+    static_allowable_mpa: 136.67
+    fatigue_allowable_mpa: 68.2
+modal:
+  num_modes: 6
+static:
+  fos_target: 1.5
+
+mesh_quality_criteria:
+  aspect_ratio: { operator: "<", limit: 10 }
+  skewness: { operator: "<", limit: 0.31 }
+  jacobian_ratio: { operator: ">", limit: 0.97 }
+  element_quality: { operator: ">=", limit: 0.77 }
+  max_corner_angle_deg: { operator: "<=", limit: 100 }

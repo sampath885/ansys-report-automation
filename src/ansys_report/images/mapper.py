@@ -58,6 +58,8 @@ def assets_to_validation(missing: MissingAssets) -> ValidationReport:
     report = ValidationReport()
     for slot in missing.missing_slots:
         report.add("images", f"Missing image slot: {slot}", "warning")
+    for msg in missing.errors:
+        report.add("images", msg, "error")
     for msg in missing.warnings:
         report.add("images", msg, "warning")
     return report
