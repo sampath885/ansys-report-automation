@@ -67,6 +67,12 @@ def _allocate_unique_media_path(target: str, occupied: set[str]) -> str:
         index += 1
 
 
+def _replace_relationship_id(xml: str, old_id: str, new_id: str) -> str:
+    """Replace one relationship id without corrupting longer ids (rId1 vs rId10)."""
+    pattern = rf'r:(embed|link)="{re.escape(old_id)}"'
+    return re.sub(pattern, rf'r:\1="{new_id}"', xml)
+
+
 def _remap_generated_relationships(
     generated_xml: str,
     generated_rels: bytes,
@@ -115,8 +121,7 @@ def _remap_generated_relationships(
             new_rel.set("Target", media_path.replace("word/", ""))
         ref_root.append(new_rel)
 
-        remapped_xml = remapped_xml.replace(f'r:embed="{old_id}"', f'r:embed="{new_id}"')
-        remapped_xml = remapped_xml.replace(f'r:link="{old_id}"', f'r:link="{new_id}"')
+        remapped_xml = _replace_relationship_id(remapped_xml, old_id, new_id)
 
     merged_rels = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
