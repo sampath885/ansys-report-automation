@@ -16,13 +16,24 @@ W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 NS = {"w": W_NS}
 DEFAULT_CONTENT_START_MARKER = "Revision log"
 
-
 REL_NS = "http://schemas.openxmlformats.org/package/2006/relationships"
+_IMAGE_REL = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
 _REL_ID_NUM = re.compile(r"rId(\d+)")
+_EMBED_ID = re.compile(r'r:(?:embed|link)="(rId\d+)"')
+_CT_OVERRIDE = re.compile(r'<Override PartName="([^"]+)"')
+
+_MEDIA_CONTENT_TYPES = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".emf": "image/x-emf",
+    ".wmf": "image/x-wmf",
+}
 
 
 def _collect_relationship_ids(document_xml: str) -> set[str]:
-    return set(re.findall(r'r:(?:embed|link)="(rId\d+)"', document_xml))
+    return set(_EMBED_ID.findall(document_xml))
 
 
 def _relationship_targets(root: ET.Element) -> dict[str, str]:
@@ -54,14 +65,16 @@ def _normalize_part_path(target: str) -> str:
     return target
 
 
-def _allocate_unique_media_path(target: str, occupied: set[str]) -> str:
-    norm = _normalize_part_path(target)
-    if norm not in occupied:
-        return norm
-    suffix = Path(norm).suffix or ".png"
+def _content_type_part_name(part_path: str) -> str:
+    norm = _normalize_part_path(part_path)
+    return f"/{norm}"
+
+
+def _allocate_unique_generated_media_path(occupied: set[str]) -> str:
+    """Assign a fresh media part name for generated body figures (never reuse imageN.png)."""
     index = 1
     while True:
-        candidate = f"word/media/gen_{index:04d}{suffix}"
+        candidate = f"word/media/gen_{index:04d}.png"
         if candidate not in occupied:
             return candidate
         index += 1
@@ -73,6 +86,12 @@ def _replace_relationship_id(xml: str, old_id: str, new_id: str) -> str:
     return re.sub(pattern, rf'r:\1="{new_id}"', xml)
 
 
+def _is_image_relationship(rel: ET.Element) -> bool:
+    target = (rel.get("Target") or "").lower()
+    rel_type = rel.get("Type") or ""
+    return "media/" in target or rel_type == _IMAGE_REL
+
+
 def _remap_generated_relationships(
     generated_xml: str,
     generated_rels: bytes,
@@ -80,11 +99,11 @@ def _remap_generated_relationships(
     occupied_parts: set[str],
 ) -> tuple[str, bytes, dict[str, str]]:
     """
-    Assign fresh relationship IDs (and media part names) for generated embeds.
+    Assign fresh relationship IDs (and unique gen_* media parts) for generated embeds.
 
     Reference front matter already owns many rIds and media parts; generated
     python-docx output typically reuses rId1/image1.png which would otherwise
-    collide and break embedded figures after merge.
+    collide with stale reference media after merge.
     """
     ref_root = ET.fromstring(reference_rels)
     used_ids = {rel.get("Id") for rel in ref_root if rel.tag == f"{{{REL_NS}}}Relationship"}
@@ -100,9 +119,15 @@ def _remap_generated_relationships(
     remapped_xml = generated_xml
     id_map: dict[str, str] = {}
 
-    for old_id in sorted(needed, key=lambda rid: int(_REL_ID_NUM.match(rid).group(1))):  # type: ignore[union-attr]
+    # Descending numeric order avoids any ambiguity when scanning ids.
+    sort_key = lambda rid: int(_REL_ID_NUM.match(rid).group(1))  # type: ignore[union-attr]
+    for old_id in sorted(needed, key=sort_key, reverse=True):
         rel = gen_by_id.get(old_id)
         if rel is None:
+            logger.warning(
+                "Generated document embed %s has no relationship entry; figure may break after merge",
+                old_id,
+            )
             continue
 
         new_id = _next_rel_id(used_ids)
@@ -114,14 +139,21 @@ def _remap_generated_relationships(
         new_rel = copy.deepcopy(rel)
         new_rel.set("Id", new_id)
 
-        target = rel.get("Target") or ""
-        if "media/" in target.lower():
-            media_path = _allocate_unique_media_path(target, occupied_parts)
+        if _is_image_relationship(rel):
+            media_path = _allocate_unique_generated_media_path(occupied_parts)
             occupied_parts.add(media_path)
             new_rel.set("Target", media_path.replace("word/", ""))
         ref_root.append(new_rel)
 
         remapped_xml = _replace_relationship_id(remapped_xml, old_id, new_id)
+
+    unmapped = needed - set(id_map.keys())
+    if unmapped:
+        logger.warning(
+            "Could not remap %d generated figure relationship(s): %s",
+            len(unmapped),
+            ", ".join(sorted(unmapped, key=sort_key, reverse=True)),
+        )
 
     merged_rels = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
@@ -156,6 +188,42 @@ def _media_copy_plan(
     return plan
 
 
+def _resolve_media_in_zip(zgen: zipfile.ZipFile, normalized_path: str) -> str | None:
+    """Return the zip member name for a normalized word/media/... path."""
+    if normalized_path in zgen.namelist():
+        return normalized_path
+    short = normalized_path.replace("word/", "", 1)
+    if short in zgen.namelist():
+        return short
+    return None
+
+
+def _patch_content_types(content_types_xml: bytes, new_parts: list[str]) -> bytes:
+    """Register generated media parts so Word loads embedded figures reliably."""
+    if not new_parts:
+        return content_types_xml
+
+    text = content_types_xml.decode("utf-8")
+    existing = set(_CT_OVERRIDE.findall(text))
+    additions: list[str] = []
+    for part in new_parts:
+        part_name = _content_type_part_name(part)
+        if part_name in existing:
+            continue
+        ext = Path(part_name).suffix.lower()
+        content_type = _MEDIA_CONTENT_TYPES.get(ext, "image/png")
+        additions.append(f'<Override PartName="{part_name}" ContentType="{content_type}"/>')
+        existing.add(part_name)
+
+    if not additions:
+        return content_types_xml
+
+    insert = "".join(additions)
+    if "</Types>" in text:
+        return text.replace("</Types>", f"{insert}</Types>").encode("utf-8")
+    return (text + insert).encode("utf-8")
+
+
 def _write_merged_package(
     reference_path: Path,
     generated_path: Path,
@@ -165,18 +233,42 @@ def _write_merged_package(
     media_plan: list[tuple[str, str]],
 ) -> None:
     """Write reference DOCX shell with merged body and generated embedded media."""
+    replace_parts = {"word/document.xml", "word/_rels/document.xml.rels"}
     entries: dict[str, bytes] = {}
+
     with zipfile.ZipFile(reference_path, "r") as zin:
         for info in zin.infolist():
+            if info.filename in replace_parts:
+                continue
             entries[info.filename] = zin.read(info.filename)
 
     entries["word/document.xml"] = document_xml.encode("utf-8")
     entries["word/_rels/document.xml.rels"] = merged_rels
 
+    copied = 0
+    dest_paths: list[str] = []
     with zipfile.ZipFile(generated_path, "r") as zgen:
         for src, dest in media_plan:
-            if src in zgen.namelist():
-                entries[dest] = zgen.read(src)
+            member = _resolve_media_in_zip(zgen, src)
+            if member is None:
+                logger.error("Merge could not read generated media %s (dest %s)", src, dest)
+                continue
+            entries[dest] = zgen.read(member)
+            dest_paths.append(dest)
+            copied += 1
+
+    if media_plan and copied != len(media_plan):
+        logger.warning(
+            "Merge media copy incomplete: %d/%d generated figure(s) copied",
+            copied,
+            len(media_plan),
+        )
+
+    if "[Content_Types].xml" in entries:
+        entries["[Content_Types].xml"] = _patch_content_types(
+            entries["[Content_Types].xml"],
+            dest_paths,
+        )
 
     out_buf = io.BytesIO()
     with zipfile.ZipFile(out_buf, "w", zipfile.ZIP_DEFLATED) as zout:
