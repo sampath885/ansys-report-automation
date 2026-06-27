@@ -378,3 +378,23 @@ def extract_project_metadata(inventory: ProjectInventory, bom_id: str, title: st
         modelling=extract_modelling_metadata(inventory),
         static_analysis=analysis,
     )
+
+
+def bodies_from_inventory(inventory: ProjectInventory) -> list[BodyMetadata]:
+    static = _static_system(inventory)
+    if static is None:
+        return []
+    return extract_analysis_metadata(static.mech_dir).bodies
+
+
+def dedupe_bodies(bodies: list[BodyMetadata]) -> list[BodyMetadata]:
+    """Drop duplicate CAERep body entries (same name + material)."""
+    seen: set[tuple[str, str | None]] = set()
+    unique: list[BodyMetadata] = []
+    for body in bodies:
+        key = (body.name, body.material)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(body)
+    return unique

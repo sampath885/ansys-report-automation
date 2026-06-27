@@ -14,6 +14,16 @@ class ModeResult(BaseModel):
     participation: float | None = None
 
 
+class BodyStressRow(BaseModel):
+    """Per-body peak stress from DPF (static or shock RST)."""
+
+    body_name: str
+    material: str | None = None
+    max_stress_mpa: float | None = None
+    max_deformation_mm: float | None = None
+    location: str | None = None
+
+
 class StaticResult(BaseModel):
     max_stress_mpa: float | None = None
     max_deformation_mm: float | None = None
@@ -21,6 +31,7 @@ class StaticResult(BaseModel):
     reaction_moment_nmm: float | None = None
     fos: float | None = None
     per_material: dict[str, float] = Field(default_factory=dict)
+    per_body: list[BodyStressRow] = Field(default_factory=list)
     manual_fields: list[str] = Field(default_factory=list)
 
 

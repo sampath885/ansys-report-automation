@@ -8,8 +8,9 @@ from pathlib import Path
 import numpy as np
 
 from ansys_report.extract.dpf_base import open_model, to_mm, von_mises_max_mpa
+from ansys_report.extract.dpf_body_stress import extract_per_body_stress
 from ansys_report.extract.dpf_timing import log_dpf_step
-from ansys_report.models import StaticResult
+from ansys_report.models import BodyMetadata, StaticResult
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ def extract_static(
     yield_mpa: float | None = None,
     *,
     load_step: int | None = None,
+    bodies: list[BodyMetadata] | None = None,
 ) -> StaticResult:
     """Extract static results. For EP2737 nonlinear pretension+pressure use load_step=3."""
     manual: list[str] = []
@@ -63,6 +65,14 @@ def extract_static(
 
             if yield_mpa and result.max_stress_mpa and result.max_stress_mpa > 0:
                 result.fos = round(yield_mpa / result.max_stress_mpa, 2)
+
+            if bodies:
+                result.per_body = extract_per_body_stress(rst_path, bodies, load_step=load_step)
+                for row in result.per_body:
+                    if row.material and row.max_stress_mpa is not None:
+                        prev = result.per_material.get(row.material)
+                        if prev is None or row.max_stress_mpa > prev:
+                            result.per_material[row.material] = row.max_stress_mpa
         except Exception as exc:
             logger.warning("Static extraction failed: %s", exc)
             manual.extend(["max_stress_mpa", "max_deformation_mm"])

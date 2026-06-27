@@ -476,9 +476,16 @@ sections:
         level: 3
       - type: table
         caption: "Table 23: Result Summary – Equivalent Static Analysis"
-        headers: ["Direction", "Max stress (MPa)", "Max deformation (mm)", "FOS"]
-        rows_path: directions
-        columns: [direction, max_stress_mpa, max_deformation_mm, fos]
+        headers:
+          - "Sr. No"
+          - Direction
+          - Material
+          - "Maximum Occurs on"
+          - "Stresses Observed (MPa)"
+          - "Allowable Stress (MPa)"
+          - Remarks
+        rows_path: conclusion_table
+        columns: [sr_no, direction, material, location, stress_mpa, allowable_mpa, remarks]
       - type: narrative
 
   - key: design_calcs

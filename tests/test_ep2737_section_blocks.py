@@ -36,6 +36,7 @@ def test_harmonic_spec_has_figures_not_tables():
 def test_assemble_document_from_minimal_context():
     from ansys_report.config import load_project_config
     from ansys_report.report.block_assembler import assemble_ep2737_document
+    from ansys_report.report.table_builders import enrich_context_tables
 
     cfg = load_project_config(CONFIG)
     ctx = {
@@ -59,6 +60,7 @@ def test_assemble_document_from_minimal_context():
         },
     }
     cfg.sections_enabled = ["harmonic_x", "shock"]
+    enrich_context_tables(ctx, cfg)
     doc = assemble_ep2737_document(ctx, cfg)
 
     hx = next(s for s in doc.sections if s.key == "harmonic_x")

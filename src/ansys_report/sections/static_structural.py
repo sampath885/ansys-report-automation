@@ -18,10 +18,12 @@ class StaticStructuralSection:
 
     def extract(self, inventory: ProjectInventory, cfg: ProjectConfig) -> dict[str, Any]:
         from ansys_report.extract.bolt_loads import resolve_static_bolt_loads
+        from ansys_report.extract.metadata import bodies_from_inventory, dedupe_bodies
 
         rst = _pick_rst(inventory, ("static_structural", "static", "SYS"))
+        bodies = dedupe_bodies(bodies_from_inventory(inventory))
         static = (
-            extract_static(rst, cfg.primary_yield_mpa, load_step=3)
+            extract_static(rst, cfg.primary_yield_mpa, load_step=3, bodies=bodies)
             if rst
             else StaticResult(manual_fields=["all"])
         )

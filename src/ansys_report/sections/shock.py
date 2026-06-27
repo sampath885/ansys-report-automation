@@ -28,9 +28,12 @@ class ShockSection:
         return self.key in cfg.sections_enabled
 
     def extract(self, inventory: ProjectInventory, cfg: ProjectConfig) -> dict[str, Any]:
+        from ansys_report.extract.metadata import bodies_from_inventory, dedupe_bodies
+
         directions: list[dict[str, Any]] = []
         manual: list[str] = []
         yield_mpa = cfg.primary_yield_mpa
+        bodies = dedupe_bodies(bodies_from_inventory(inventory))
 
         allow_golden = cfg.use_word_table_data or cfg.use_dpf_golden_fallback
 
@@ -54,7 +57,7 @@ class ShockSection:
                 manual.extend([f"{result_key}.stress", f"{result_key}.deformation"])
                 continue
 
-            static = extract_static(rst, yield_mpa, load_step=1)
+            static = extract_static(rst, yield_mpa, load_step=1, bodies=bodies)
             bolt_loads = resolve_shock_bolt_loads(
                 result_key,
                 rst,
