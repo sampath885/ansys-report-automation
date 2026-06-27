@@ -18,6 +18,10 @@ _LOG_LINE = re.compile(
     r"^OK\s+\[[^\]]+\]\s+->\s+(.+\.png)\s*$",
     re.IGNORECASE,
 )
+_MANIFEST_LOG_LINE = re.compile(
+    r"^OK\s+\[([^\]]+)\]\s+->\s+(.+\.png)\s*$",
+    re.IGNORECASE,
+)
 
 
 class ImageMatchRule(BaseModel):
@@ -81,12 +85,96 @@ def parse_auto_discover_log(log_path: Path) -> dict[str, str]:
     return hints
 
 
+def parse_manifest_export_log(log_path: Path, exports_root: Path) -> dict[str, str]:
+    """Parse manifest export log lines ``OK [slot] -> path`` into slot -> relative path."""
+    if not log_path.exists():
+        return {}
+    mapping: dict[str, str] = {}
+    root = exports_root.resolve()
+    for line in log_path.read_text(encoding="utf-8", errors="replace").splitlines():
+        match = _MANIFEST_LOG_LINE.match(line.strip())
+        if not match:
+            continue
+        slot, raw_path = match.group(1).strip(), match.group(2).replace("\\", "/")
+        path = Path(raw_path)
+        try:
+            rel = path.relative_to(root).as_posix()
+        except ValueError:
+            parts = path.as_posix().split("/exports/")
+            if len(parts) == 2:
+                rel = parts[1]
+            else:
+                continue
+        mapping[slot] = rel
+    return mapping
+
+
 def _normalize_rel(path: str) -> str:
     return path.replace("\\", "/").lstrip("./")
 
 
+def _path_key(path: Path | str, image_root: Path | None = None) -> str:
+    candidate = Path(path)
+    if not candidate.is_absolute() and image_root is not None:
+        candidate = image_root / candidate
+    return str(candidate.resolve()).lower()
+
+
 def _path_tokens(rel_path: str) -> set[str]:
     return {token for token in re.split(r"[/_\-\s]+", rel_path.lower()) if token}
+
+
+def _slot_priority(slot: str) -> tuple[int, str]:
+    """Deterministic resolve order: equipment first, shock last."""
+    order = [
+        ("cad_", 10),
+        ("geometry_", 10),
+        ("mesh_", 20),
+        ("modelling_", 25),
+        ("static_earth", 30),
+        ("static_fixed", 31),
+        ("static_pressure", 32),
+        ("static_total", 33),
+        ("static_vonmises_stress", 34),
+        ("static_vonmises_flange", 35),
+        ("static_reaction", 36),
+        ("modal_mode", 40),
+        ("harmonic_x_", 50),
+        ("harmonic_y_", 51),
+        ("harmonic_z_", 52),
+        ("shock_plus_x_", 60),
+        ("shock_plus_y_", 61),
+        ("shock_plus_z_", 62),
+        ("shock_minus_x_", 63),
+        ("shock_minus_y_", 64),
+        ("shock_minus_z_", 65),
+    ]
+    for prefix, rank in order:
+        if slot.startswith(prefix) or slot == prefix.rstrip("_"):
+            return rank, slot
+    return 99, slot
+
+
+def _sort_slots(slots: list[str]) -> list[str]:
+    return sorted(slots, key=_slot_priority)
+
+
+def _is_flange_stress_slot(slot: str) -> bool:
+    return slot.endswith("_stress_flange") or slot.endswith("_vonmises_flange")
+
+
+def _is_assembly_stress_slot(slot: str) -> bool:
+    return slot.endswith("_stress_asm") or slot.endswith("_vonmises_stress")
+
+
+def _stress_filename_for_slot(slot: str) -> str | None:
+    if _is_flange_stress_slot(slot):
+        return "solution/equivalent_stress_flange.png"
+    if _is_assembly_stress_slot(slot):
+        if slot.startswith("shock_"):
+            return "solution/equivalent_stress_maximum_overtime.png"
+        return "solution/equivalent_stress.png"
+    return None
 
 
 def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
@@ -95,8 +183,12 @@ def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
     if not s:
         return None
 
-    if s in {"cad_isometric", "cad_section", "geometry_model_orientation"}:
-        return ImageMatchRule(path_glob="geometry/*.png")
+    if s == "cad_isometric":
+        return ImageMatchRule(path="geometry/geometry.png")
+    if s == "cad_section":
+        return ImageMatchRule(path_glob="connections/*connections*.png")
+    if s == "geometry_model_orientation":
+        return ImageMatchRule(path_glob="coordinate_systems/*coordinate*.png")
 
     if s == "mesh_global":
         return ImageMatchRule(path_glob="mesh/mesh*.png")
@@ -105,7 +197,7 @@ def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
         return ImageMatchRule(folder_keywords=["mesh"], file=f"{metric}.png")
 
     if s == "modelling_contacts":
-        return ImageMatchRule(path_glob="connections/*.png")
+        return ImageMatchRule(path_glob="connections/*connections*.png")
 
     if s.startswith("static_"):
         load_files = {
@@ -114,12 +206,14 @@ def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
             "pressure": "loading/pressure.png",
             "total_deformation": "solution/total_deformation.png",
             "vonmises_stress": "solution/equivalent_stress.png",
-            "vonmises_flange": "solution/equivalent_stress.png",
+            "vonmises_flange": "solution/equivalent_stress_flange.png",
+            "reaction_force": "solution/reaction_force.png",
         }
         tail = s[len("static_") :]
         file_name = load_files.get(tail)
         if file_name:
-            return ImageMatchRule(folder_keywords=["static"], file=file_name)
+            exclude = ["modal", "harmonic", "vibration", "shock", "transient"]
+            return ImageMatchRule(folder_keywords=["static"], file=file_name, exclude_keywords=exclude)
 
     mode_match = re.match(r"modal_mode(\d+)$", s)
     if mode_match:
@@ -145,12 +239,17 @@ def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
             "accel_plot": "solution/graphs/frequency_response.png",
             "deformation": "solution/total_deformation.png",
             "stress_asm": "solution/equivalent_stress.png",
-            "stress_flange": "solution/equivalent_stress.png",
+            "stress_flange": "solution/equivalent_stress_flange.png",
         }
+        other_axes = [a for a in "xyz" if a != axis]
         folder_keywords = ["harmonic", "vibration", axis] + axis_keywords.get(axis, [])
         file_name = file_map.get(tail)
         if file_name:
-            return ImageMatchRule(folder_keywords=folder_keywords, file=file_name)
+            return ImageMatchRule(
+                folder_keywords=folder_keywords,
+                file=file_name,
+                exclude_keywords=other_axes,
+            )
 
     shock_match = re.match(r"shock_(plus|minus)_([xyz])_(.+)$", s)
     if shock_match:
@@ -164,13 +263,19 @@ def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
         file_map = {
             "deformation": "solution/total_deformation.png",
             "stress_asm": "solution/equivalent_stress_maximum_overtime.png",
-            "stress_flange": "solution/equivalent_stress.png",
+            "stress_flange": "solution/equivalent_stress_flange.png",
         }
+        other_axes = [a for a in "xyz" if a != axis]
+        other_sign = ["minus", "-"] if sign == "plus" else ["plus", "+"]
         folder_keywords = ["shock", "transient", "equivalent", sign] + sign_keywords + [axis]
         folder_keywords.extend(axis_keywords.get(axis, []))
         file_name = file_map.get(tail)
         if file_name:
-            return ImageMatchRule(folder_keywords=folder_keywords, file=file_name)
+            return ImageMatchRule(
+                folder_keywords=folder_keywords,
+                file=file_name,
+                exclude_keywords=other_axes + other_sign,
+            )
 
     return None
 
@@ -244,6 +349,22 @@ def _score_path_for_slot(slot: str, rel_path: str) -> int:
         "equivalent_stress" in p or "von_mises" in p or "vonmises" in p
     ):
         score += 20
+
+    if _is_flange_stress_slot(s):
+        if "flange" in p:
+            score += 30
+        if "maximum_overtime" in p:
+            score -= 25
+        if p.endswith("equivalent_stress.png"):
+            score -= 20
+    elif _is_assembly_stress_slot(s):
+        if "maximum_overtime" in p and s.startswith("shock_"):
+            score += 30
+        if "flange" in p:
+            score -= 30
+        if p.endswith("equivalent_stress.png"):
+            score += 15
+
     if "accel" in s and ("frequency_response" in p or "acceleration" in p):
         score += 20
     if "location" in s and ("loading" in p or "acceleration" in p):
@@ -258,6 +379,12 @@ def _score_path_for_slot(slot: str, rel_path: str) -> int:
         score += 20
     if s.startswith("mesh_") and s.replace("mesh_quality_", "").replace("mesh_", "") in p:
         score += 15
+    if s == "cad_isometric" and p.endswith("geometry/geometry.png"):
+        score += 40
+    if s == "cad_section" and "connections" in p:
+        score += 35
+    if s == "geometry_model_orientation" and "coordinate" in p:
+        score += 35
 
     if "graphs/" in p and "accel" in s:
         score += 8
@@ -267,15 +394,25 @@ def _score_path_for_slot(slot: str, rel_path: str) -> int:
     return score
 
 
+def _available_paths(image_root: Path, indexed_paths: list[str], used_paths: set[str]) -> list[str]:
+    return [
+        rel
+        for rel in indexed_paths
+        if _path_key(rel, image_root) not in used_paths
+    ]
+
+
 def _resolve_slot_by_scoring(
     slot: str,
     image_root: Path,
     indexed_paths: list[str],
     *,
+    used_paths: set[str],
     min_score: int = 18,
 ) -> Path | None:
+    candidates = _available_paths(image_root, indexed_paths, used_paths)
     ranked = sorted(
-        ((rel, _score_path_for_slot(slot, rel)) for rel in indexed_paths),
+        ((rel, _score_path_for_slot(slot, rel)) for rel in candidates),
         key=lambda item: (-item[1], item[0].count("/"), len(item[0]), item[0].lower()),
     )
     if not ranked or ranked[0][1] < min_score:
@@ -311,7 +448,12 @@ def _matches_rule(rel_path: str, rule: ImageMatchRule) -> bool:
     return False
 
 
-def _pick_best_match(candidates: list[str], rule: ImageMatchRule) -> str | None:
+def _pick_best_match(
+    candidates: list[str],
+    rule: ImageMatchRule,
+    *,
+    slot: str = "",
+) -> str | None:
     if not candidates:
         return None
     if rule.path:
@@ -321,7 +463,16 @@ def _pick_best_match(candidates: list[str], rule: ImageMatchRule) -> str | None:
                 return candidate
     if len(candidates) == 1:
         return candidates[0]
-    # Prefer shorter paths (less nested duplicates) then lexicographic stability.
+    if slot:
+        return max(
+            candidates,
+            key=lambda p: (
+                _score_path_for_slot(slot, p),
+                -p.count("/"),
+                -len(p),
+                p.lower(),
+            ),
+        )
     return sorted(candidates, key=lambda p: (p.count("/"), len(p), p.lower()))[0]
 
 
@@ -330,9 +481,12 @@ def resolve_slot_with_rules(
     rule: ImageMatchRule,
     image_root: Path,
     indexed_paths: list[str],
+    *,
+    used_paths: set[str],
 ) -> Path | None:
-    matches = [rel for rel in indexed_paths if _matches_rule(rel, rule)]
-    chosen = _pick_best_match(matches, rule)
+    available = _available_paths(image_root, indexed_paths, used_paths)
+    matches = [rel for rel in available if _matches_rule(rel, rule)]
+    chosen = _pick_best_match(matches, rule, slot=slot)
     if not chosen:
         return None
     path = image_root / chosen
@@ -344,8 +498,11 @@ def resolve_slot_for_exports(
     image_root: Path,
     indexed_paths: list[str],
     rules: ImageMatchRulesConfig | None = None,
+    *,
+    used_paths: set[str] | None = None,
 ) -> Path | None:
     """Resolve one slot using YAML rules, inferred rules, then scoring."""
+    used = used_paths if used_paths is not None else set()
     candidates: list[ImageMatchRule] = []
     if rules and rules.rules.get(slot):
         candidates.append(rules.rules[slot])
@@ -365,11 +522,22 @@ def resolve_slot_for_exports(
         if signature in seen_signatures:
             continue
         seen_signatures.add(signature)
-        path = resolve_slot_with_rules(slot, rule, image_root, indexed_paths)
+        path = resolve_slot_with_rules(slot, rule, image_root, indexed_paths, used_paths=used)
         if path is not None:
             return path
 
-    return _resolve_slot_by_scoring(slot, image_root, indexed_paths)
+    return _resolve_slot_by_scoring(slot, image_root, indexed_paths, used_paths=used)
+
+
+def _duplicate_path_warnings(resolved: dict[str, Path]) -> list[str]:
+    by_path: dict[str, list[str]] = {}
+    for slot, path in resolved.items():
+        by_path.setdefault(_path_key(path), []).append(slot)
+    warnings: list[str] = []
+    for slots in by_path.values():
+        if len(slots) > 1:
+            warnings.append(f"Duplicate image path shared by slots: {', '.join(sorted(slots))}")
+    return warnings
 
 
 def resolve_assets_auto_discover(
@@ -378,25 +546,30 @@ def resolve_assets_auto_discover(
     slots: list[str] | None = None,
     check_quality: bool = True,
     quality_checker=None,
+    *,
+    used_paths: set[str] | None = None,
 ) -> MissingAssets:
     from ansys_report.images.mapper import _quality_warnings
 
-    target_slots = slots if slots is not None else sorted(rules.rules.keys())
+    target_slots = _sort_slots(slots if slots is not None else sorted(rules.rules.keys()))
     indexed = scan_image_folder(image_root)
     missing: list[str] = []
     warnings: list[str] = []
     resolved: dict[str, Path] = {}
+    used = set(used_paths or [])
 
     for slot in target_slots:
-        path = resolve_slot_for_exports(slot, image_root, indexed, rules)
+        path = resolve_slot_for_exports(slot, image_root, indexed, rules, used_paths=used)
         if path is None:
             missing.append(slot)
             continue
         resolved[slot] = path
+        used.add(_path_key(path))
         if check_quality:
             checker = quality_checker or _quality_warnings
             warnings.extend(checker(slot, path))
 
+    warnings.extend(_duplicate_path_warnings(resolved))
     return MissingAssets(missing_slots=missing, warnings=warnings, resolved=resolved)
 
 
@@ -426,14 +599,16 @@ def resolve_assets_smart(
 
     resolved: dict[str, Path] = {}
     warnings: list[str] = []
-    missing_after: list[str] = []
+    used_paths: set[str] = set()
 
     if mode in {"exact", "hybrid"} and image_map and image_map.slots:
         exact = resolve_assets(image_root, image_map, check_quality=check_quality)
-        resolved.update(exact.resolved)
+        for slot, path in exact.resolved.items():
+            resolved[slot] = path
+            used_paths.add(_path_key(path))
         warnings.extend(exact.warnings)
 
-    pending = [slot for slot in requested if slot not in resolved]
+    pending = [slot for slot in _sort_slots(requested) if slot not in resolved]
 
     if mode in {"auto", "hybrid"}:
         auto = resolve_assets_auto_discover(
@@ -441,14 +616,15 @@ def resolve_assets_smart(
             rules or ImageMatchRulesConfig(),
             slots=pending or None,
             check_quality=check_quality,
+            used_paths=used_paths,
         )
         resolved.update(auto.resolved)
+        used_paths.update(_path_key(path) for path in auto.resolved.values())
         warnings.extend(auto.warnings)
         pending = [slot for slot in requested if slot not in resolved]
 
     missing_after = [slot for slot in requested if slot not in resolved]
 
-    # De-duplicate warnings preserving order.
     seen: set[str] = set()
     unique_warnings: list[str] = []
     for msg in warnings:

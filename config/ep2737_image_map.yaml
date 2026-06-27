@@ -33,55 +33,55 @@ slots:
   # Static results (Static Structural — SYS)
   static_total_deformation: static/total_deformation.png
   static_vonmises_stress: static/vonmises_assembly.png
-  static_vonmises_flange: static/vonmises_flange.png
+  static_vonmises_flange: static/equivalent_stress_flange.png
 
   # Harmonic X (SYS-2)
   harmonic_x_location: harmonic/x/response_location.png
   harmonic_x_accel_plot: harmonic/x/acceleration_plot.png
   harmonic_x_deformation: harmonic/x/total_deformation.png
   harmonic_x_stress_asm: harmonic/x/vonmises_assembly.png
-  harmonic_x_stress_flange: harmonic/x/vonmises_flange.png
+  harmonic_x_stress_flange: harmonic/x/equivalent_stress_flange.png
 
   # Harmonic Y (SYS-3)
   harmonic_y_location: harmonic/y/response_location.png
   harmonic_y_accel_plot: harmonic/y/acceleration_plot.png
   harmonic_y_deformation: harmonic/y/total_deformation.png
   harmonic_y_stress_asm: harmonic/y/vonmises_assembly.png
-  harmonic_y_stress_flange: harmonic/y/vonmises_flange.png
+  harmonic_y_stress_flange: harmonic/y/equivalent_stress_flange.png
 
   # Harmonic Z (SYS-4)
   harmonic_z_location: harmonic/z/response_location.png
   harmonic_z_accel_plot: harmonic/z/acceleration_plot.png
   harmonic_z_deformation: harmonic/z/total_deformation.png
   harmonic_z_stress_asm: harmonic/z/vonmises_assembly.png
-  harmonic_z_stress_flange: harmonic/z/vonmises_flange.png
+  harmonic_z_stress_flange: harmonic/z/equivalent_stress_flange.png
 
   # Shock +X (SYS-5)
   shock_plus_x_deformation: shock/plus_x/total_deformation.png
-  shock_plus_x_stress_asm: shock/plus_x/vonmises_assembly.png
-  shock_plus_x_stress_flange: shock/plus_x/vonmises_flange.png
+  shock_plus_x_stress_asm: shock/plus_x/equivalent_stress_maximum_overtime.png
+  shock_plus_x_stress_flange: shock/plus_x/equivalent_stress_flange.png
 
   # Shock +Y (SYS-6)
   shock_plus_y_deformation: shock/plus_y/total_deformation.png
-  shock_plus_y_stress_asm: shock/plus_y/vonmises_assembly.png
-  shock_plus_y_stress_flange: shock/plus_y/vonmises_flange.png
+  shock_plus_y_stress_asm: shock/plus_y/equivalent_stress_maximum_overtime.png
+  shock_plus_y_stress_flange: shock/plus_y/equivalent_stress_flange.png
 
   # Shock +Z (SYS-7)
   shock_plus_z_deformation: shock/plus_z/total_deformation.png
-  shock_plus_z_stress_asm: shock/plus_z/vonmises_assembly.png
-  shock_plus_z_stress_flange: shock/plus_z/vonmises_flange.png
+  shock_plus_z_stress_asm: shock/plus_z/equivalent_stress_maximum_overtime.png
+  shock_plus_z_stress_flange: shock/plus_z/equivalent_stress_flange.png
 
   # Shock -X (SYS-8)
   shock_minus_x_deformation: shock/minus_x/total_deformation.png
-  shock_minus_x_stress_asm: shock/minus_x/vonmises_assembly.png
-  shock_minus_x_stress_flange: shock/minus_x/vonmises_flange.png
+  shock_minus_x_stress_asm: shock/minus_x/equivalent_stress_maximum_overtime.png
+  shock_minus_x_stress_flange: shock/minus_x/equivalent_stress_flange.png
 
   # Shock -Y (SYS-9)
   shock_minus_y_deformation: shock/minus_y/total_deformation.png
-  shock_minus_y_stress_asm: shock/minus_y/vonmises_assembly.png
-  shock_minus_y_stress_flange: shock/minus_y/vonmises_flange.png
+  shock_minus_y_stress_asm: shock/minus_y/equivalent_stress_maximum_overtime.png
+  shock_minus_y_stress_flange: shock/minus_y/equivalent_stress_flange.png
 
   # Shock -Z (SYS-10)
   shock_minus_z_deformation: shock/minus_z/total_deformation.png
-  shock_minus_z_stress_asm: shock/minus_z/vonmises_assembly.png
-  shock_minus_z_stress_flange: shock/minus_z/vonmises_flange.png
+  shock_minus_z_stress_asm: shock/minus_z/equivalent_stress_maximum_overtime.png
+  shock_minus_z_stress_flange: shock/minus_z/equivalent_stress_flange.png

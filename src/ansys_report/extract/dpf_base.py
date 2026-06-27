@@ -7,6 +7,7 @@ import logging
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -15,13 +16,27 @@ logger = logging.getLogger(__name__)
 _model_cache: dict[str, Any] = {}
 _ping_ok_cache: set[str] = set()
 
+# Base open timeout (seconds) when DPF_OPEN_TIMEOUT is unset.
+_DEFAULT_OPEN_TIMEOUT_S = 600.0
+# Extra seconds per GiB above 1 GiB (large shock RSTs on workstations).
+_OPEN_TIMEOUT_S_PER_GIB = 60.0
+_MAX_OPEN_TIMEOUT_S = 3600.0
 
-def _default_open_timeout() -> float:
-    raw = os.getenv("DPF_OPEN_TIMEOUT", "180")
-    try:
-        return max(0.0, float(raw))
-    except ValueError:
-        return 180.0
+
+def _default_open_timeout(rst_path: Path | None = None) -> float:
+    """Return open timeout; scale with RST size unless DPF_OPEN_TIMEOUT is set."""
+    raw = os.getenv("DPF_OPEN_TIMEOUT")
+    if raw is not None and raw.strip():
+        try:
+            return max(0.0, float(raw))
+        except ValueError:
+            pass
+    if rst_path is not None and rst_path.is_file():
+        gib = rst_path.stat().st_size / (1024**3)
+        if gib > 1.0:
+            scaled = _DEFAULT_OPEN_TIMEOUT_S + (gib - 1.0) * _OPEN_TIMEOUT_S_PER_GIB
+            return min(_MAX_OPEN_TIMEOUT_S, scaled)
+    return _DEFAULT_OPEN_TIMEOUT_S
 
 
 _DISABLE_TOKENS = {"0", "false", "no", "off"}
@@ -192,7 +207,7 @@ def run_dpf_subprocess(
     timeout_s: float | None = None,
 ) -> dict | None:
     """Run a DPF worker command in a subprocess; return parsed JSON or None."""
-    timeout_s = timeout_s if timeout_s is not None else _default_open_timeout()
+    timeout_s = timeout_s if timeout_s is not None else _default_open_timeout(rst_path)
     if timeout_s <= 0:
         return None
     cmd = [
@@ -222,10 +237,11 @@ def open_model(rst_path: Path, *, timeout_s: float | None = None):
     if cached is not None:
         return cached
 
-    timeout = _default_open_timeout() if timeout_s is None else timeout_s
+    timeout = _default_open_timeout(rst_path) if timeout_s is None else timeout_s
     if timeout > 0 and _needs_subprocess_ping(cache_key) and not _subprocess_ping(rst_path, timeout):
         return None
 
+    started = time.perf_counter()
     try:
         from ansys.dpf import core as dpf
 
@@ -233,6 +249,13 @@ def open_model(rst_path: Path, *, timeout_s: float | None = None):
     except Exception as exc:
         logger.warning("DPF unavailable for %s: %s", rst_path, exc)
         return None
+
+    logger.info(
+        "DPF open finished in %.1fs (%s, timeout=%.0fs)",
+        time.perf_counter() - started,
+        rst_path.name,
+        timeout,
+    )
 
     _model_cache[cache_key] = model
     _ping_ok_cache.add(cache_key)

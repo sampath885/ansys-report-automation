@@ -476,9 +476,37 @@ def _auto_discover_and_export(model, output_root):
             for node in viewport_results:
                 try:
                     r_name = _node_name(node)
-                    fname = _sanitize_filename(r_name) + ".png"
+                    lname = r_name.lower()
+                    if "maximum over time" in lname or "max over time" in lname:
+                        fname = "equivalent_stress_maximum_overtime.png"
+                    elif "equivalent stress" in lname or "von mises" in lname or "von-mises" in lname:
+                        fname = "equivalent_stress.png"
+                    else:
+                        fname = _sanitize_filename(r_name) + ".png"
                     dest = os.path.join(output_root, a_folder, "solution", fname)
                     _try_export(node, dest, a_name + "/solution", last_step=True)
+                    if "equivalent stress" in lname or "von mises" in lname or "von-mises" in lname:
+                        flange_dest = os.path.join(
+                            output_root, a_folder, "solution", "equivalent_stress_flange.png"
+                        )
+                        try:
+                            _export_discovered_stress_flange(
+                                model, node, flange_dest, last_step=True
+                            )
+                            stats["ok"] += 1
+                            log_lines.append(
+                                "OK   [%s / solution / flange stress] -> %s"
+                                % (a_name, flange_dest)
+                            )
+                        except KeyboardInterrupt:
+                            stats["interrupted"] = True
+                            raise
+                        except Exception as exc:
+                            msg = _safe_str(exc)
+                            print("  ERR  flange stress  (%s)" % msg)
+                            log_lines.append(
+                                "ERR  [%s / solution / flange stress] %s" % (a_name, msg)
+                            )
                 except KeyboardInterrupt:
                     stats["interrupted"] = True
                     raise
@@ -530,6 +558,18 @@ def _auto_discover_and_export(model, output_root):
         print("=" * 60)
 
     return ok
+
+
+def _export_discovered_stress_flange(model, node, dest_path, last_step=False):
+    """Export an equivalent-stress result scoped to the flange named selection."""
+    _restore_all_bodies_visible(model)
+    _activate(node)
+    if last_step:
+        _try_set_load_step(model, node, "last")
+    _apply_flange_scope(model)
+    _apply_view("isometric")
+    _export_png(dest_path, IMAGE_WIDTH, IMAGE_HEIGHT)
+    _restore_all_bodies_visible(model)
 
 
 def _export_discovered_node(model, node, dest_path, show_loads=False, last_step=False, view="isometric"):

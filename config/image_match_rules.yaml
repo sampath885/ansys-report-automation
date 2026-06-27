@@ -6,16 +6,17 @@
 #   path_glob: glob pattern (e.g. mesh/mesh*.png)
 #   folder_keywords + file: folder path must contain all keywords; path ends with file
 #   folder_keywords + subpath + file: same, with subpath before filename
+#   exclude_keywords: path must NOT contain any of these tokens
 
 version: 1
 
 rules:
   cad_isometric:
-    path_glob: geometry/geometry*.png
+    path: geometry/geometry.png
   cad_section:
-    path_glob: geometry/geometry*.png
+    path_glob: connections/*connections*.png
   geometry_model_orientation:
-    path_glob: geometry/geometry*.png
+    path_glob: coordinate_systems/*coordinate*.png
 
   mesh_global:
     path_glob: mesh/mesh*.png
@@ -29,29 +30,36 @@ rules:
     folder_keywords: [mesh]
     file: jacobian_ratio.png
   modelling_contacts:
-    path_glob: connections/connections*.png
+    path_glob: connections/*connections*.png
 
   static_earth_gravity:
     folder_keywords: [static]
     file: loading/standard_earth_gravity.png
+    exclude_keywords: [modal, harmonic, vibration, shock, transient]
   static_fixed_support:
     folder_keywords: [static]
     file: loading/fixed_support.png
+    exclude_keywords: [modal, harmonic, vibration, shock, transient]
   static_pressure:
     folder_keywords: [static]
     file: loading/pressure.png
+    exclude_keywords: [modal, harmonic, vibration, shock, transient]
   static_total_deformation:
     folder_keywords: [static]
     file: solution/total_deformation.png
+    exclude_keywords: [modal, harmonic, vibration, shock, transient]
   static_vonmises_stress:
     folder_keywords: [static]
     file: solution/equivalent_stress.png
+    exclude_keywords: [modal, harmonic, vibration, shock, transient, flange]
   static_vonmises_flange:
     folder_keywords: [static]
-    file: solution/equivalent_stress.png
+    file: solution/equivalent_stress_flange.png
+    exclude_keywords: [modal, harmonic, vibration, shock, transient]
   static_reaction_force:
     folder_keywords: [static]
     file: solution/reaction_force.png
+    exclude_keywords: [modal, harmonic, vibration, shock, transient]
 
   modal_mode1:
     folder_keywords: [modal]
@@ -75,116 +83,152 @@ rules:
   harmonic_x_location:
     folder_keywords: [vibration, x_direction]
     file: loading/acceleration.png
+    exclude_keywords: [y_direction, z_direction]
   harmonic_x_accel_plot:
     folder_keywords: [vibration, x_direction]
     file: solution/graphs/frequency_response.png
+    exclude_keywords: [y_direction, z_direction]
   harmonic_x_deformation:
     folder_keywords: [vibration, x_direction]
     file: solution/total_deformation.png
+    exclude_keywords: [y_direction, z_direction]
   harmonic_x_stress_asm:
     folder_keywords: [vibration, x_direction]
     file: solution/equivalent_stress.png
+    exclude_keywords: [y_direction, z_direction, flange]
   harmonic_x_stress_flange:
     folder_keywords: [vibration, x_direction]
-    file: solution/equivalent_stress.png
+    file: solution/equivalent_stress_flange.png
+    exclude_keywords: [y_direction, z_direction]
   harmonic_x_bc:
     folder_keywords: [vibration, x_direction]
     file: loading/loading_conditions_overview.png
+    exclude_keywords: [y_direction, z_direction]
   harmonic_x_amplitude:
     folder_keywords: [vibration, x_direction]
     file: loading/acceleration.png
+    exclude_keywords: [y_direction, z_direction]
   harmonic_x_stress:
     folder_keywords: [vibration, x_direction]
     file: solution/equivalent_stress.png
+    exclude_keywords: [y_direction, z_direction, flange]
 
   harmonic_y_location:
     folder_keywords: [vibration, y_direction]
     file: loading/acceleration.png
+    exclude_keywords: [x_direction, z_direction]
   harmonic_y_accel_plot:
     folder_keywords: [vibration, y_direction]
     file: solution/graphs/frequency_response.png
+    exclude_keywords: [x_direction, z_direction]
   harmonic_y_deformation:
     folder_keywords: [vibration, y_direction]
     file: solution/total_deformation.png
+    exclude_keywords: [x_direction, z_direction]
   harmonic_y_stress_asm:
     folder_keywords: [vibration, y_direction]
     file: solution/equivalent_stress.png
+    exclude_keywords: [x_direction, z_direction, flange]
   harmonic_y_stress_flange:
     folder_keywords: [vibration, y_direction]
-    file: solution/equivalent_stress.png
+    file: solution/equivalent_stress_flange.png
+    exclude_keywords: [x_direction, z_direction]
 
   harmonic_z_location:
     folder_keywords: [vibration, z_direction]
     file: loading/acceleration.png
+    exclude_keywords: [x_direction, y_direction]
   harmonic_z_accel_plot:
     folder_keywords: [vibration, z_direction]
     file: solution/graphs/frequency_response.png
+    exclude_keywords: [x_direction, y_direction]
   harmonic_z_deformation:
     folder_keywords: [vibration, z_direction]
     file: solution/total_deformation.png
+    exclude_keywords: [x_direction, y_direction]
   harmonic_z_stress_asm:
     folder_keywords: [vibration, z_direction]
     file: solution/equivalent_stress.png
+    exclude_keywords: [x_direction, y_direction, flange]
   harmonic_z_stress_flange:
     folder_keywords: [vibration, z_direction]
-    file: solution/equivalent_stress.png
+    file: solution/equivalent_stress_flange.png
+    exclude_keywords: [x_direction, y_direction]
 
   shock_plus_x_deformation:
     folder_keywords: [shock, plus, x]
     file: solution/total_deformation.png
+    exclude_keywords: [minus, y_direction, z_direction, "_y", "_z"]
   shock_plus_x_stress_asm:
     folder_keywords: [shock, plus, x]
     file: solution/equivalent_stress_maximum_overtime.png
+    exclude_keywords: [minus, y_direction, z_direction, flange]
   shock_plus_x_stress_flange:
     folder_keywords: [shock, plus, x]
-    file: solution/equivalent_stress.png
+    file: solution/equivalent_stress_flange.png
+    exclude_keywords: [minus, y_direction, z_direction]
 
   shock_plus_y_deformation:
     folder_keywords: [shock, plus, y]
     file: solution/total_deformation.png
+    exclude_keywords: [minus, x_direction, z_direction, "_x", "_z"]
   shock_plus_y_stress_asm:
     folder_keywords: [shock, plus, y]
     file: solution/equivalent_stress_maximum_overtime.png
+    exclude_keywords: [minus, x_direction, z_direction, flange]
   shock_plus_y_stress_flange:
     folder_keywords: [shock, plus, y]
-    file: solution/equivalent_stress.png
+    file: solution/equivalent_stress_flange.png
+    exclude_keywords: [minus, x_direction, z_direction]
 
   shock_plus_z_deformation:
     folder_keywords: [shock, plus, z]
     file: solution/total_deformation.png
+    exclude_keywords: [minus, x_direction, y_direction, "_x", "_y"]
   shock_plus_z_stress_asm:
     folder_keywords: [shock, plus, z]
     file: solution/equivalent_stress_maximum_overtime.png
+    exclude_keywords: [minus, x_direction, y_direction, flange]
   shock_plus_z_stress_flange:
     folder_keywords: [shock, plus, z]
-    file: solution/equivalent_stress.png
+    file: solution/equivalent_stress_flange.png
+    exclude_keywords: [minus, x_direction, y_direction]
 
   shock_minus_x_deformation:
     folder_keywords: [shock, minus, x]
     file: solution/total_deformation.png
+    exclude_keywords: [plus, y_direction, z_direction, "_y", "_z"]
   shock_minus_x_stress_asm:
     folder_keywords: [shock, minus, x]
     file: solution/equivalent_stress_maximum_overtime.png
+    exclude_keywords: [plus, y_direction, z_direction, flange]
   shock_minus_x_stress_flange:
     folder_keywords: [shock, minus, x]
-    file: solution/equivalent_stress.png
+    file: solution/equivalent_stress_flange.png
+    exclude_keywords: [plus, y_direction, z_direction]
 
   shock_minus_y_deformation:
     folder_keywords: [shock, minus, y]
     file: solution/total_deformation.png
+    exclude_keywords: [plus, x_direction, z_direction, "_x", "_z"]
   shock_minus_y_stress_asm:
     folder_keywords: [shock, minus, y]
     file: solution/equivalent_stress_maximum_overtime.png
+    exclude_keywords: [plus, x_direction, z_direction, flange]
   shock_minus_y_stress_flange:
     folder_keywords: [shock, minus, y]
-    file: solution/equivalent_stress.png
+    file: solution/equivalent_stress_flange.png
+    exclude_keywords: [plus, x_direction, z_direction]
 
   shock_minus_z_deformation:
     folder_keywords: [shock, minus, z]
     file: solution/total_deformation.png
+    exclude_keywords: [plus, x_direction, y_direction, "_x", "_y"]
   shock_minus_z_stress_asm:
     folder_keywords: [shock, minus, z]
     file: solution/equivalent_stress_maximum_overtime.png
+    exclude_keywords: [plus, x_direction, y_direction, flange]
   shock_minus_z_stress_flange:
     folder_keywords: [shock, minus, z]
-    file: solution/equivalent_stress.png
+    file: solution/equivalent_stress_flange.png
+    exclude_keywords: [plus, x_direction, y_direction]

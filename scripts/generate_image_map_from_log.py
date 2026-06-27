@@ -11,7 +11,9 @@ import yaml
 
 from ansys_report.images.auto_discover import (
     load_image_match_rules,
+    parse_manifest_export_log,
     resolve_assets_auto_discover,
+    resolve_assets_smart,
     scan_image_folder,
 )
 from ansys_report.images.slots import figure_slots_for_config
@@ -51,10 +53,17 @@ def generate_map(
     *,
     rules_path: Path | None = None,
     section_content: Path | None = None,
+    log_path: Path | None = None,
 ) -> dict[str, str]:
     repo = Path(__file__).resolve().parents[1]
     rules = load_image_match_rules(rules_path or repo / "config" / "image_match_rules.yaml")
     slots = figure_slots_for_config(section_content) or sorted(rules.rules.keys())
+
+    if log_path is not None and log_path.exists():
+        manifest_map = parse_manifest_export_log(log_path, exports_root)
+        if manifest_map:
+            return dict(sorted(manifest_map.items()))
+
     assets = resolve_assets_auto_discover(exports_root, rules, slots=slots, check_quality=False)
     return {
         slot: path.relative_to(exports_root).as_posix()
@@ -68,6 +77,11 @@ def main() -> int:
     parser.add_argument("-o", "--output", type=Path, help="Write image_map YAML here")
     parser.add_argument("--rules", type=Path, help="image_match_rules.yaml path")
     parser.add_argument("--section-content", type=Path, help="section_content.yaml for slot list")
+    parser.add_argument(
+        "--log",
+        type=Path,
+        help="Export log with OK [slot] -> path lines (manifest mode)",
+    )
     parser.add_argument("--list-files", action="store_true", help="Only list PNG files found")
     args = parser.parse_args()
 
@@ -80,11 +94,24 @@ def main() -> int:
             print(rel)
         return 0
 
+    log_path = args.log
+    if log_path is None:
+        candidate = exports_root / "auto_discover_log.txt"
+        if candidate.exists():
+            log_path = candidate
+
     slots = generate_map(
         exports_root,
         rules_path=args.rules,
         section_content=args.section_content,
+        log_path=log_path,
     )
+
+    by_path: dict[str, list[str]] = {}
+    for slot, rel in slots.items():
+        by_path.setdefault(rel, []).append(slot)
+    duplicates = {rel: names for rel, names in by_path.items() if len(names) > 1}
+
     payload = {"version": 1, "slots": slots}
     text = yaml.safe_dump(payload, sort_keys=True, allow_unicode=True)
 
@@ -93,6 +120,11 @@ def main() -> int:
         print(f"Wrote {len(slots)} slots to {args.output}")
     else:
         print(text, end="")
+
+    if duplicates:
+        print(f"\nWarning: {len(duplicates)} PNG path(s) shared by multiple slots:", file=__import__("sys").stderr)
+        for rel, names in sorted(duplicates.items()):
+            print(f"  {rel}: {', '.join(sorted(names))}", file=__import__("sys").stderr)
     return 0
 
 

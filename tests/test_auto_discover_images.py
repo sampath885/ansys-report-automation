@@ -76,18 +76,102 @@ def test_auto_discover_harmonic_vibration_layout(tmp_path, tiny_png):
     base = exports / "vibration_resistance_analysis_x_direction"
     _write_png(base / "solution" / "total_deformation.png", tiny_png)
     _write_png(base / "solution" / "equivalent_stress.png", tiny_png)
+    _write_png(base / "solution" / "equivalent_stress_flange.png", tiny_png)
     _write_png(base / "solution" / "graphs" / "frequency_response.png", tiny_png)
 
     rules = load_image_match_rules(REPO / "config" / "image_match_rules.yaml")
     assets = resolve_assets_auto_discover(
         exports,
         rules,
-        slots=["harmonic_x_deformation", "harmonic_x_stress_asm", "harmonic_x_accel_plot"],
+        slots=[
+            "harmonic_x_deformation",
+            "harmonic_x_stress_asm",
+            "harmonic_x_stress_flange",
+            "harmonic_x_accel_plot",
+        ],
         check_quality=False,
     )
     assert assets.resolved["harmonic_x_deformation"].name == "total_deformation.png"
     assert assets.resolved["harmonic_x_stress_asm"].name == "equivalent_stress.png"
+    assert assets.resolved["harmonic_x_stress_flange"].name == "equivalent_stress_flange.png"
     assert assets.resolved["harmonic_x_accel_plot"].name == "frequency_response.png"
+    paths = {p.resolve() for p in assets.resolved.values()}
+    assert len(paths) == 4
+
+
+def test_auto_discover_no_duplicate_paths_across_shock_directions(tmp_path, tiny_png):
+    exports = tmp_path / "exports"
+    for direction in ("plus_x", "plus_y", "plus_z"):
+        base = exports / f"equivalent_static_shock_in_{direction}_direction"
+        _write_png(base / "solution" / "total_deformation.png", tiny_png)
+        _write_png(base / "solution" / "equivalent_stress_maximum_overtime.png", tiny_png)
+        _write_png(base / "solution" / "equivalent_stress_flange.png", tiny_png)
+
+    assets = resolve_assets_smart(
+        exports,
+        slots=[
+            "shock_plus_x_deformation",
+            "shock_plus_y_deformation",
+            "shock_plus_z_deformation",
+            "shock_plus_x_stress_asm",
+            "shock_plus_y_stress_asm",
+        ],
+        mode="auto",
+        check_quality=False,
+    )
+    resolved_paths = [p.resolve() for p in assets.resolved.values()]
+    assert len(resolved_paths) == len(set(resolved_paths))
+    assert "shock_plus_x_deformation" in assets.resolved
+    assert "plus_x" in assets.resolved["shock_plus_x_deformation"].as_posix()
+    assert "plus_y" in assets.resolved["shock_plus_y_deformation"].as_posix()
+
+
+def test_geometry_slots_resolve_distinct_files(tmp_path, tiny_png):
+    exports = tmp_path / "exports"
+    _write_png(exports / "geometry" / "geometry.png", tiny_png)
+    _write_png(exports / "connections" / "connections.png", tiny_png)
+    _write_png(exports / "coordinate_systems" / "coordinate_systems.png", tiny_png)
+
+    assets = resolve_assets_auto_discover(
+        exports,
+        load_image_match_rules(REPO / "config" / "image_match_rules.yaml"),
+        slots=["cad_isometric", "cad_section", "geometry_model_orientation"],
+        check_quality=False,
+    )
+    paths = {p.resolve() for p in assets.resolved.values()}
+    assert len(paths) == 3
+
+
+def test_mesh_quality_vectorized_batch():
+    import numpy as np
+
+    from ansys_report.extract.dpf_mesh import _tet_quality_metrics, _tet_quality_metrics_batch
+
+    corners = np.array(
+        [
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0],
+        ]
+    )
+    single = _tet_quality_metrics(corners)
+    batch = _tet_quality_metrics_batch(corners[np.newaxis, ...])
+    for key in single:
+        assert abs(single[key] - float(batch[key][0])) < 1e-6
+
+
+def test_default_open_timeout_env_override(monkeypatch):
+    monkeypatch.setenv("DPF_OPEN_TIMEOUT", "900")
+    from ansys_report.extract.dpf_base import _default_open_timeout
+
+    assert _default_open_timeout(None) == 900.0
+
+
+def test_default_open_timeout_base_is_600():
+    from ansys_report.extract.dpf_base import _DEFAULT_OPEN_TIMEOUT_S, _default_open_timeout
+
+    assert _default_open_timeout(None) == _DEFAULT_OPEN_TIMEOUT_S
 
 
 def test_hybrid_prefers_exact_map_then_fills_gaps(tmp_path, tiny_png):
