@@ -144,16 +144,20 @@ def _resolve_image_assets(cfg: ProjectConfig) -> "MissingAssets | None":
     if not root.exists():
         return MissingAssets(missing_slots=figure_slots_for_config(cfg.section_content_path))
 
-    image_map = load_image_map(cfg.image_map_path) if has_map else None
     rules = load_image_match_rules(cfg.image_match_rules_path) if has_rules else None
     slots = figure_slots_for_config(cfg.section_content_path) or None
+
+    from ansys_report.images.map_select import resolve_image_map_for_exports
+
+    repo = Path(__file__).resolve().parents[2]
+    image_map, effective_mode = resolve_image_map_for_exports(cfg, root, repo_root=repo)
 
     return resolve_assets_smart(
         root,
         slots=slots,
         image_map=image_map,
         rules=rules,
-        mode=mode,
+        mode=effective_mode,
     )
 
 
@@ -212,6 +216,20 @@ def _execute_build(
 
         enrich_context_tables(context, cfg)
         validation.merge(validate_section_content(context, cfg))
+
+        from ansys_report.report.extraction_diagnostics import (
+            check_harmonic_extraction,
+            check_shock_extraction,
+            log_extraction_summary,
+        )
+
+        enabled = set(cfg.sections_enabled or [])
+        if verbose:
+            log_extraction_summary(context, enabled_sections=enabled)
+        for msg in check_harmonic_extraction(context, enabled_sections=enabled):
+            validation.add("dpf", msg, "warning")
+        for msg in check_shock_extraction(context):
+            validation.add("dpf", msg, "warning")
 
     if validation.has_errors:
         _print_validation(validation)

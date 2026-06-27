@@ -48,7 +48,7 @@ def _peak_via_dpf_operators(model, freqs: list[float]) -> tuple[float, float | N
         norm_fc = ops.math.norm_fc(disp_fc).outputs.fields_container()
         min_max = ops.min_max.min_max_fc(norm_fc).eval()
 
-        max_field = min_max.max
+        max_field = min_max.max()
         if max_field is None or max_field.data is None or len(max_field.data) == 0:
             return _peak_from_displacement_fields(disp_fc, freqs)
 

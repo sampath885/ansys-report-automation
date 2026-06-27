@@ -141,6 +141,21 @@ def apply_production_inputs(cfg, inputs: ProductionInputs) -> None:
         str(inputs.excel_bolt_preload.resolve()) if inputs.excel_bolt_preload else None
     )
     cfg.skip_images = False
+    _align_image_config_for_exports(cfg, inputs.image_assets)
+
+
+def _align_image_config_for_exports(cfg, image_assets: Path) -> None:
+    """When exports use EP2741 folder layout, prefer EP2741 image map."""
+    from ansys_report.images.map_select import detect_export_layout
+
+    layout = detect_export_layout(image_assets)
+    bom = (cfg.bom_id or "").replace(" ", "").upper()
+    if layout != "ep2741" and "2741" not in bom:
+        return
+
+    ep2741_map = REPO_ROOT / "config" / "image_map.ep2741.yaml"
+    if ep2741_map.exists():
+        cfg.image_map_path = ep2741_map
 
 
 def _infer_case_root(inputs: ProductionInputs) -> Path:
