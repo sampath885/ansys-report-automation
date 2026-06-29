@@ -387,14 +387,28 @@ def bodies_from_inventory(inventory: ProjectInventory) -> list[BodyMetadata]:
     return extract_analysis_metadata(static.mech_dir).bodies
 
 
+def top_level_part_name(name: str) -> str:
+    """Mechanical CAERep captions are often feature paths (Part\\Chamfer1)."""
+    if not name:
+        return name
+    primary = name.replace("/", "\\").split("\\")[0].strip()
+    return primary or name
+
+
 def dedupe_bodies(bodies: list[BodyMetadata]) -> list[BodyMetadata]:
-    """Drop duplicate CAERep body entries (same name + material)."""
-    seen: set[tuple[str, str | None]] = set()
-    unique: list[BodyMetadata] = []
+    """One representative CAERep body per top-level part + material (for DPF scoping)."""
+    grouped: dict[tuple[str, str | None], BodyMetadata] = {}
+    order: list[tuple[str, str | None]] = []
     for body in bodies:
-        key = (body.name, body.material)
-        if key in seen:
+        top = top_level_part_name(body.name)
+        key = (top, body.material)
+        if key in grouped:
             continue
-        seen.add(key)
-        unique.append(body)
-    return unique
+        grouped[key] = BodyMetadata(
+            name=top,
+            material=body.material,
+            mass_tonne=body.mass_tonne,
+            mass_kg=body.mass_kg,
+        )
+        order.append(key)
+    return [grouped[key] for key in order]

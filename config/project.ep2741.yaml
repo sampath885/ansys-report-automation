@@ -64,6 +64,7 @@ modal:
   num_modes: 6
 static:
   fos_target: 1.5
+  conclusion_table_style: ep1581
 
 mesh_quality_criteria:
   aspect_ratio: { operator: "<", limit: 10 }

@@ -27,7 +27,7 @@ def test_static_conclusion_table_uses_live_stress(ep2737_cfg):
     assert rows[0]["allowable_mpa"] == pytest.approx(136.67, abs=0.01)
 
 
-def test_vibration_conclusion_table():
+def test_vibration_conclusion_table(ep2737_cfg):
     from ansys_report.report.table_builders import build_vibration_conclusion_table
 
     ctx = {
@@ -50,7 +50,7 @@ def test_vibration_conclusion_table():
             "narrative": {"verdict": "PASS"},
         },
     }
-    rows = build_vibration_conclusion_table(ctx)
+    rows = build_vibration_conclusion_table(ctx, ep2737_cfg)
     assert len(rows) == 3
     assert rows[0]["analysis"] == "Harmonic Response X"
     assert rows[2]["analysis"] == "Harmonic Response Z"

@@ -76,6 +76,7 @@ class ModalConfig(BaseModel):
 
 class StaticConfig(BaseModel):
     fos_target: float = 1.5
+    conclusion_table_style: str = "ep1581"  # ep1581 (one row per material) | per_body
 
 
 class MeshQualityCriterion(BaseModel):

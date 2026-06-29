@@ -13,6 +13,7 @@ from typing import Any
 from pathlib import Path
 
 from ansys_report.config import ProjectConfig
+from ansys_report.extract.metadata import top_level_part_name
 
 
 def build_static_conclusion_table(
@@ -22,21 +23,23 @@ def build_static_conclusion_table(
     context: dict[str, Any] | None = None,
     reference_tables: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
-    """Table 16 — static structural analysis conclusion (one row per body when available)."""
+    """Table 16 — static structural analysis conclusion."""
     per_body = static.get("per_body") or []
     if per_body:
-        return _rows_from_per_body(per_body, cfg)
-
-    bodies = _dedupe_body_dicts(_bodies_from_context(context))
-    if bodies:
-        return _rows_from_body_metadata(
-            bodies,
+        rows = _rows_from_per_body(per_body, cfg)
+    elif _dedupe_body_dicts(_bodies_from_context(context)):
+        rows = _rows_from_body_metadata(
+            _dedupe_body_dicts(_bodies_from_context(context)),
             cfg,
             stress_mpa=static.get("max_stress_mpa"),
             default_location=static.get("max_stress_location"),
         )
+    else:
+        return [_assembly_static_row(static, cfg)]
 
-    return [_assembly_static_row(static, cfg)]
+    if _uses_ep1581_style(cfg):
+        rows = _collapse_rows_by_material(rows)
+    return rows
 
 
 def build_shock_conclusion_table(
@@ -45,16 +48,19 @@ def build_shock_conclusion_table(
     *,
     context: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
-    """Table 23 — per-direction/per-body shock conclusion (EP1581 Table 28 style)."""
+    """Table 23 — shock conclusion (EP1581: one row per direction × material)."""
     rows: list[dict[str, Any]] = []
     sr_no = 1
     fallback_bodies = _dedupe_body_dicts(_bodies_from_context(context))
+    ep1581 = _uses_ep1581_style(cfg)
 
     for direction in shock.get("directions") or []:
         label = direction.get("direction") or "?"
         per_body = direction.get("per_body") or []
+
         if per_body:
-            for body in per_body:
+            targets = _group_per_body_by_material(per_body) if ep1581 else per_body
+            for body in targets:
                 material = body.get("material") or _primary_material(cfg)
                 stress = body.get("max_stress_mpa")
                 allowable = material_allowable_mpa(cfg, material)
@@ -73,7 +79,8 @@ def build_shock_conclusion_table(
             continue
 
         if fallback_bodies:
-            for body in fallback_bodies:
+            targets = _unique_material_bodies(fallback_bodies) if ep1581 else fallback_bodies
+            for body in targets:
                 material = body.get("material") or _primary_material(cfg)
                 stress = direction.get("max_stress_mpa")
                 allowable = material_allowable_mpa(cfg, material)
@@ -110,11 +117,14 @@ def build_shock_conclusion_table(
     return rows
 
 
-def build_vibration_conclusion_table(context: dict[str, Any]) -> list[dict[str, Any]]:
-    """Summary table for vibration resistance conclusion (per body × enabled axis)."""
-    bodies = _dedupe_body_dicts(_bodies_from_context(context))
-    if not bodies:
-        bodies = [{"name": "Welded Plane Pipe Flange", "material": cfg_material_name(context)}]
+def build_vibration_conclusion_table(
+    context: dict[str, Any],
+    cfg: ProjectConfig | None = None,
+) -> list[dict[str, Any]]:
+    """Summary table for vibration resistance conclusion."""
+    ep1581 = cfg is None or _uses_ep1581_style(cfg)
+    component = _assembly_component_name(context)
+    material = cfg_material_name(context)
 
     rows: list[dict[str, Any]] = []
     sr_no = 1
@@ -123,17 +133,23 @@ def build_vibration_conclusion_table(context: dict[str, Any]) -> list[dict[str, 
         if not block:
             continue
         direction = block.get("direction") or key.split("_")[-1].upper()
-        per_body = block.get("per_body") or []
-        targets = per_body if per_body else bodies
+
+        if ep1581:
+            targets = [{"name": component, "material": material}]
+        else:
+            bodies = _dedupe_body_dicts(_bodies_from_context(context))
+            if not bodies:
+                bodies = [{"name": component, "material": material}]
+            per_body = block.get("per_body") or []
+            targets = per_body if per_body else bodies
+
         for body in targets:
-            component = body.get("body_name") or body.get("name") or "Component"
-            material = body.get("material") or cfg_material_name(context)
             rows.append(
                 {
                     "sr_no": sr_no,
                     "analysis": f"Harmonic Response {direction}",
-                    "component": component,
-                    "material": material,
+                    "component": body.get("body_name") or body.get("name") or component,
+                    "material": body.get("material") or material,
                     "peak_frequency_hz": block.get("peak_frequency_hz"),
                     "peak_displacement_mm": block.get("peak_displacement_mm"),
                     "remarks": _harmonic_remark(block),
@@ -177,7 +193,7 @@ def enrich_context_tables(context: dict[str, Any], cfg: ProjectConfig) -> None:
 
     enabled = set(cfg.sections_enabled or [])
     merged = merge_harmonic_conclusion_narrative(context, enabled_sections=enabled)
-    vib = build_vibration_conclusion_table(context)
+    vib = build_vibration_conclusion_table(context, cfg)
     if vib or any(key in enabled and key in context for key in HARMONIC_SECTION_KEYS):
         context["vibration_conclusion"] = {"rows": vib, "narrative": merged}
 
@@ -242,6 +258,81 @@ def load_front_matter_tables(cfg: ProjectConfig) -> dict[str, Any]:
         return yaml.safe_load(f) or {}
 
 
+def _uses_ep1581_style(cfg: ProjectConfig) -> bool:
+    style = (cfg.static.conclusion_table_style or "ep1581").lower()
+    return style != "per_body"
+
+
+def _assembly_component_name(context: dict[str, Any] | None) -> str:
+    if not context:
+        return "Assembly"
+    if context.get("title"):
+        return str(context["title"])
+    equipment = context.get("equipment") or {}
+    if equipment.get("title"):
+        return str(equipment["title"])
+    return "Assembly"
+
+
+def _group_per_body_by_material(per_body: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """EP1581 — one entry per material; location is top-level part at peak stress."""
+    merged: dict[str, dict[str, Any]] = {}
+    order: list[str] = []
+    for row in per_body:
+        material = row.get("material") or "—"
+        stress = row.get("max_stress_mpa")
+        location = top_level_part_name(str(row.get("location") or row.get("body_name") or row.get("name") or "—"))
+        prev = merged.get(material)
+        if prev is None or (
+            stress is not None
+            and (prev.get("max_stress_mpa") is None or stress > prev.get("max_stress_mpa"))
+        ):
+            merged[material] = {
+                **row,
+                "material": material,
+                "body_name": location,
+                "location": location,
+            }
+            if material not in order:
+                order.append(material)
+    return [merged[material] for material in order]
+
+
+def _unique_material_bodies(bodies: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    seen: set[str | None] = set()
+    unique: list[dict[str, Any]] = []
+    for body in bodies:
+        material = body.get("material")
+        if material in seen:
+            continue
+        seen.add(material)
+        unique.append(
+            {
+                **body,
+                "name": top_level_part_name(str(body.get("name") or "")),
+            }
+        )
+    return unique
+
+
+def _collapse_rows_by_material(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Collapse built table rows to one row per material (keep highest stress)."""
+    merged: dict[str, dict[str, Any]] = {}
+    order: list[str] = []
+    for row in rows:
+        material = str(row.get("material") or "—")
+        stress = row.get("stress_mpa")
+        prev = merged.get(material)
+        if prev is None or (
+            stress is not None
+            and (prev.get("stress_mpa") is None or stress > prev.get("stress_mpa"))
+        ):
+            merged[material] = dict(row)
+            if material not in order:
+                order.append(material)
+    return [{**merged[material], "sr_no": idx} for idx, material in enumerate(order, start=1)]
+
+
 def _assembly_static_row(static: dict[str, Any], cfg: ProjectConfig) -> dict[str, Any]:
     stress = static.get("max_stress_mpa")
     material = _primary_material(cfg)
@@ -258,8 +349,9 @@ def _assembly_static_row(static: dict[str, Any], cfg: ProjectConfig) -> dict[str
 
 
 def _rows_from_per_body(per_body: list[dict[str, Any]], cfg: ProjectConfig) -> list[dict[str, Any]]:
+    grouped = _group_per_body_by_material(per_body) if _uses_ep1581_style(cfg) else per_body
     rows: list[dict[str, Any]] = []
-    for idx, body in enumerate(per_body, start=1):
+    for idx, body in enumerate(grouped, start=1):
         material = body.get("material") or _primary_material(cfg)
         stress = body.get("max_stress_mpa")
         allowable = material_allowable_mpa(cfg, material)
@@ -283,8 +375,9 @@ def _rows_from_body_metadata(
     stress_mpa: float | None,
     default_location: str | None,
 ) -> list[dict[str, Any]]:
+    targets = _unique_material_bodies(bodies) if _uses_ep1581_style(cfg) else bodies
     rows: list[dict[str, Any]] = []
-    for idx, body in enumerate(bodies, start=1):
+    for idx, body in enumerate(targets, start=1):
         material = body.get("material") or _primary_material(cfg)
         allowable = material_allowable_mpa(cfg, material)
         rows.append(
@@ -312,17 +405,19 @@ def _bodies_from_context(context: dict[str, Any] | None) -> list[dict[str, Any]]
 
 
 def _dedupe_body_dicts(bodies: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    seen: set[tuple[str, str | None]] = set()
-    unique: list[dict[str, Any]] = []
+    grouped: dict[tuple[str, str | None], dict[str, Any]] = {}
+    order: list[tuple[str, str | None]] = []
     for body in bodies:
-        name = str(body.get("name") or "")
+        name = top_level_part_name(str(body.get("name") or body.get("body_name") or ""))
         material = body.get("material")
         key = (name, material)
-        if key in seen:
+        if key in grouped:
             continue
-        seen.add(key)
-        unique.append(body)
-    return unique
+        normalized = dict(body)
+        normalized["name"] = name
+        grouped[key] = normalized
+        order.append(key)
+    return [grouped[key] for key in order]
 
 
 def _primary_material(cfg: ProjectConfig) -> str:
