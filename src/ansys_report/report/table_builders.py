@@ -25,13 +25,14 @@ def build_static_conclusion_table(
 ) -> list[dict[str, Any]]:
     """Table 16 — static structural analysis conclusion."""
     per_body = static.get("per_body") or []
+    per_material = static.get("per_material") or {}
     if per_body:
         rows = _rows_from_per_body(per_body, cfg)
     elif _dedupe_body_dicts(_bodies_from_context(context)):
         rows = _rows_from_body_metadata(
             _dedupe_body_dicts(_bodies_from_context(context)),
             cfg,
-            stress_mpa=static.get("max_stress_mpa"),
+            per_material=per_material,
             default_location=static.get("max_stress_location"),
         )
     else:
@@ -80,9 +81,15 @@ def build_shock_conclusion_table(
 
         if fallback_bodies:
             targets = _unique_material_bodies(fallback_bodies) if ep1581 else fallback_bodies
+            dir_per_material = direction.get("per_material") or {}
             for body in targets:
                 material = body.get("material") or _primary_material(cfg)
-                stress = direction.get("max_stress_mpa")
+                if dir_per_material:
+                    stress = dir_per_material.get(material)
+                elif ep1581:
+                    stress = None
+                else:
+                    stress = direction.get("max_stress_mpa")
                 allowable = material_allowable_mpa(cfg, material)
                 rows.append(
                     {
@@ -372,14 +379,16 @@ def _rows_from_body_metadata(
     bodies: list[dict[str, Any]],
     cfg: ProjectConfig,
     *,
-    stress_mpa: float | None,
-    default_location: str | None,
+    per_material: dict[str, float] | None = None,
+    default_location: str | None = None,
 ) -> list[dict[str, Any]]:
     targets = _unique_material_bodies(bodies) if _uses_ep1581_style(cfg) else bodies
+    per_material = per_material or {}
     rows: list[dict[str, Any]] = []
     for idx, body in enumerate(targets, start=1):
         material = body.get("material") or _primary_material(cfg)
         allowable = material_allowable_mpa(cfg, material)
+        stress_mpa = per_material.get(material) if material in per_material else None
         rows.append(
             {
                 "sr_no": idx,

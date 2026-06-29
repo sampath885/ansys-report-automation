@@ -68,22 +68,47 @@ def test_static_conclusion_table_per_body(ep2737_cfg):
     assert rows[1]["stress_mpa"] == pytest.approx(460.87, abs=0.01)
 
 
-def test_static_conclusion_table_falls_back_to_bodies(ep2737_cfg):
+def test_static_conclusion_table_falls_back_to_per_material(ep2737_cfg):
     from ansys_report.report.table_builders import build_static_conclusion_table
 
-    static = {"max_stress_mpa": 200.0}
+    static = {
+        "max_stress_mpa": 460.87,
+        "per_material": {
+            "ASTM 182 F 321": 460.87,
+            "Nylon": 45.0,
+        },
+    }
     context = {
         "equipment": {
             "bodies": [
                 {"name": "Flange", "material": "ASTM 182 F 321"},
-                {"name": "Pipe", "material": "ASTM 182 F 321"},
+                {"name": "Gasket", "material": "Nylon"},
             ]
         }
     }
     rows = build_static_conclusion_table(static, ep2737_cfg, context=context)
-    assert len(rows) == 1
-    assert rows[0]["material"] == "ASTM 182 F 321"
-    assert rows[0]["stress_mpa"] == pytest.approx(200.0)
+    assert len(rows) == 2
+    by_mat = {r["material"]: r for r in rows}
+    assert by_mat["ASTM 182 F 321"]["stress_mpa"] == pytest.approx(460.87, abs=0.01)
+    assert by_mat["Nylon"]["stress_mpa"] == pytest.approx(45.0, abs=0.01)
+
+
+def test_static_conclusion_table_fallback_without_per_material_shows_pending(ep2737_cfg):
+    from ansys_report.report.table_builders import build_static_conclusion_table
+
+    static = {"max_stress_mpa": 460.87, "per_material": {}}
+    context = {
+        "equipment": {
+            "bodies": [
+                {"name": "Flange", "material": "ASTM 182 F 321"},
+                {"name": "Gasket", "material": "Nylon"},
+            ]
+        }
+    }
+    rows = build_static_conclusion_table(static, ep2737_cfg, context=context)
+    assert len(rows) == 2
+    assert all(r["stress_mpa"] is None for r in rows)
+    assert all("Pending" in r["remarks"] for r in rows)
 
 
 def test_static_conclusion_table_single_row_without_bodies(ep2737_cfg):

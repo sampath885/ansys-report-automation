@@ -68,17 +68,21 @@ def extract_static(
 
             if bodies:
                 result.per_body = extract_per_body_stress(rst_path, bodies, load_step=load_step)
-                for row in result.per_body:
-                    if row.material and row.max_stress_mpa is not None:
-                        prev = result.per_material.get(row.material)
-                        if prev is None or row.max_stress_mpa > prev:
-                            result.per_material[row.material] = row.max_stress_mpa
+                _populate_per_material(result)
         except Exception as exc:
             logger.warning("Static extraction failed: %s", exc)
             manual.extend(["max_stress_mpa", "max_deformation_mm"])
 
     result.manual_fields = manual
     return result
+
+
+def _populate_per_material(result: StaticResult) -> None:
+    for row in result.per_body:
+        if row.material and row.max_stress_mpa is not None:
+            prev = result.per_material.get(row.material)
+            if prev is None or row.max_stress_mpa > prev:
+                result.per_material[row.material] = row.max_stress_mpa
 
 
 def _reactions(model, time_scoping: int | None) -> tuple[float | None, float | None]:
