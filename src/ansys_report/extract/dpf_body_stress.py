@@ -53,7 +53,7 @@ def extract_per_material_stress(
     load_step: int | None = None,
 ) -> list[BodyStressRow]:
     """One row per unique CAERep material using mesh material property scoping."""
-    stress_field = _elemental_stress_field(model, load_step)
+    stress_field, is_nodal = _resolve_stress_field(model, load_step)
     if stress_field is None:
         return []
 
@@ -62,10 +62,10 @@ def extract_per_material_stress(
         return []
 
     mesh = model.metadata.meshed_region
-    element_ids = np.asarray(stress_field.scoping.ids, dtype=np.int64)
-    mat_ids = _element_material_ids(mesh, element_ids)
+    entity_ids = np.asarray(stress_field.scoping.ids, dtype=np.int64)
     mat_name_by_id = _material_names_by_id(model)
-    if mat_ids is None:
+    mat_ids = None if is_nodal else _element_material_ids(mesh, entity_ids)
+    if not is_nodal and mat_ids is None:
         return []
 
     material_to_body: dict[str, str] = {}
@@ -79,7 +79,10 @@ def extract_per_material_stress(
         if not target_ids:
             logger.debug("No DPF material id match for CAERep material %r", material)
             continue
-        max_stress = _max_vm_for_material_ids(vm_values, element_ids, mat_ids, target_ids)
+        if is_nodal:
+            max_stress = _max_vm_for_material_ids_nodal(vm_values, entity_ids, mesh, target_ids)
+        else:
+            max_stress = _max_vm_for_material_ids(vm_values, entity_ids, mat_ids, target_ids)
         rows.append(
             BodyStressRow(
                 body_name=body_name,
@@ -92,7 +95,7 @@ def extract_per_material_stress(
 
 
 def _extract_per_body(model, bodies: list[BodyMetadata], *, load_step: int | None) -> list[BodyStressRow]:
-    stress_field = _elemental_stress_field(model, load_step)
+    stress_field, is_nodal = _resolve_stress_field(model, load_step)
     if stress_field is None:
         return []
 
@@ -101,8 +104,8 @@ def _extract_per_body(model, bodies: list[BodyMetadata], *, load_step: int | Non
         return []
 
     mesh = model.metadata.meshed_region
-    element_ids = np.asarray(stress_field.scoping.ids, dtype=np.int64)
-    mat_ids = _element_material_ids(mesh, element_ids)
+    entity_ids = np.asarray(stress_field.scoping.ids, dtype=np.int64)
+    mat_ids = None if is_nodal else _element_material_ids(mesh, entity_ids)
     mat_name_by_id = _material_names_by_id(model)
 
     rows: list[BodyStressRow] = []
@@ -111,9 +114,10 @@ def _extract_per_body(model, bodies: list[BodyMetadata], *, load_step: int | Non
             mesh,
             body,
             vm_values=vm_values,
-            element_ids=element_ids,
+            entity_ids=entity_ids,
             mat_ids=mat_ids,
             mat_name_by_id=mat_name_by_id,
+            is_nodal=is_nodal,
         )
         rows.append(
             BodyStressRow(
@@ -124,6 +128,34 @@ def _extract_per_body(model, bodies: list[BodyMetadata], *, load_step: int | Non
             )
         )
     return rows
+
+
+def _resolve_stress_field(model, load_step: int | None) -> tuple[Any, bool]:
+    """Return (stress_field, is_nodal). Prefer elemental; fall back to nodal stress."""
+    field = _elemental_stress_field(model, load_step)
+    if field is not None:
+        return field, False
+    field = _nodal_stress_field(model, load_step)
+    if field is not None:
+        logger.info("Elemental stress unavailable; using nodal stress for per-material scoping")
+        return field, True
+    logger.warning("Could not obtain stress field from DPF (elemental or nodal)")
+    return None, False
+
+
+def _nodal_stress_field(model, load_step: int | None):
+    """Nodal stress field; same API path as global max in dpf_static.py."""
+    time_scoping = load_step if load_step is not None else None
+    try:
+        if time_scoping is not None:
+            fc = model.results.stress(time_scoping=time_scoping).eval()
+        else:
+            fc = model.results.stress().eval()
+        if fc:
+            return fc[0]
+    except Exception as exc:
+        logger.debug("DPF nodal stress failed: %s", exc)
+    return None
 
 
 def _elemental_stress_field(model, load_step: int | None):
@@ -165,7 +197,7 @@ def _elemental_stress_field(model, load_step: int | None):
     except Exception as exc:
         logger.debug("DPF elemental_stress operator failed: %s", exc)
 
-    logger.warning("Could not obtain elemental stress field from DPF")
+    logger.debug("Could not obtain elemental stress field from DPF")
     return None
 
 
@@ -174,18 +206,29 @@ def _stress_for_body(
     body: BodyMetadata,
     *,
     vm_values: np.ndarray,
-    element_ids: np.ndarray,
+    entity_ids: np.ndarray,
     mat_ids: np.ndarray | None,
     mat_name_by_id: dict[int, str],
+    is_nodal: bool = False,
 ) -> float | None:
     scoped = _named_selection_scoping(mesh, body.name)
     if scoped is not None and scoped.size:
-        return _max_vm_for_element_ids(vm_values, element_ids, set(scoped.ids))
+        scoped_ids = {int(x) for x in scoped.ids}
+        if is_nodal:
+            peak = _max_vm_for_node_ids(vm_values, entity_ids, scoped_ids)
+            if peak is not None:
+                return peak
+            target_nodes = _nodes_for_elements(mesh, scoped_ids)
+            return _max_vm_for_node_ids(vm_values, entity_ids, target_nodes)
+        return _max_vm_for_element_ids(vm_values, entity_ids, scoped_ids)
 
-    if mat_ids is not None and body.material:
+    if body.material:
         target_ids = _material_ids_for_name(body.material, mat_name_by_id)
         if target_ids:
-            return _max_vm_for_material_ids(vm_values, element_ids, mat_ids, target_ids)
+            if is_nodal:
+                return _max_vm_for_material_ids_nodal(vm_values, entity_ids, mesh, target_ids)
+            if mat_ids is not None:
+                return _max_vm_for_material_ids(vm_values, entity_ids, mat_ids, target_ids)
 
     return None
 
@@ -215,6 +258,65 @@ def _max_vm_for_material_ids(
     if not np.any(mask):
         return None
     return float(np.max(vm_values[mask]))
+
+
+def _max_vm_for_node_ids(
+    vm_values: np.ndarray,
+    node_ids: np.ndarray,
+    target_node_ids: set[int],
+) -> float | None:
+    if not target_node_ids:
+        return None
+    mask = np.isin(node_ids, list(target_node_ids))
+    if not np.any(mask):
+        return None
+    return float(np.max(vm_values[mask]))
+
+
+def _max_vm_for_material_ids_nodal(
+    vm_values: np.ndarray,
+    node_ids: np.ndarray,
+    mesh,
+    target_mat_ids: set[int],
+) -> float | None:
+    """Peak nodal von Mises over all nodes belonging to elements of the given materials."""
+    if not target_mat_ids:
+        return None
+    element_ids = _all_mesh_element_ids(mesh)
+    mat_ids = _element_material_ids(mesh, element_ids)
+    if mat_ids is None:
+        return None
+    target_elements = {
+        int(eid) for eid, mid in zip(element_ids, mat_ids, strict=False) if int(mid) in target_mat_ids
+    }
+    if not target_elements:
+        return None
+    target_nodes = _nodes_for_elements(mesh, target_elements)
+    return _max_vm_for_node_ids(vm_values, node_ids, target_nodes)
+
+
+def _all_mesh_element_ids(mesh) -> np.ndarray:
+    return np.asarray(mesh.elements.scoping.ids, dtype=np.int64)
+
+
+def _nodes_for_elements(mesh, target_element_ids: set[int]) -> set[int]:
+    if not target_element_ids:
+        return set()
+    nodes: set[int] = set()
+    elements = mesh.elements
+    conn = elements.connectivities_field
+    for idx, eid in enumerate(elements.scoping.ids):
+        if int(eid) not in target_element_ids:
+            continue
+        try:
+            data = conn.get_entity_data_by_index(idx)
+        except Exception:
+            try:
+                data = conn.get_entity_data_by_id(int(eid))
+            except Exception:
+                continue
+        nodes.update(int(n) for n in np.asarray(data).flatten())
+    return nodes
 
 
 def _von_mises_array(stress_field) -> np.ndarray | None:
