@@ -24,6 +24,29 @@ class BodyStressRow(BaseModel):
     location: str | None = None
 
 
+class ResultSummaryRow(BaseModel):
+    """One row from Mechanical Solution Information → Result Summary worksheet."""
+
+    result: str
+    minimum: float | None = None
+    maximum: float | None = None
+    unit: str | None = None
+    time_s: float | None = None
+
+
+class ResultSummary(BaseModel):
+    """Exported Result Summary for one analysis system."""
+
+    analysis_name: str
+    system_key: str | None = None
+    workbench_folder: str | None = None
+    time_s: float | None = None
+    rows: list[ResultSummaryRow] = Field(default_factory=list)
+    source_file: Path | None = None
+
+    model_config = {"arbitrary_types_allowed": True}
+
+
 class StaticResult(BaseModel):
     max_stress_mpa: float | None = None
     max_deformation_mm: float | None = None
@@ -33,6 +56,7 @@ class StaticResult(BaseModel):
     per_material: dict[str, float] = Field(default_factory=dict)
     per_body: list[BodyStressRow] = Field(default_factory=list)
     manual_fields: list[str] = Field(default_factory=list)
+    extraction_source: str | None = None
 
 
 class MeshResult(BaseModel):
@@ -179,6 +203,7 @@ class HarmonicPeakResult(BaseModel):
     peak_frequency_hz: float | None = None
     num_frequency_sets: int | None = None
     manual_fields: list[str] = Field(default_factory=list)
+    extraction_source: str | None = None
 
 
 class CalcRow(BaseModel):
@@ -232,6 +257,7 @@ class ProjectInventory(BaseModel):
     wbpj_primary: Path | None = None
     systems: dict[str, AnalysisSystem] = Field(default_factory=dict)
     rst_files: dict[str, Path] = Field(default_factory=dict)
+    result_summaries: dict[str, Path] = Field(default_factory=dict)
     image_root: Path
     excel_path: Path | None = None
     excel_bolt_preload: Path | None = None

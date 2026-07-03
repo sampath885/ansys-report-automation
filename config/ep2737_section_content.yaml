@@ -236,6 +236,12 @@ sections:
     heading_level: 2
     parent_section: Results & Discussions
     blocks:
+      - type: figure_gallery
+        when_style: ep1581
+        analysis_folder: static_structural
+        subfolder: loading
+        filename: loading_conditions_overview.png
+        caption: "Static Structural Analysis: Boundary Conditions Static Structural Analysis"
       - type: figure
         slot: static_total_deformation
         caption: "Figure 36: Total Deformation of Welded Plane Pipe Flange Assembly"
@@ -248,6 +254,18 @@ sections:
         slot: static_vonmises_flange
         caption: "Figure 38: Equivalent Von-mises Stress of Welded Plane Pipe Flange"
         required: false
+      - type: figure_gallery
+        when_style: ep1581
+        analysis_folder: static_structural
+        category: material_stress
+        caption_prefix: "Static Structural: Equivalent (von-Mises) Stress"
+        caption_suffix: "- End Time"
+      - type: figure_gallery
+        when_style: ep1581
+        analysis_folder: static_structural
+        category: reaction
+        caption_prefix: "Static Structural"
+        caption_suffix: "- End Time"
       - type: scalar
         label: Max von-Mises stress
         field: max_stress_mpa
@@ -303,6 +321,12 @@ sections:
         template: >
           Harmonic Response of Welded Plane Pipe Flange simulated for a frequency range of
           3–33 Hz with amplitude of 0.7g acceleration in X direction.
+      - type: figure_gallery
+        when_style: ep1581
+        analysis_folder: vibration_resistance_analysis_x
+        subfolder: loading
+        filename: loading_conditions_overview.png
+        caption: "Harmonic Response X: Boundary Conditions"
       - type: figure
         slot: harmonic_x_location
         caption: "Figure 40: Frequency response on the Flange in X – direction"
@@ -324,6 +348,11 @@ sections:
         slot: harmonic_x_stress_asm
         caption: "Figure 43: Equivalent Von-Mises Stress of Welded Plane Pipe Flange Assembly"
         required: false
+      - type: figure_gallery
+        when_style: ep1581
+        analysis_folder: vibration_resistance_analysis_x
+        category: material_stress
+        caption_prefix: "Harmonic Response X: Equivalent (von-Mises) Stress"
       - type: figure
         slot: harmonic_x_stress_flange
         caption: "Figure 44: Equivalent Von-Mises Stress of Welded Plane Pipe Flange"
@@ -340,6 +369,12 @@ sections:
         template: >
           Harmonic Response of Welded Plane Pipe Flange simulated for a frequency range of
           3–33 Hz with amplitude of 0.7g acceleration in Y direction.
+      - type: figure_gallery
+        when_style: ep1581
+        analysis_folder: vibration_resistance_analysis_y
+        subfolder: loading
+        filename: loading_conditions_overview.png
+        caption: "Harmonic Response Y: Boundary Conditions"
       - type: figure
         slot: harmonic_y_location
         caption: "Figure 45: Frequency response on the Flange in Y – direction"
@@ -361,6 +396,11 @@ sections:
         slot: harmonic_y_stress_asm
         caption: "Figure 48: Equivalent Von-mises Stress Welded Plane Pipe Flange Assembly"
         required: false
+      - type: figure_gallery
+        when_style: ep1581
+        analysis_folder: vibration_resistance_analysis_y
+        category: material_stress
+        caption_prefix: "Harmonic Response Y: Equivalent (von-Mises) Stress"
       - type: figure
         slot: harmonic_y_stress_flange
         caption: "Figure 49: Equivalent Von-Misses Stress of Welded Plane Pipe Flange"
@@ -377,6 +417,12 @@ sections:
         template: >
           Harmonic Response of Welded Plane Pipe Flange simulated for a frequency range of
           3–33 Hz with amplitude of 0.7g acceleration in Z direction.
+      - type: figure_gallery
+        when_style: ep1581
+        analysis_folder: vibration_resistance_analysis_z
+        subfolder: loading
+        filename: loading_conditions_overview.png
+        caption: "Harmonic Response Z: Boundary Conditions"
       - type: figure
         slot: harmonic_z_location
         caption: "Figure 50: Frequency response on the Flange in Z – direction"
@@ -398,6 +444,11 @@ sections:
         slot: harmonic_z_stress_asm
         caption: "Figure 53: Equivalent Von-mises Stress of Welded Plane Pipe Flange Assembly"
         required: false
+      - type: figure_gallery
+        when_style: ep1581
+        analysis_folder: vibration_resistance_analysis_z
+        category: material_stress
+        caption_prefix: "Harmonic Response Z: Equivalent (von-Mises) Stress"
       - type: figure
         slot: harmonic_z_stress_flange
         caption: "Figure 54: Equivalent Von-Misses Stress of Welded Plane Pipe Flange"
@@ -436,6 +487,12 @@ sections:
           - type: heading
             template: "Equivalent Static Analysis in {shock_item.direction} Direction"
             level: 3
+          - type: figure_gallery
+            when_style: ep1581
+            analysis_folder_template: "{shock_item.analysis_folder}"
+            subfolder: loading
+            filename: loading_conditions_overview.png
+            caption_template: "Equivalent Static Analysis in {shock_item.direction}: Boundary Conditions"
           - type: figure
             slot_template: "shock_{shock_item.key}_deformation"
             caption_template: "Total Deformation — shock {shock_item.direction}"
@@ -448,6 +505,12 @@ sections:
             slot_template: "shock_{shock_item.key}_stress_flange"
             caption_template: "Equivalent Von-Mises Stress — flange, shock {shock_item.direction}"
             required: false
+          - type: figure_gallery
+            when_style: ep1581
+            analysis_folder_template: "{shock_item.analysis_folder}"
+            category: material_stress
+            caption_prefix: "Equivalent Static {shock_item.direction}: Equivalent (von-Mises) Stress"
+            caption_suffix: "- End Time"
           - type: table
             caption_template: "Table {shock_item.table_no}: Bolt Loads: Shock in {shock_item.direction} direction"
             headers:

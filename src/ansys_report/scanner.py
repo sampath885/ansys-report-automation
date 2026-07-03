@@ -281,6 +281,17 @@ def scan_project(
     image_root, image_warnings = _discover_image_root(project_dir, case_root, image_folder)
     warnings.extend(image_warnings)
 
+    from ansys_report.extract.result_summary import discover_result_summaries
+
+    result_summaries = discover_result_summaries(image_root)
+    if not result_summaries:
+        candidate = image_root / "result_summaries"
+        if not candidate.is_dir():
+            warnings.append(
+                f"No Result Summary JSON under {image_root / 'result_summaries'}; "
+                "run scripts/mechanical/export_result_summary.py in Mechanical or DPF will be used."
+            )
+
     excel_path = _resolve_asset_path(excel_calcs, project_dir, case_root)
     if excel_path is None:
         warnings.append(f"excel_calcs not found: {excel_calcs}")
@@ -310,6 +321,7 @@ def scan_project(
         wbpj_primary=wbpj_primary,
         systems=systems,
         rst_files=rst_files,
+        result_summaries=result_summaries,
         image_root=image_root,
         excel_path=excel_path,
         excel_bolt_preload=bolt_path,

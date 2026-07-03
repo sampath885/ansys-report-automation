@@ -39,6 +39,14 @@ class BlockSpec(BaseModel):
     blocks: list[BlockSpec] = Field(default_factory=list)
     narrative_from: str | list[str] | None = None
     ref_key: str | None = None
+    when_style: str | None = None
+    analysis_folder: str | None = None
+    analysis_folder_template: str | None = None
+    subfolder: str | None = None
+    category: str | None = None
+    filename: str | None = None
+    caption_prefix: str | None = None
+    caption_suffix: str | None = None
 
     model_config = {"extra": "ignore"}
 

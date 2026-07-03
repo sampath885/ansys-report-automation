@@ -7,6 +7,12 @@ from typing import Any
 from ansys_report.config import ProjectConfig, load_thresholds
 from ansys_report.extract.bolt_loads import resolve_shock_bolt_loads
 from ansys_report.extract.dpf_static import extract_static
+from ansys_report.extract.result_summary import (
+    merge_static_results,
+    pick_result_summary,
+    summary_to_static_result,
+)
+from ansys_report.images.component_figures import shock_analysis_folder
 from ansys_report.models import ProjectInventory, StaticResult
 from ansys_report.narrative import rules
 
@@ -39,12 +45,28 @@ class ShockSection:
 
         for result_key, system_key, folder, label in SHOCK_DIRECTIONS:
             rst = _pick_rst(inventory, system_key, folder)
-            if not rst:
+            summary = pick_result_summary(inventory, system_key)
+
+            if summary:
+                static = summary_to_static_result(summary, bodies, yield_mpa=yield_mpa)
+            else:
+                static = StaticResult(manual_fields=["max_stress_mpa", "max_deformation_mm"])
+
+            if rst:
+                dpf_static = extract_static(rst, yield_mpa, load_step=1, bodies=bodies)
+                if summary:
+                    static = merge_static_results(static, dpf_static)
+                else:
+                    static = dpf_static
+                    static.extraction_source = "dpf"
+            elif not summary:
                 directions.append(
                     {
                         "key": result_key,
                         "system_key": system_key,
                         "direction": label,
+                        "analysis_folder": shock_analysis_folder(result_key),
+                        "workbench_folder": folder,
                         "bolt_loads": resolve_shock_bolt_loads(
                             result_key,
                             None,
@@ -52,28 +74,31 @@ class ShockSection:
                             allow_word_golden=allow_golden,
                         ),
                         "manual_fields": ["max_stress_mpa", "max_deformation_mm"],
+                        "source": "missing",
                     }
                 )
                 manual.extend([f"{result_key}.stress", f"{result_key}.deformation"])
                 continue
 
-            static = extract_static(rst, yield_mpa, load_step=1, bodies=bodies)
             bolt_loads = resolve_shock_bolt_loads(
                 result_key,
                 rst,
                 cfg=cfg,
                 allow_word_golden=allow_golden,
             )
-            directions.append(
+            payload = static.model_dump()
+            payload.update(
                 {
                     "key": result_key,
                     "system_key": system_key,
                     "direction": label,
+                    "analysis_folder": shock_analysis_folder(result_key),
                     "workbench_folder": folder,
                     "bolt_loads": bolt_loads,
-                    **static.model_dump(),
+                    "source": static.extraction_source or ("dpf" if rst else "worksheet_summary"),
                 }
             )
+            directions.append(payload)
             manual.extend(static.manual_fields)
 
         return {"directions": directions, "manual_fields": manual}

@@ -1,0 +1,21 @@
+{
+  "analysis_name": "Static Structural (A5)",
+  "system_key": "static_structural",
+  "workbench_folder": "SYS",
+  "time_s": 3.0,
+  "rows": [
+    {"result": "Total Deformation", "minimum": 0.0, "maximum": 1.1324, "unit": "mm", "time_s": 3.0},
+    {"result": "Equivalent Stress", "minimum": 3.2365e-05, "maximum": 574.25, "unit": "MPa", "time_s": 3.0},
+    {"result": "BS36_C26000", "minimum": 0.02644, "maximum": 27.185, "unit": "MPa", "time_s": 3.0},
+    {"result": "Structural_Steel", "minimum": 0.0066949, "maximum": 48.992, "unit": "MPa", "time_s": 3.0},
+    {"result": "BS970_EN19", "minimum": 0.00074638, "maximum": 199.94, "unit": "MPa", "time_s": 3.0},
+    {"result": "BS2874_CA104", "minimum": 0.0055441, "maximum": 311.55, "unit": "MPa", "time_s": 3.0},
+    {"result": "ASTM_A351_CF8M", "minimum": 0.0095475, "maximum": 574.25, "unit": "MPa", "time_s": 3.0},
+    {"result": "ASTM_A240_S32100", "minimum": 0.20408, "maximum": 140.04, "unit": "MPa", "time_s": 3.0},
+    {"result": "ASTM_D4066", "minimum": 0.00071021, "maximum": 22.091, "unit": "MPa", "time_s": 3.0},
+    {"result": "NES_747_PART_II", "minimum": 0.076877, "maximum": 238.33, "unit": "MPa", "time_s": 3.0},
+    {"result": "ASTM_A276_S32100", "minimum": 3.2365e-05, "maximum": 387.81, "unit": "MPa", "time_s": 3.0},
+    {"result": "ASTM_A182_F321", "minimum": 0.6478, "maximum": 326.84, "unit": "MPa", "time_s": 3.0},
+    {"result": "ASTM_B221_A96061-T6", "minimum": 0.0026227, "maximum": 54.72, "unit": "MPa", "time_s": 3.0}
+  ]
+}

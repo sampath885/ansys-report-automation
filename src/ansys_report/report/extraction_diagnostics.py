@@ -26,11 +26,12 @@ def check_harmonic_extraction(
         direction = block.get("direction") or key.split("_")[-1].upper()
         peak = block.get("peak_displacement_mm")
         freq = block.get("peak_frequency_hz")
+        source = block.get("source") or block.get("extraction_source") or "unknown"
         rst = block.get("workbench_folder") or block.get("system_key") or "unknown"
 
         if peak is None and freq is None:
             manual = block.get("manual_fields") or []
-            reason = f"manual fields: {', '.join(manual)}" if manual else "no DPF peak extracted"
+            reason = f"manual fields: {', '.join(manual)}" if manual else f"no peak extracted (source={source})"
             msg = f"harmonic_{direction.lower()}: missing peak displacement/frequency ({reason})"
             warnings.append(msg)
             logger.warning(msg)
@@ -67,12 +68,13 @@ def check_shock_extraction(context: dict[str, Any]) -> list[str]:
         label = item.get("direction") or item.get("key") or "?"
         stress = item.get("max_stress_mpa")
         deform = item.get("max_deformation_mm")
+        source = item.get("source") or item.get("extraction_source") or "?"
         folder = item.get("workbench_folder") or item.get("system_key") or "?"
-        rst_note = f" [{folder}]"
+        rst_note = f" [{folder}, source={source}]"
 
         if stress is None:
             manual = item.get("manual_fields") or []
-            reason = ", ".join(manual) if manual else "RST missing or DPF extract failed"
+            reason = ", ".join(manual) if manual else "summary/RST missing or extract failed"
             msg = f"shock {label}: missing max_stress_mpa ({reason}){rst_note}"
             warnings.append(msg)
             missing.append(label)
@@ -129,17 +131,18 @@ def log_extraction_summary(context: dict[str, Any], *, enabled_sections: set[str
             key,
             block.get("peak_displacement_mm"),
             block.get("peak_frequency_hz"),
-            block.get("source", "?"),
+            block.get("source") or block.get("extraction_source") or "?",
         )
 
     shock = context.get("shock") or {}
     for item in shock.get("directions") or []:
         logger.info(
-            "shock %s: stress=%s MPa, deform=%s mm, folder=%s",
+            "shock %s: stress=%s MPa, deform=%s mm, folder=%s, source=%s",
             item.get("direction"),
             item.get("max_stress_mpa"),
             item.get("max_deformation_mm"),
             item.get("workbench_folder") or item.get("system_key"),
+            item.get("source") or item.get("extraction_source") or "?",
         )
 
     vib = context.get("vibration_conclusion") or {}

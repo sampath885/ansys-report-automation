@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from ansys_report.config import ProjectConfig
+from ansys_report.images.component_figures import discover_gallery_figures
 from ansys_report.report.blocks import RenderBlock, RenderDocument, RenderSection, merge_narrative_sources, narrative_block
 from ansys_report.report.section_spec import BlockSpec, SectionContentSpec, SectionSpec, load_section_content_spec
 
@@ -63,6 +64,7 @@ def assemble_ep2737_document(
                     doc,
                     section_key,
                     context,
+                    cfg,
                 )
             )
 
@@ -139,7 +141,11 @@ def _materialize_block(
     doc: RenderDocument,
     section_key: str,
     context: dict[str, Any],
+    cfg: ProjectConfig,
 ) -> list[RenderBlock]:
+    if spec.when_style and not _style_enabled(cfg, spec.when_style):
+        return []
+
     if spec.type == "repeat":
         items = _resolve_path(data, spec.items_path or "") or []
         out: list[RenderBlock] = []
@@ -162,6 +168,7 @@ def _materialize_block(
                         doc,
                         section_key,
                         context,
+                        cfg,
                     )
                 )
         return out
@@ -236,6 +243,9 @@ def _materialize_block(
             )
         ]
 
+    if spec.type == "figure_gallery":
+        return _materialize_figure_gallery(spec, env, skip_images, context)
+
     if spec.type == "figure":
         slot = _render_template(spec.slot_template or spec.slot or "", env)
         caption = _render_template(spec.caption or spec.caption_template or "", env)
@@ -304,7 +314,7 @@ def _materialize_block(
 def _substitute_block_spec(spec: BlockSpec, item: dict[str, Any], prefix: str) -> BlockSpec:
     raw = spec.model_dump()
     sub_env = {prefix: item, **item} if isinstance(item, dict) else {prefix: item}
-    text_fields = ("template", "slot_template", "caption_template", "caption", "text")
+    text_fields = ("template", "slot_template", "caption_template", "caption", "text", "analysis_folder_template", "caption_prefix", "caption_suffix", "analysis_folder")
     for key in text_fields:
         if raw.get(key):
             raw[key] = _render_template(raw[key], sub_env)
@@ -325,6 +335,71 @@ def _resolve_path(obj: Any, path: str) -> Any:
         else:
             cur = getattr(cur, part, None)
     return cur
+
+
+def _style_enabled(cfg: ProjectConfig, style: str) -> bool:
+    if style == "ep1581":
+        return (cfg.static.conclusion_table_style or "").lower() == "ep1581"
+    return True
+
+
+def _materialize_figure_gallery(
+    spec: BlockSpec,
+    env: dict[str, Any],
+    skip_images: bool,
+    context: dict[str, Any],
+) -> list[RenderBlock]:
+    folder = _render_template(spec.analysis_folder_template or spec.analysis_folder or "", env)
+    if not folder:
+        return []
+
+    image_root = context.get("image_root")
+    if not image_root:
+        return []
+
+    root = Path(image_root)
+    figures = discover_gallery_figures(
+        root,
+        folder,
+        subfolder=spec.subfolder or "solution",
+        category=spec.category or "material_stress",
+        filename=spec.filename,
+    )
+    if not figures:
+        return []
+
+    prefix = _render_template(spec.caption_prefix or "", env)
+    suffix = _render_template(spec.caption_suffix or "", env)
+    blocks: list[RenderBlock] = []
+    for fig in figures:
+        if spec.caption:
+            caption = _render_template(spec.caption, {**env, "figure_label": fig.label, "figure_stem": fig.stem})
+        elif spec.caption_template:
+            caption = _render_template(
+                spec.caption_template,
+                {**env, "figure_label": fig.label, "figure_stem": fig.stem},
+            )
+        else:
+            caption = f"{prefix} - {fig.label} {suffix}".strip()
+        if skip_images:
+            blocks.append(
+                RenderBlock(
+                    kind="pending",
+                    caption=caption,
+                    pending=True,
+                    note="Figure pending (skip_images)",
+                )
+            )
+            continue
+        blocks.append(
+            RenderBlock(
+                kind="figure",
+                caption=caption,
+                slot=fig.rel_path,
+                image_path=str(fig.path),
+            )
+        )
+    return blocks
 
 
 def _resolve_image(images: dict[str, Any], slot: str) -> Path | None:

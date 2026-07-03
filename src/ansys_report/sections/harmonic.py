@@ -7,6 +7,11 @@ from typing import Any
 
 from ansys_report.config import ProjectConfig, load_thresholds
 from ansys_report.extract.dpf_harmonic import extract_harmonic_peak
+from ansys_report.extract.result_summary import (
+    merge_harmonic_results,
+    pick_result_summary,
+    summary_to_harmonic_peak,
+)
 from ansys_report.models import HarmonicPeakResult, ProjectInventory
 from ansys_report.narrative import rules
 
@@ -57,20 +62,39 @@ class HarmonicSection:
 
     def extract(self, inventory: ProjectInventory, cfg: ProjectConfig) -> dict[str, Any]:
         rst = _pick_rst(inventory, self._system_key, self._folder, self._direction)
-        result = extract_harmonic_peak(rst) if rst else None
-        if not result:
+        summary = pick_result_summary(inventory, self._system_key)
+
+        if summary:
+            result = summary_to_harmonic_peak(summary)
+        else:
+            result = HarmonicPeakResult(manual_fields=["peak_displacement_mm", "peak_frequency_hz"])
+
+        if rst:
+            dpf_result = extract_harmonic_peak(rst)
+            if summary:
+                result = merge_harmonic_results(result, dpf_result)
+            else:
+                result = dpf_result
+                result.extraction_source = "dpf"
+        elif not summary:
             return {
                 "direction": self._direction,
                 "system_key": self._system_key,
                 "workbench_folder": self._folder,
                 "manual_fields": ["peak_displacement_mm", "peak_frequency_hz"],
+                "source": "missing",
             }
-        return {
-            "direction": self._direction,
-            "system_key": self._system_key,
-            "workbench_folder": self._folder,
-            **result.model_dump(),
-        }
+
+        payload = result.model_dump()
+        payload.update(
+            {
+                "direction": self._direction,
+                "system_key": self._system_key,
+                "workbench_folder": self._folder,
+                "source": result.extraction_source or ("dpf" if rst else "worksheet_summary"),
+            }
+        )
+        return payload
 
     def narrate(self, data: dict[str, Any], cfg: ProjectConfig) -> dict[str, Any]:
         thresholds = load_thresholds(cfg.thresholds_path)
@@ -85,7 +109,7 @@ class HarmonicSection:
     def context(self, data: dict[str, Any], narrative: dict[str, Any]) -> dict[str, Any]:
         block = {**data, "narrative": narrative}
         if data.get("peak_displacement_mm") is not None and "source" not in block:
-            block["source"] = "dpf"
+            block["source"] = data.get("extraction_source") or data.get("source") or "dpf"
         elif "source" not in block:
             block["source"] = "missing"
         return {self.key: block}

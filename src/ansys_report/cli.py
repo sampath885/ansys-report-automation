@@ -201,6 +201,10 @@ def _execute_build(
         use_ai=not no_ai,
         images=images_ctx,
     )
+    if inventory is not None:
+        context["image_root"] = str(inventory.image_root)
+    elif cfg.image_root.exists():
+        context["image_root"] = str(cfg.image_root)
     if not mock_data:
         from ansys_report.report.ep2737_overlay import apply_golden_dpf_overlay, needs_golden_overlay
 

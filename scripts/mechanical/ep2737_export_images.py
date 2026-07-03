@@ -15,6 +15,9 @@ Exports:
   - Solution: all 3D results + center Worksheet chart PNGs (frequency response, …)
 Suppressed tree items are skipped.  Manifest is optional (image size only).
 
+Also run scripts/mechanical/export_result_summary.py (same session) to export
+Result Summary JSON for report tables under exports/result_summaries/.
+
 Output structure:
   exports/
     geometry/  mesh/  connections/  coordinate_systems/  materials/
@@ -179,7 +182,7 @@ _AUTO_CONTAINER_PREFIXES = (
 
 # Hard safety cap: stop after this many PNGs regardless of tree size.
 # Set to 0 to disable the cap entirely.
-MAX_EXPORTS = 500
+MAX_EXPORTS = 0
 # =============================================================================
 
 SYSTEM_ORDER = ["SYS"] + ["SYS-%d" % i for i in range(1, 11)]
