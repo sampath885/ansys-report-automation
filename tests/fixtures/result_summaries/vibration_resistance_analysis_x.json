@@ -1,0 +1,15 @@
+{
+  "analysis_name": "Vibration_Resistance_Analysis_X",
+  "system_key": "vibration_x",
+  "workbench_folder": "SYS-2",
+  "rows": [
+    {"result": "Total Deformation", "minimum": 0.0, "maximum": 0.1654, "unit": "mm"},
+    {"result": "Equivalent Stress", "minimum": 0.0, "maximum": 120.5, "unit": "MPa"},
+    {"result": "ASTM_A182_F321", "minimum": 0.0, "maximum": 0.142, "unit": "mm"},
+    {"result": "ASTM_A240_S32100", "minimum": 0.0, "maximum": 0.158, "unit": "mm"},
+    {"result": "BS970_EN19", "minimum": 0.0, "maximum": 0.1654, "unit": "mm"},
+    {"result": "ASTM_A182_F321", "minimum": 0.0, "maximum": 11.99, "unit": "MPa"},
+    {"result": "ASTM_A240_S32100", "minimum": 0.0, "maximum": 8.5, "unit": "MPa"},
+    {"result": "BS970_EN19", "minimum": 0.0, "maximum": 12.4, "unit": "MPa"}
+  ]
+}

@@ -34,12 +34,18 @@ class BlockSpec(BaseModel):
     unit: str | None = None
     suffix_template: str | None = None
     when_field: str | None = None
+    unless_field: str | None = None
+    headers_path: str | None = None
+    columns_path: str | None = None
+    raw_table: bool = False
     items_path: str | None = None
     item_prefix: str = "item"
     blocks: list[BlockSpec] = Field(default_factory=list)
     narrative_from: str | list[str] | None = None
     ref_key: str | None = None
     when_style: str | None = None
+    unless_style: str | None = None
+    narrative_mode: str | None = None
     analysis_folder: str | None = None
     analysis_folder_template: str | None = None
     subfolder: str | None = None

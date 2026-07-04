@@ -202,6 +202,9 @@ class HarmonicPeakResult(BaseModel):
     peak_displacement_mm: float | None = None
     peak_frequency_hz: float | None = None
     num_frequency_sets: int | None = None
+    per_material: dict[str, float] = Field(default_factory=dict)
+    per_material_stress: dict[str, float] = Field(default_factory=dict)
+    max_stress_mpa: float | None = None
     manual_fields: list[str] = Field(default_factory=list)
     extraction_source: str | None = None
 
@@ -216,11 +219,31 @@ class CalcRow(BaseModel):
     verdict: str | None = None
 
 
+class DiscoveredCalcSection(BaseModel):
+    """One design-calculation subsection discovered from an Excel worksheet."""
+
+    key: str
+    title: str
+    sheet_name: str
+    workbook: str = ""
+    category: str = "general"
+    headers: list[str] = Field(default_factory=list)
+    raw_rows: list[list[str]] = Field(default_factory=list)
+    subtitle: str | None = None
+    image_path: str | None = None
+    caption: str | None = None
+    # Deprecated — use raw_rows; kept for backward compatibility in tests/tools.
+    rows: list[dict[str, Any]] = Field(default_factory=list)
+    columns: list[str] = Field(default_factory=list)
+
+
 class DesignCalcsResult(BaseModel):
     bolt_load: list[CalcRow] = Field(default_factory=list)
     flange_moments: list[CalcRow] = Field(default_factory=list)
     effort: list[CalcRow] = Field(default_factory=list)
     end_flange: list[CalcRow] = Field(default_factory=list)
+    discovered_sections: list[DiscoveredCalcSection] = Field(default_factory=list)
+    extraction_source: str | None = None
 
 
 class Narrative(BaseModel):

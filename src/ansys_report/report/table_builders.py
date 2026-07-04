@@ -12,7 +12,7 @@ from typing import Any
 
 from pathlib import Path
 
-from ansys_report.config import ProjectConfig
+from ansys_report.config import ProjectConfig, load_thresholds
 from ansys_report.extract.metadata import top_level_part_name
 
 
@@ -23,11 +23,14 @@ def build_static_conclusion_table(
     context: dict[str, Any] | None = None,
     reference_tables: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
-    """Table 16 — static structural analysis conclusion."""
+    """Table 16 — static structural analysis conclusion (EP1581: one row per material)."""
     per_body = static.get("per_body") or []
     per_material = static.get("per_material") or {}
+
     if per_body:
         rows = _rows_from_per_body(per_body, cfg)
+    elif per_material:
+        rows = _rows_from_per_material(per_material, cfg, context)
     elif _dedupe_body_dicts(_bodies_from_context(context)):
         rows = _rows_from_body_metadata(
             _dedupe_body_dicts(_bodies_from_context(context)),
@@ -35,12 +38,14 @@ def build_static_conclusion_table(
             per_material=per_material,
             default_location=static.get("max_stress_location"),
         )
+    elif static.get("max_stress_mpa") is not None:
+        rows = [_assembly_static_row(static, cfg)]
     else:
-        return [_assembly_static_row(static, cfg)]
+        rows = []
 
-    if _uses_ep1581_style(cfg):
+    if _uses_ep1581_style(cfg) and per_body:
         rows = _collapse_rows_by_material(rows)
-    return rows
+    return _filter_rows_with_stress(rows)
 
 
 def build_shock_conclusion_table(
@@ -128,10 +133,10 @@ def build_vibration_conclusion_table(
     context: dict[str, Any],
     cfg: ProjectConfig | None = None,
 ) -> list[dict[str, Any]]:
-    """Summary table for vibration resistance conclusion."""
+    """Summary table for vibration resistance conclusion (EP1581-style, real values only)."""
     ep1581 = cfg is None or _uses_ep1581_style(cfg)
     component = _assembly_component_name(context)
-    material = cfg_material_name(context)
+    bodies = _dedupe_body_dicts(_bodies_from_context(context))
 
     rows: list[dict[str, Any]] = []
     sr_no = 1
@@ -140,26 +145,153 @@ def build_vibration_conclusion_table(
         if not block:
             continue
         direction = block.get("direction") or key.split("_")[-1].upper()
+        analysis = f"Harmonic Response {direction}"
+        peak_hz = block.get("peak_frequency_hz")
+        per_material = block.get("per_material") or {}
+
+        if per_material:
+            for material, displacement in per_material.items():
+                if displacement is None:
+                    continue
+                rows.append(
+                    _vibration_row(
+                        sr_no,
+                        analysis,
+                        _peak_location_for_material(material, bodies) or component,
+                        material,
+                        peak_hz,
+                        displacement,
+                        block,
+                    )
+                )
+                sr_no += 1
+            continue
+
+        displacement = block.get("peak_displacement_mm")
+        if displacement is None:
+            continue
 
         if ep1581:
-            targets = [{"name": component, "material": material}]
+            targets = [{"name": component, "material": cfg_material_name(context)}]
         else:
-            bodies = _dedupe_body_dicts(_bodies_from_context(context))
             if not bodies:
-                bodies = [{"name": component, "material": material}]
-            per_body = block.get("per_body") or []
-            targets = per_body if per_body else bodies
+                targets = [{"name": component, "material": cfg_material_name(context)}]
+            else:
+                per_body = block.get("per_body") or []
+                targets = per_body if per_body else bodies
 
         for body in targets:
             rows.append(
+                _vibration_row(
+                    sr_no,
+                    analysis,
+                    body.get("body_name") or body.get("name") or component,
+                    body.get("material") or cfg_material_name(context),
+                    peak_hz,
+                    displacement,
+                    block,
+                )
+            )
+            sr_no += 1
+    return rows
+
+
+_HARMONIC_DIRECTION_LABELS = {
+    "X": "Along X Axis",
+    "Y": "Along Y Axis",
+    "Z": "Along Z Axis",
+}
+
+
+def build_modal_conclusion_table(
+    modal: dict[str, Any],
+    cfg: ProjectConfig,
+    *,
+    resonance_margin_hz: float = 10.0,
+) -> list[dict[str, Any]]:
+    """EP1581 Table 14 — modal summary with operating-band remarks."""
+    operating = _operating_frequency_text(cfg)
+    rows: list[dict[str, Any]] = []
+    low, high = cfg.operating_freq_hz
+
+    for idx, mode in enumerate(modal.get("modes") or [], start=1):
+        freq = mode.get("freq_hz")
+        if freq is None:
+            continue
+        rows.append(
+            {
+                "sr_no": idx,
+                "freq_hz": freq,
+                "operating_frequency": operating,
+                "dominant_direction": mode.get("dominant_direction") or "—",
+                "remark": _modal_remark(freq, low, high, resonance_margin_hz),
+            }
+        )
+    return rows
+
+
+def build_modal_intro_text(modal: dict[str, Any], cfg: ProjectConfig) -> str:
+    """Introductory paragraph for modal conclusions (EP1581 style)."""
+    modes = modal.get("modes") or []
+    freqs = [m["freq_hz"] for m in modes if m.get("freq_hz") is not None]
+    base = (
+        "The Modal Analysis is performed to extract the modes of vibration of the structure."
+    )
+    if not freqs:
+        return base
+
+    fundamental = min(freqs)
+    text = (
+        f"{base} The fundamental frequency of vibration was found to be {fundamental:.3f} Hz."
+    )
+    shock_threshold = getattr(getattr(cfg, "modal", None), "shock_approach_threshold_hz", None) or 160.0
+    if fundamental < shock_threshold:
+        text += (
+            f" As this is less than {shock_threshold:g} Hz, the Transient Shock approach "
+            f"will be used to perform the Shock Analysis."
+        )
+    else:
+        text += (
+            f" The operating frequency range is {_operating_frequency_text(cfg)}. "
+            f"Refer to the modal summary table for mode-by-mode assessment."
+        )
+    return text
+
+
+def build_harmonic_stress_conclusion_table(
+    context: dict[str, Any],
+    cfg: ProjectConfig,
+) -> list[dict[str, Any]]:
+    """EP1581 Table 28 — harmonic stress by direction × material."""
+    bodies = _dedupe_body_dicts(_bodies_from_context(context))
+    component = _assembly_component_name(context)
+    rows: list[dict[str, Any]] = []
+    sr_no = 1
+
+    for key in ("harmonic_x", "harmonic_y", "harmonic_z"):
+        block = context.get(key)
+        if not block:
+            continue
+        direction = str(block.get("direction") or key.split("_")[-1].upper())
+        dir_label = _HARMONIC_DIRECTION_LABELS.get(direction, f"Along {direction} Axis")
+        per_material = block.get("per_material_stress") or {}
+
+        if not per_material:
+            continue
+
+        for material, stress in per_material.items():
+            if stress is None:
+                continue
+            allowable = material_allowable_mpa(cfg, material)
+            rows.append(
                 {
                     "sr_no": sr_no,
-                    "analysis": f"Harmonic Response {direction}",
-                    "component": body.get("body_name") or body.get("name") or component,
-                    "material": body.get("material") or material,
-                    "peak_frequency_hz": block.get("peak_frequency_hz"),
-                    "peak_displacement_mm": block.get("peak_displacement_mm"),
-                    "remarks": _harmonic_remark(block),
+                    "direction": dir_label,
+                    "material": material,
+                    "location": _peak_location_for_material(material, bodies) or component,
+                    "stress_mpa": stress,
+                    "allowable_mpa": allowable,
+                    "remarks": _stress_remarks(stress, allowable),
                 }
             )
             sr_no += 1
@@ -193,6 +325,16 @@ def enrich_context_tables(context: dict[str, Any], cfg: ProjectConfig) -> None:
     if shock:
         shock["conclusion_table"] = build_shock_conclusion_table(shock, cfg, context=context)
 
+    modal = context.get("modal")
+    if modal:
+        thresholds = load_thresholds(cfg.thresholds_path)
+        modal["summary_table"] = build_modal_conclusion_table(
+            modal,
+            cfg,
+            resonance_margin_hz=thresholds.modal.resonance_margin_hz,
+        )
+        modal["intro_text"] = build_modal_intro_text(modal, cfg)
+
     from ansys_report.narrative.harmonic_merge import (
         HARMONIC_SECTION_KEYS,
         merge_harmonic_conclusion_narrative,
@@ -201,8 +343,15 @@ def enrich_context_tables(context: dict[str, Any], cfg: ProjectConfig) -> None:
     enabled = set(cfg.sections_enabled or [])
     merged = merge_harmonic_conclusion_narrative(context, enabled_sections=enabled)
     vib = build_vibration_conclusion_table(context, cfg)
-    if vib or any(key in enabled and key in context for key in HARMONIC_SECTION_KEYS):
-        context["vibration_conclusion"] = {"rows": vib, "narrative": merged}
+    stress_table = build_harmonic_stress_conclusion_table(context, cfg)
+    if _uses_ep1581_style(cfg):
+        merged = {**merged, "observations": []}
+    if vib or stress_table or any(key in enabled and key in context for key in HARMONIC_SECTION_KEYS):
+        context["vibration_conclusion"] = {
+            "rows": vib,
+            "stress_table": stress_table,
+            "narrative": merged,
+        }
 
     if not context.get("methodology"):
         from ansys_report.narrative.methodology import build_methodology, polish_methodology
@@ -355,6 +504,71 @@ def _assembly_static_row(static: dict[str, Any], cfg: ProjectConfig) -> dict[str
     }
 
 
+def _rows_from_per_material(
+    per_material: dict[str, float],
+    cfg: ProjectConfig,
+    context: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
+    """One conclusion row per material from worksheet Result Summary."""
+    bodies = _dedupe_body_dicts(_bodies_from_context(context))
+    rows: list[dict[str, Any]] = []
+    for idx, (material, stress) in enumerate(per_material.items(), start=1):
+        if stress is None:
+            continue
+        allowable = material_allowable_mpa(cfg, material)
+        rows.append(
+            {
+                "sr_no": idx,
+                "material": material,
+                "location": _peak_location_for_material(material, bodies)
+                or _assembly_component_name(context),
+                "stress_mpa": stress,
+                "allowable_mpa": allowable,
+                "remarks": _stress_remarks(stress, allowable),
+            }
+        )
+    return rows
+
+
+def _peak_location_for_material(material: str, bodies: list[dict[str, Any]]) -> str | None:
+    """Top-level part name for a material (EP1581 'Maximum occurs on' column)."""
+    target = _normalize_material(material)
+    for body in bodies:
+        body_mat = body.get("material")
+        if not body_mat or not _materials_match(target, _normalize_material(body_mat)):
+            continue
+        name = body.get("name") or body.get("body_name") or ""
+        if name:
+            return top_level_part_name(str(name))
+    return None
+
+
+def _filter_rows_with_stress(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Drop placeholder rows — only include materials with extracted stress."""
+    kept = [row for row in rows if row.get("stress_mpa") is not None]
+    return [{**row, "sr_no": idx} for idx, row in enumerate(kept, start=1)]
+
+
+def _vibration_row(
+    sr_no: int,
+    analysis: str,
+    component: str,
+    material: str,
+    peak_hz: float | None,
+    displacement: float,
+    block: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "sr_no": sr_no,
+        "analysis": analysis,
+        "component": component,
+        "material": material,
+        "peak_frequency_hz": peak_hz,
+        "peak_displacement_mm": displacement,
+        "remarks": _harmonic_remark(block, displacement_mm=displacement),
+    }
+
+
 def _rows_from_per_body(per_body: list[dict[str, Any]], cfg: ProjectConfig) -> list[dict[str, Any]]:
     grouped = _group_per_body_by_material(per_body) if _uses_ep1581_style(cfg) else per_body
     rows: list[dict[str, Any]] = []
@@ -388,7 +602,9 @@ def _rows_from_body_metadata(
     for idx, body in enumerate(targets, start=1):
         material = body.get("material") or _primary_material(cfg)
         allowable = material_allowable_mpa(cfg, material)
-        stress_mpa = per_material.get(material) if material in per_material else None
+        stress_mpa = _resolve_material_stress(material, per_material)
+        if stress_mpa is None:
+            continue
         rows.append(
             {
                 "sr_no": idx,
@@ -400,6 +616,16 @@ def _rows_from_body_metadata(
             }
         )
     return rows
+
+
+def _resolve_material_stress(material: str, per_material: dict[str, float]) -> float | None:
+    if not per_material:
+        return None
+    target = _normalize_material(material)
+    for name, value in per_material.items():
+        if _materials_match(target, _normalize_material(name)):
+            return value
+    return None
 
 
 def _bodies_from_context(context: dict[str, Any] | None) -> list[dict[str, Any]]:
@@ -476,7 +702,10 @@ def _stress_remarks(stress: float | None, allowable: float | None) -> str:
     return "Stresses exceed allowable — review required."
 
 
-def _harmonic_remark(block: dict[str, Any]) -> str:
+def _harmonic_remark(block: dict[str, Any], *, displacement_mm: float | None = None) -> str:
+    disp = displacement_mm if displacement_mm is not None else block.get("peak_displacement_mm")
+    if disp is None:
+        return ""
     narr = block.get("narrative") or {}
     verdict = narr.get("verdict", "PASS")
     if verdict == "FAIL":
@@ -484,3 +713,18 @@ def _harmonic_remark(block: dict[str, Any]) -> str:
     if verdict == "CAUTION":
         return "Review against vibration specification."
     return "Within configured assessment limits."
+
+
+def _operating_frequency_text(cfg: ProjectConfig) -> str:
+    low, high = cfg.operating_freq_hz
+
+    def _fmt(value: float) -> str:
+        return str(int(value)) if value == int(value) else str(value)
+
+    return f"{_fmt(low)} to {_fmt(high)} Hz"
+
+
+def _modal_remark(freq_hz: float, low: float, high: float, margin: float) -> str:
+    if (low - margin) <= freq_hz <= (high + margin):
+        return "Within or near operating frequency — resonance risk."
+    return "Not in or near operating Frequency"

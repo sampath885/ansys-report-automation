@@ -19,6 +19,7 @@ case_root: "../ansys_automation_files"
 image_folder: "exports"
 excel_calcs: "OLF Mechanical Calculation of BOM IDs EP2741.xlsx"
 excel_map_path: "../config/ep2737_excel_map.yaml"
+excel_mode: auto_then_map
 template_path: "../templates/EP2737_report_template.docx"
 section_content_path: "../config/ep2737_section_content.yaml"
 style_shell_path: "../templates/EP2737_style_shell.docx"

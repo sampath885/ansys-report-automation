@@ -17,6 +17,12 @@ slots:
   harmonic_z_stress_asm: vibration_resistance_analysis_z/solution/equivalent_stress.png
   harmonic_z_stress_flange: vibration_resistance_analysis_z/solution/equivalent_stress_flange.png
   mesh_global: mesh/mesh.png
+  modal_mode1: modal/solution/total_deformation.png
+  modal_mode2: modal/solution/total_deformation_2.png
+  modal_mode3: modal/solution/total_deformation_3.png
+  modal_mode4: modal/solution/total_deformation_4.png
+  modal_mode5: modal/solution/total_deformation_5.png
+  modal_mode6: modal/solution/total_deformation_6.png
   modelling_contacts: connections/connections.png
   shock_minus_x_deformation: equivalent_static_analysis_negx/solution/total_deformation.png
   shock_minus_x_stress_asm: equivalent_static_analysis_negx/solution/equivalent_stress.png

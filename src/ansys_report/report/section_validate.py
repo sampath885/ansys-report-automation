@@ -46,6 +46,19 @@ def validate_section_content(
                 report.add("sections", f"No data for enabled section: {section_key}", "warning")
         _check_block_specs(section, data or {}, report)
 
+    dc = ctx.get("design_calcs") or {}
+    if "design_calcs" in cfg.sections_enabled:
+        has_legacy = any(dc.get(k) for k in ("bolt_load", "flange_moments", "effort", "end_flange"))
+        has_discovered = bool(dc.get("discovered_sections"))
+        if not has_legacy and not has_discovered:
+            src = dc.get("extraction_source") or "unknown"
+            report.add(
+                "excel",
+                f"No design calculation tables extracted from workbook (source={src}). "
+                "Check --excel-calcs path points to the UDPL calculation workbook.",
+                "warning",
+            )
+
     return report
 
 

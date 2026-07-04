@@ -94,7 +94,6 @@ def narrate_modal(
         if mode.freq_hz is None:
             continue
         freq = mode.freq_hz
-        observations.append(f"Mode {mode.index}: {freq:.2f} Hz.")
         if (low - margin) <= freq <= (high + margin):
             verdict = "CAUTION"
             conclusions.append(

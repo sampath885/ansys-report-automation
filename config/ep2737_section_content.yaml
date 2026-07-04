@@ -201,6 +201,7 @@ sections:
         headers: ["Mode", "Frequency (Hz)"]
         rows_path: modes
         columns: [index, freq_hz]
+        unless_style: ep1581
       - type: figure
         slot: modal_mode1
         caption: "Figure 30: Mode 1"
@@ -228,7 +229,25 @@ sections:
       - type: heading
         text: "Modal Analysis: Conclusions"
         level: 3
+      - type: paragraph
+        when_style: ep1581
+        field: intro_text
+      - type: table
+        when_style: ep1581
+        caption: "Table 14: Modal Analysis Summary"
+        headers:
+          - Sl. No
+          - Frequency (Hz)
+          - Operating Frequency
+          - Dominant in Direction
+          - Remark
+        rows_path: summary_table
+        columns: [sr_no, freq_hz, operating_frequency, dominant_direction, remark]
       - type: narrative
+        when_style: ep1581
+        narrative_mode: conclusions_only
+      - type: narrative
+        unless_style: ep1581
 
   - key: static
     section_key: static
@@ -305,6 +324,13 @@ sections:
         text: "Static structural analysis: Conclusion"
         level: 2
       - type: table
+        when_style: ep1581
+        caption: "Table 20: Static Structural Results Summary"
+        headers: ["Sr. No", "Material", "Maximum Occurs on", "Stresses Observed (MPa)", "Allowable Stress (MPa)", "Remarks"]
+        rows_path: conclusion_table
+        columns: [sr_no, material, location, stress_mpa, allowable_mpa, remarks]
+      - type: table
+        unless_style: ep1581
         caption: "Table 16: Static Structural Analysis Conclusion"
         headers: ["Sr. No", "Material", "Maximum Occurs on", "Stresses Observed (MPa)", "Allowable Stress (MPa)", "Remarks"]
         rows_path: conclusion_table
@@ -463,11 +489,28 @@ sections:
     enabled_when_any: [harmonic_x, harmonic_y, harmonic_z]
     blocks:
       - type: table
+        when_style: ep1581
+        caption: "Table 28: Harmonic Analysis Results Summary"
+        headers:
+          - Sr. No.
+          - Direction
+          - Material
+          - Maximum Occurs On
+          - Stresses Observed (MPa)
+          - Allowable Stress (MPa)
+          - Remarks
+        rows_path: stress_table
+        columns: [sr_no, direction, material, location, stress_mpa, allowable_mpa, remarks]
+      - type: table
         caption: "Vibration resistance summary"
         headers: ["Sl. No.", "Analysis", "Component", "Material", "Peak Frequency (Hz)", "Peak Displacement (mm)", "Remarks"]
         rows_path: rows
         columns: [sr_no, analysis, component, material, peak_frequency_hz, peak_displacement_mm, remarks]
       - type: narrative
+        when_style: ep1581
+        narrative_mode: conclusions_only
+      - type: narrative
+        unless_style: ep1581
 
   - key: shock
     section_key: shock
@@ -556,29 +599,51 @@ sections:
     heading: MECHANICAL DESIGN CALCULATION
     heading_level: 1
     blocks:
+      - type: repeat
+        items_path: discovered_sections
+        item_prefix: calc_section
+        blocks:
+          - type: heading
+            template: "{calc_section.title}"
+            level: 2
+          - type: table
+            caption_template: "{calc_section.title}"
+            raw_table: true
+            headers_path: headers
+            rows_path: raw_rows
+          - type: figure
+            field: image_path
+            caption_template: "{calc_section.title}"
+            when_field: image_path
       - type: heading
         text: Thickness Calculation of Welded Plane Pipe Flange
         level: 2
+        unless_field: discovered_sections
       - type: table
         caption: "Table 25: Flange Thickness calculation"
         headers: ["Parameter", "Value", "Unit", "Verdict"]
         rows_path: end_flange
         columns: [label, value, unit, verdict]
+        unless_field: discovered_sections
       - type: heading
         text: Bolt Preload Calculations
         level: 2
+        unless_field: discovered_sections
       - type: table
         caption: "Table 26: Bolt pretension calculations"
         headers: ["Parameter", "Value", "Unit"]
         rows_path: bolt_load
         columns: [label, value, unit]
+        unless_field: discovered_sections
       - type: heading
         text: Fatigue Strength Calculations
         level: 2
+        unless_field: discovered_sections
       - type: paragraph
         template: "{methodology.fatigue_theory}"
       - type: reference_table
         ref_key: fatigue_strength_calculations
+        unless_field: discovered_sections
       - type: reference_table
         ref_key: surface_finish_factors
       - type: reference_table

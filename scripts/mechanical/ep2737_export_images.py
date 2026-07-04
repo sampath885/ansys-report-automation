@@ -536,6 +536,27 @@ def _auto_discover_and_export(model, output_root):
                         "ERR  [%s / solution/graphs / %s] %s" % (a_name, _node_name(node), msg)
                     )
 
+            if _is_modal_analysis_name(a_name):
+                try:
+                    _export_modal_mode_shapes(
+                        model,
+                        analysis,
+                        sol_node,
+                        output_root,
+                        a_folder,
+                        a_name,
+                        _try_export,
+                        stats,
+                        log_lines,
+                    )
+                except KeyboardInterrupt:
+                    stats["interrupted"] = True
+                    raise
+                except Exception as exc:
+                    msg = _safe_str(exc)
+                    print("  ERR  modal mode shapes  (%s)" % msg)
+                    log_lines.append("ERR  [%s / modal modes] %s" % (a_name, msg))
+
     except KeyboardInterrupt:
         stats["interrupted"] = True
         print("")
@@ -802,6 +823,139 @@ def _collect_solution_results(sol_node):
     return viewport, graphs
 
 
+def _is_modal_analysis_name(name):
+    """True for the standalone Modal analysis (not harmonic/shock nested Modal BC refs)."""
+    if not name:
+        return False
+    n = name.lower().strip()
+    if n != "modal":
+        return False
+    return True
+
+
+def _modal_deformation_filename(mode):
+    if int(mode) == 1:
+        return "total_deformation.png"
+    return "total_deformation_%d.png" % int(mode)
+
+
+def _find_modal_deformation_nodes(analysis, sol_node):
+    """Collect Total Deformation result nodes under Modal Solution (or analysis)."""
+    nodes = []
+    seen = set()
+    roots = []
+    if sol_node is not None:
+        roots.append(sol_node)
+    roots.append(analysis)
+
+    for root in roots:
+        for node in _collect_exportable_nodes_under(root, include_root=False):
+            try:
+                nid = id(node)
+            except Exception:
+                continue
+            if nid in seen:
+                continue
+            lname = _node_name(node).lower()
+            if "deformation" not in lname:
+                continue
+            if _is_worksheet_graph_node(node):
+                continue
+            seen.add(nid)
+            nodes.append(node)
+
+    def _sort_key(n):
+        name = _node_name(n).lower()
+        m = re.search(r"deformation\s*(\d+)", name)
+        if m:
+            return (0, int(m.group(1)))
+        if name.strip() == "total deformation":
+            return (0, 1)
+        return (1, name)
+
+    nodes.sort(key=_sort_key)
+    return nodes
+
+
+def _pick_modal_deform_node(nodes, mode):
+    """Pick the tree node for *mode* (1-based), or a shared node for SetMode()."""
+    mode = int(mode)
+    mode_label = "mode %d" % mode
+    for node in nodes:
+        lname = _node_name(node).lower()
+        if mode_label in lname:
+            return node
+        if lname.endswith(" %d" % mode) or lname.endswith("_%d" % mode):
+            return node
+        m = re.search(r"deformation\s*(\d+)", lname)
+        if m and int(m.group(1)) == mode:
+            return node
+    idx = mode - 1
+    if 0 <= idx < len(nodes):
+        return nodes[idx]
+    return nodes[0] if nodes else None
+
+
+def _export_modal_mode_shapes(
+    model,
+    analysis,
+    sol_node,
+    output_root,
+    a_folder,
+    a_name,
+    try_export_fn,
+    stats,
+    log_lines,
+    num_modes=6,
+):
+    """
+    Ensure modal/solution/total_deformation.png … _6.png exist.
+
+    Auto-discover may skip Solution when the tree is empty or modes share one
+    result object — this uses the same SetMode() path as manifest export.
+    """
+    if sol_node is None:
+        sol_node = _find_solution_node(analysis)
+    if sol_node is None:
+        print("  SKIP modal modes (no Solution node under %s)" % a_name)
+        log_lines.append("SKIP [%s / modal modes] no Solution node" % a_name)
+        return
+
+    deform_nodes = _find_modal_deformation_nodes(analysis, sol_node)
+    if not deform_nodes:
+        print("  SKIP modal modes (no Total Deformation under Solution)")
+        log_lines.append("SKIP [%s / modal modes] no Total Deformation results" % a_name)
+        return
+
+    solution_dir = os.path.join(output_root, a_folder, "solution")
+    exported = 0
+    for mode in range(1, num_modes + 1):
+        fname = _modal_deformation_filename(mode)
+        dest = os.path.join(solution_dir, fname)
+        if os.path.isfile(dest):
+            continue
+
+        node = _pick_modal_deform_node(deform_nodes, mode)
+        if node is None:
+            continue
+
+        dest = _unique_path(dest)
+        try:
+            _activate(node)
+            _try_set_mode(node, mode)
+            try_export_fn(node, dest, a_name + "/solution", last_step=False, view="isometric")
+            exported += 1
+        except KeyboardInterrupt:
+            raise
+        except Exception as exc:
+            msg = _safe_str(exc)
+            print("  ERR  modal mode %d  (%s)" % (mode, msg))
+            log_lines.append("ERR  [%s / modal mode %d] %s" % (a_name, mode, msg))
+
+    if exported:
+        print("  Modal mode shapes exported: %d" % exported)
+
+
 def _is_worksheet_graph_node(node):
     """True for ResultChart / Figure / worksheet plot nodes in Solution."""
     t = _node_type_name(node)
@@ -953,6 +1107,18 @@ def _export_worksheet_pane_screenshot(path, width, height):
 def _prepare_chart_graphics_fallback(model):
     """Last resort: plain graphics export with no bottom-graph overlay."""
     _hide_all_bodies(model)
+    _suppress_graph_overlay()
+
+
+def _graphics_view_options():
+    graphics = _extapi_get(lambda: ExtAPI.Graphics)  # noqa: F821
+    if graphics is None:
+        return None
+    return getattr(graphics, "ViewOptions", None)
+
+
+def _suppress_graph_overlay():
+    """Hide the bottom-left Graph / result-tracker overlay before viewport capture."""
     vo = _graphics_view_options()
     if vo is not None:
         try:
@@ -963,13 +1129,6 @@ def _prepare_chart_graphics_fallback(model):
         ExtAPI.Graphics.Refresh()  # noqa: F821
     except Exception:
         pass
-
-
-def _graphics_view_options():
-    graphics = _extapi_get(lambda: ExtAPI.Graphics)  # noqa: F821
-    if graphics is None:
-        return None
-    return getattr(graphics, "ViewOptions", None)
 
 
 def _hide_all_bodies(model):
@@ -1430,13 +1589,15 @@ def _apply_zoom_fit():
 
 
 def _prepare_graphics_for_export():
-    """Let the viewport settle, then zoom-to-fit twice before capture."""
+    """Let the viewport settle, hide graph overlay, then zoom-to-fit twice before capture."""
+    _suppress_graph_overlay()
     if _GRAPHICS_SETTLE_S > 0:
         time.sleep(_GRAPHICS_SETTLE_S)
     _apply_zoom_fit()
     if _GRAPHICS_SETTLE_S > 0:
         time.sleep(_GRAPHICS_SETTLE_S)
     _apply_zoom_fit()
+    _suppress_graph_overlay()
 
 
 def _apply_view(view):
@@ -1466,20 +1627,32 @@ def _export_png(path, width, height):
     errors = []
 
     try:
-        graphics.ExportImage(path, int(width), int(height), True)
-        return
+        settings = _build_image_export_settings(append_graph=False, use_current_display=True)
+        if settings is not None:
+            graphics.ExportImage(path, GraphicsImageExportFormat.PNG, settings)  # noqa: F821
+            if os.path.isfile(path):
+                return
     except Exception as exc:
         errors.append(str(exc))
 
     try:
-        graphics.ExportImage(path, width, height)
-        return
+        graphics.ExportImage(path, int(width), int(height), False)
+        if os.path.isfile(path):
+            return
+    except Exception as exc:
+        errors.append(str(exc))
+
+    try:
+        graphics.ExportImage(path, int(width), int(height))
+        if os.path.isfile(path):
+            return
     except Exception as exc:
         errors.append(str(exc))
 
     try:
         graphics.ExportImage(path)
-        return
+        if os.path.isfile(path):
+            return
     except Exception as exc:
         errors.append(str(exc))
 

@@ -26,23 +26,59 @@ def read_design_calcs(
     *,
     excel_map_path: Path | None = None,
     case_root: Path | None = None,
+    excel_bolt_preload: Path | None = None,
+    export_image_dir: Path | None = None,
     fos_target: float = 1.5,
+    excel_mode: str = "auto_then_map",
 ) -> DesignCalcsResult:
+    """Load design calculations: auto-discover first, then optional EP2737 map fallback."""
+    excel_path = Path(excel_path)
+
+    if excel_mode in ("auto", "auto_then_map") and excel_path.exists():
+        from ansys_report.excel.auto_discover import (
+            auto_discover_design_calcs,
+            discover_supplemental_workbooks,
+            has_calc_data,
+        )
+
+        supplements = discover_supplemental_workbooks(
+            excel_path,
+            explicit_bolt_preload=excel_bolt_preload,
+            search_dir=case_root or excel_path.parent,
+        )
+        auto_result = auto_discover_design_calcs(
+            excel_path,
+            supplemental_workbooks=supplements,
+            export_image_dir=export_image_dir,
+            fos_target=fos_target,
+        )
+        if has_calc_data(auto_result):
+            return auto_result
+        if excel_mode == "auto":
+            logger.warning(
+                "Auto-discover found no calculation tables in %s; trying map/generic fallback",
+                excel_path.name,
+            )
+
     if excel_map_path and excel_map_path.exists() and case_root:
+        from ansys_report.excel.auto_discover import has_calc_data
         from ansys_report.excel.ep2737 import load_excel_map, read_ep2737_design_calcs
 
         try:
             load_excel_map(excel_map_path)
-            return read_ep2737_design_calcs(case_root, excel_map_path, fos_target=fos_target)
+            mapped = read_ep2737_design_calcs(case_root, excel_map_path, fos_target=fos_target)
+            mapped.extraction_source = mapped.extraction_source or "excel_map"
+            if has_calc_data(mapped):
+                return mapped
         except Exception as exc:
             logger.warning("EP2737 excel adapter failed (%s); falling back to generic reader", exc)
 
     if not excel_path.exists():
         logger.warning("Excel file not found: %s", excel_path)
-        return DesignCalcsResult()
+        return DesignCalcsResult(extraction_source="missing")
 
     wb = load_workbook(excel_path, data_only=True)
-    result = DesignCalcsResult()
+    result = DesignCalcsResult(extraction_source="generic")
 
     for attr, sheet_name in TABLE_SHEETS.items():
         if sheet_name not in wb.sheetnames:
@@ -51,6 +87,7 @@ def read_design_calcs(
         setattr(result, attr, rows)
 
     _read_named_ranges(wb, result)
+    wb.close()
     return result
 
 

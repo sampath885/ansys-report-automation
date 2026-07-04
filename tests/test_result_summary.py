@@ -74,6 +74,20 @@ def test_merge_static_prefers_worksheet_per_material():
     assert merged.extraction_source == "worksheet_summary"
 
 
+def test_summary_to_harmonic_peak_per_material():
+    from ansys_report.extract.result_summary import load_result_summary, summary_to_harmonic_peak
+
+    path = REPO / "tests" / "fixtures" / "result_summaries" / "vibration_resistance_analysis_x.json"
+    summary = load_result_summary(path)
+    peak = summary_to_harmonic_peak(summary)
+
+    assert peak.peak_displacement_mm == pytest.approx(0.1654, abs=0.001)
+    assert peak.per_material["ASTM A182 F321"] == pytest.approx(0.142, abs=0.001)
+    assert peak.per_material_stress["BS970 EN19"] == pytest.approx(12.4, abs=0.01)
+    assert peak.max_stress_mpa == pytest.approx(120.5, abs=0.01)
+    assert peak.extraction_source == "worksheet_summary"
+
+
 def test_discover_result_summaries_from_fixture_dir(tmp_path):
     dest = tmp_path / "exports" / "result_summaries"
     dest.mkdir(parents=True)
@@ -102,7 +116,7 @@ def test_summary_populates_static_conclusion_table(ep2737_cfg):
         BodyMetadata(name="13-GUIDER-CONNECTOR", material="BS970 EN19"),
     ]
     static = summary_to_static_result(summary, bodies, yield_mpa=205.0).model_dump()
-    context = {"equipment": {"bodies": [b.model_dump() for b in bodies]}}
+    context = {"equipment": {"bodies": [b.model_dump() for b in bodies]}, "title": "VALVE ASSEMBLY"}
     rows = build_static_conclusion_table(static, ep2737_cfg, context=context)
 
     assert len(rows) == 3

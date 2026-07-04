@@ -116,6 +116,7 @@ class ProjectConfig(BaseModel):
     excel_calcs: str = "design_calcs.xlsx"
     excel_bolt_preload: str | None = None
     excel_map_path: Path | None = None
+    excel_mode: str = "auto_then_map"  # auto | auto_then_map | map
     section_content_path: Path | None = None
     template_path: Path | None = None
     style_shell_path: Path | None = None

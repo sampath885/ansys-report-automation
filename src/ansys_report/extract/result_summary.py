@@ -181,11 +181,41 @@ def summary_to_harmonic_peak(summary: ResultSummary) -> HarmonicPeakResult:
     """Best-effort harmonic peak from Result Summary (displacement; frequency often absent)."""
     manual: list[str] = []
     peak_mm: float | None = None
+    max_stress_mpa: float | None = None
+    per_material: dict[str, float] = {}
+    per_material_stress: dict[str, float] = {}
 
     for row in summary.rows:
         key = row.result.lower()
-        if _is_deformation_row(key, row.unit) and row.maximum is not None:
-            peak_mm = row.maximum
+        if row.maximum is None:
+            continue
+        if _is_deformation_row(key, row.unit):
+            if key in _ASSEMBLY_RESULT_NAMES or key == "total deformation":
+                peak_mm = row.maximum
+            elif row.unit and row.unit.lower() == "mm":
+                material = display_material_name(row.result)
+                prev = per_material.get(material)
+                if prev is None or row.maximum > prev:
+                    per_material[material] = row.maximum
+            continue
+        if _is_assembly_stress_row(key, row.unit):
+            max_stress_mpa = row.maximum
+            continue
+        if row.unit and "mpa" in row.unit.lower():
+            material = display_material_name(row.result)
+            prev = per_material_stress.get(material)
+            if prev is None or row.maximum > prev:
+                per_material_stress[material] = row.maximum
+            continue
+        if row.unit and row.unit.lower() == "mm":
+            material = display_material_name(row.result)
+            prev = per_material.get(material)
+            if prev is None or row.maximum > prev:
+                per_material[material] = row.maximum
+            continue
+
+    if peak_mm is None and per_material:
+        peak_mm = max(per_material.values())
 
     if peak_mm is None:
         manual.append("peak_displacement_mm")
@@ -194,6 +224,9 @@ def summary_to_harmonic_peak(summary: ResultSummary) -> HarmonicPeakResult:
     return HarmonicPeakResult(
         peak_displacement_mm=peak_mm,
         peak_frequency_hz=None,
+        per_material=per_material,
+        per_material_stress=per_material_stress,
+        max_stress_mpa=max_stress_mpa,
         manual_fields=manual,
         extraction_source="worksheet_summary",
     )
@@ -238,6 +271,11 @@ def merge_harmonic_results(primary: HarmonicPeakResult, fallback: HarmonicPeakRe
     """Prefer worksheet displacement; fill frequency from DPF when missing."""
     peak_mm = primary.peak_displacement_mm or fallback.peak_displacement_mm
     peak_hz = primary.peak_frequency_hz or fallback.peak_frequency_hz
+    max_stress_mpa = primary.max_stress_mpa or fallback.max_stress_mpa
+    per_material = dict(fallback.per_material or {})
+    per_material.update(primary.per_material or {})
+    per_material_stress = dict(fallback.per_material_stress or {})
+    per_material_stress.update(primary.per_material_stress or {})
     manual = []
     if peak_mm is None:
         manual.append("peak_displacement_mm")
@@ -249,6 +287,9 @@ def merge_harmonic_results(primary: HarmonicPeakResult, fallback: HarmonicPeakRe
         peak_displacement_mm=peak_mm,
         peak_frequency_hz=peak_hz,
         num_frequency_sets=fallback.num_frequency_sets or primary.num_frequency_sets,
+        per_material=per_material,
+        per_material_stress=per_material_stress,
+        max_stress_mpa=max_stress_mpa,
         manual_fields=manual,
         extraction_source=source,
     )

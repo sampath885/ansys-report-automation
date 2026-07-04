@@ -143,6 +143,8 @@ def _materialize_block(
     context: dict[str, Any],
     cfg: ProjectConfig,
 ) -> list[RenderBlock]:
+    if spec.unless_style and _style_enabled(cfg, spec.unless_style):
+        return []
     if spec.when_style and not _style_enabled(cfg, spec.when_style):
         return []
 
@@ -172,6 +174,9 @@ def _materialize_block(
                     )
                 )
         return out
+
+    if spec.unless_field and _resolve_path(env, spec.unless_field):
+        return []
 
     if spec.when_field and _resolve_path(env, spec.when_field) is None:
         return []
@@ -220,14 +225,28 @@ def _materialize_block(
             ]
 
         caption = _render_template(spec.caption or spec.caption_template or "", env)
+        headers = list(spec.headers)
+        columns = list(spec.columns)
+        if spec.headers_path:
+            dynamic_headers = _resolve_path(data, spec.headers_path) or _resolve_path(env, spec.headers_path)
+            if dynamic_headers:
+                headers = [str(h) for h in dynamic_headers]
+        if spec.columns_path:
+            dynamic_columns = _resolve_path(data, spec.columns_path) or _resolve_path(env, spec.columns_path)
+            if dynamic_columns:
+                columns = [str(c) for c in dynamic_columns]
         rows: list[list[str]] = []
         if spec.static_rows:
             for row in spec.static_rows:
                 rows.append([_render_template(cell, env) for cell in row])
-        elif spec.rows_path and spec.columns:
+        elif spec.rows_path:
             items = _resolve_path(data, spec.rows_path) or []
-            for item in items:
-                rows.append([_fmt(_resolve_path(item, col)) for col in spec.columns])
+            if spec.raw_table or (items and isinstance(items[0], list)):
+                for row in items:
+                    rows.append([str(c) for c in row])
+            elif spec.columns:
+                for item in items:
+                    rows.append([_fmt(_resolve_path(item, col)) for col in spec.columns])
 
         if not rows and spec.required:
             return [RenderBlock(kind="paragraph", text="(no data)")]
@@ -238,7 +257,7 @@ def _materialize_block(
             RenderBlock(
                 kind="table",
                 caption=caption or None,
-                headers=list(spec.headers),
+                headers=headers,
                 rows=rows,
             )
         ]
@@ -247,6 +266,18 @@ def _materialize_block(
         return _materialize_figure_gallery(spec, env, skip_images, context)
 
     if spec.type == "figure":
+        if spec.field:
+            image_path = _resolve_path(data, spec.field) or _resolve_path(env, spec.field)
+            caption = _render_template(spec.caption or spec.caption_template or "", env)
+            if not image_path:
+                return []
+            return [
+                RenderBlock(
+                    kind="figure",
+                    caption=caption or None,
+                    image_path=str(image_path),
+                )
+            ]
         slot = _render_template(spec.slot_template or spec.slot or "", env)
         caption = _render_template(spec.caption or spec.caption_template or "", env)
         image_path = _resolve_image(images, slot)
@@ -306,6 +337,8 @@ def _materialize_block(
         else:
             src = _narrative_source(spec, section_key, context, data)
             nb = narrative_block(src)
+        if nb and spec.narrative_mode == "conclusions_only":
+            nb = nb.model_copy(update={"observations": [], "recommendations": []})
         return [nb] if nb else []
 
     return []
