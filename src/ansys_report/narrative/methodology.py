@@ -47,35 +47,55 @@ def build_methodology(context: dict[str, Any], cfg: ProjectConfig) -> dict[str, 
     fundamental = _fundamental_freq_hz(context)
     bolt_count = cfg.bolts.count
 
+    excluded_parts = (
+        "Non-structural items such as nameplates, lubricants, paint coatings and temporary "
+        "assembly aids are excluded from the FE model. Seals and soft gaskets are represented "
+        "either by contact/gasket elements or by equivalent pressure loading as described in "
+        "the joint-modelling subsections below."
+    )
+
+    welded_joint_method = (
+        "Welded regions between the valve body, bonnet and pipe connections are modelled using "
+        "shared topology with conforming mesh at the weld interfaces where higher-fidelity "
+        "stress recovery is required. This allows direct transfer of tractions across the "
+        "weld without tied-contact artefacts in the peak-stress region."
+    )
+
+    gasket_method = (
+        "Gaskets and soft seals are represented using gasket behaviour or appropriate contact "
+        "stiffness so that load transfer and local compression in the sealing region are captured "
+        "without modelling the seal geometry in detail."
+    )
+
+    vibration_methodology = (
+        f"Vibration resistance is assessed using harmonic response analyses in the X, Y and Z "
+        f"directions over the operating frequency range of {low:.0f}-{high:.0f} Hz. Peak "
+        f"displacement and stress responses are compared against allowable limits to confirm "
+        f"adequate margin under the specified vibration environment."
+    )
+
     working_principle = (
-        f"The {part} is a pressure-boundary component that connects mating pipe spools and "
-        f"transmits internal pressure, dead weight and externally applied dynamic loads through "
-        f"the bolted flange joint. In service it must contain the working medium without leakage "
-        f"while withstanding bolt pretension, operating pressure, self weight and vibration/shock "
-        f"loads transmitted from the supporting structure. The objective of this analysis is to "
-        f"verify that the flange and its bolted joint remain structurally adequate under all "
-        f"specified static and dynamic load cases."
+        f"The {part} is a pressure-boundary valve assembly that must contain the working medium, "
+        f"transmit piping loads and withstand operating pressure, dead weight, manual/actuator "
+        f"effort and externally applied dynamic loads. Loads are carried through the body, bonnet, "
+        f"stem/spindle, closure member and bolted/flanged joints. The objective of this analysis "
+        f"is to verify structural adequacy of all critical components and joints under static, "
+        f"dynamic and shock load cases specified in the purchase order."
     )
 
     modelling_approach = (
-        f"The assembly is modelled in 3D from the released CAD geometry. The connected pipework is "
-        f"represented to a length of approximately five pipe diameters (5D) on either side of the "
-        f"flange so that the local stiffness and load transfer into the flange are captured "
-        f"realistically while keeping the model size practical; truncating at 5D is sufficient "
-        f"because stress disturbances at the flange decay well within this length (Saint-Venant's "
-        f"principle). The solid bodies are meshed with quadratic tetrahedral elements (SOLID187) "
-        f"using patch-conforming controls and curvature-based sizing to resolve fillets and "
-        f"the bolt-hole regions."
+        f"The assembly is modelled in 3D from the released CAD geometry. Connected pipework is "
+        f"represented to a practical length on each nozzle so that load transfer into the valve "
+        f"is captured realistically. Solid bodies are meshed with quadratic tetrahedral elements "
+        f"using curvature-based sizing and patch-conforming controls to resolve fillets, threads "
+        f"and bolt-hole regions."
     )
 
     bolted_joint_method = (
-        f"The {bolt_count} bolts are modelled as 1D pretensioned beam elements (BEAM188) coupled to "
-        f"the flange faces, with bolt pretension applied as a dedicated load step before the service "
-        f"loads. Contact between the mating flange faces is defined to transfer compression and to "
-        f"allow separation, so that the joint stiffness and the redistribution of bolt loads under "
-        f"external load are represented. Bolt axial and shear forces are recovered from the beam "
-        f"elements and converted to normal and shear stresses on the bolt tensile/shear stress "
-        f"areas for comparison against the bolt material yield strength."
+        f"Bolted joints are modelled with pretensioned bolt elements coupled to the flanged faces, "
+        f"with contact between mating surfaces to represent compression, separation and load "
+        f"redistribution. Bolt axial and shear forces are recovered for comparison against allowable "
+        f"stresses on the bolt tensile and shear areas."
     )
 
     if fundamental is not None:
@@ -133,7 +153,11 @@ def build_methodology(context: dict[str, Any], cfg: ProjectConfig) -> dict[str, 
     return {
         "working_principle": working_principle,
         "modelling_approach": modelling_approach,
+        "excluded_parts": excluded_parts,
         "bolted_joint_method": bolted_joint_method,
+        "welded_joint_method": welded_joint_method,
+        "gasket_method": gasket_method,
+        "vibration_methodology": vibration_methodology,
         "modal_methodology": modal_methodology,
         "shock_justification": shock_justification,
         "fatigue_theory": fatigue_theory,

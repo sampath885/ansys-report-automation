@@ -193,6 +193,12 @@ def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
         return ImageMatchRule(path_glob="connections/*connections*.png")
     if s == "geometry_model_orientation":
         return ImageMatchRule(path_glob="coordinate_systems/*coordinate*.png")
+    if s == "model_orientation_gravity":
+        return ImageMatchRule(
+            folder_keywords=["static_structural"],
+            file="loading/standard_earth_gravity.png",
+            exclude_keywords=["modal", "harmonic", "vibration", "shock", "transient", "equivalent_static"],
+        )
 
     if s == "mesh_global":
         return ImageMatchRule(path_glob="mesh/mesh*.png")
@@ -392,6 +398,8 @@ def _score_path_for_slot(slot: str, rel_path: str) -> int:
         score += 35
     if s == "geometry_model_orientation" and "coordinate" in p:
         score += 35
+    if s == "model_orientation_gravity" and "standard_earth_gravity" in p and "static_structural" in p:
+        score += 45
 
     if "graphs/" in p and "accel" in s:
         score += 8
@@ -652,12 +660,25 @@ def resolve_assets_smart(
             seen.add(msg)
             unique_warnings.append(msg)
 
+    _apply_image_slot_aliases(resolved)
+
     return MissingAssets(
         missing_slots=missing_after,
         warnings=unique_warnings,
         errors=errors,
         resolved=resolved,
     )
+
+
+_IMAGE_SLOT_ALIASES: dict[str, str] = {
+    "model_orientation_gravity": "static_earth_gravity",
+}
+
+
+def _apply_image_slot_aliases(resolved: dict[str, Path]) -> None:
+    for alias, source in _IMAGE_SLOT_ALIASES.items():
+        if alias not in resolved and source in resolved:
+            resolved[alias] = resolved[source]
 
 
 def _apply_log_map(

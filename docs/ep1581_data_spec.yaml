@@ -1,0 +1,593 @@
+path: EP1581_29APR_R0 (1).docx
+stats:
+  paragraphs: 1052
+  tables: 62
+  figure_captions: 136
+  table_captions: 45
+  headings: 92
+sections:
+- level: Heading 1
+  title: Revision Log
+- level: Heading 1
+  title: Scope
+- level: Heading 2
+  title: Details of Type of Analysis
+- level: Heading 1
+  title: Software/Tools
+- level: Heading 1
+  title: References
+- level: Heading 1
+  title: Equipment Details
+- level: Heading 2
+  title: CAD Model
+- level: Heading 2
+  title: Mass, Material, Centre of gravity and model orientation
+- level: Heading 3
+  title: The weight in FE analysis is tabulated below
+- level: Heading 3
+  title: Centre of gravity
+- level: Heading 3
+  title: Model Orientation
+- level: Heading 2
+  title: Details of Structural Connections to Surrounding Structure
+- level: Heading 2
+  title: Working Principle
+- level: Heading 3
+  title: Core working of the valve
+- level: Heading 3
+  title: Load path of the valve for various loading conditions
+- level: Heading 2
+  title: Components
+- level: Heading 3
+  title: Body
+- level: Heading 3
+  title: Disc
+- level: Heading 3
+  title: Gland
+- level: Heading 3
+  title: Bonnet
+- level: Heading 3
+  title: Flanges
+- level: Heading 2
+  title: Design Specifications
+- level: Heading 1
+  title: Modelling Details
+- level: Heading 2
+  title: Details of all the non-structural parts which are excluded from the model
+- level: Heading 2
+  title: Modelling approach for all structural parts
+- level: Heading 3
+  title: Simulation Geometry
+- level: Heading 3
+  title: FE Mesh
+- level: Heading 3
+  title: Mesh Quality criteria
+- level: Heading 2
+  title: Modelling approach for bolted joints
+- level: Heading 2
+  title: Modelling approach for welded joints
+- level: Heading 3
+  title: 3D Solid Modelling with Shared Topology and Conforming Mesh (Higher-Fidelity Weld Simulation)
+- level: Heading 2
+  title: Modelling approach for joints
+- level: Heading 2
+  title: Modelling approach for gaskets
+- level: Heading 2
+  title: Modelling approach for interfaces (contacts)
+- level: Heading 2
+  title: Details of materials models selected
+- level: Heading 1
+  title: Details of the Loading and BC
+- level: Heading 2
+  title: Load Case – 1 MBD Analysis
+- level: Heading 3
+  title: MBD Analysis Results
+- level: Heading 2
+  title: Load Case – 2 Modal Analysis
+- level: Heading 3
+  title: Modal Analysis Methodology
+- level: Heading 3
+  title: Modal Analysis Boundary Conditions
+- level: Heading 3
+  title: Modal Analysis Results
+- level: Heading 3
+  title: Modal Analysis Conclusions
+- level: Heading 2
+  title: Load Case - 3 Static Structural Analysis
+- level: Heading 3
+  title: Static Structural Analysis Boundary Conditions
+- level: Heading 3
+  title: Static Structural Analysis Loading Conditions
+- level: Heading 3
+  title: Static Structural Analysis Results
+- level: Heading 3
+  title: Static Structural Analysis Conclusions
+- level: Heading 2
+  title: Load case - 4 Vibration resistance analysis
+- level: Heading 3
+  title: Vibration Resistance Analysis Methodology
+- level: Heading 3
+  title: Vibration Resistance Analysis Boundary Conditions
+- level: Heading 3
+  title: Vibration Resistance Analysis Loading Conditions
+- level: Heading 4
+  title: Load Case - 3.1 Vibration Resistance Analysis in X- Direction
+- level: Heading 4
+  title: Load Case - 3.2 Vibration Resistance Analysis in Y- Direction
+- level: Heading 4
+  title: Load Case - 3.3 Vibration Resistance Analysis in Z- Direction
+- level: Heading 3
+  title: Vibration Resistance analysis Results
+- level: Heading 4
+  title: Analysis Harmonic In X direction
+- level: Heading 4
+  title: Analysis Harmonic In Y direction
+- level: Heading 4
+  title: Analysis Harmonic In Z direction
+- level: Heading 3
+  title: Mapping of materials to the Cases as per
+- level: Heading 3
+  title: Harmonic Analysis Conclusions
+- level: Heading 2
+  title: Load Case - 5 Shock Analysis - Transient Approach
+- level: Heading 3
+  title: Shock Analysis Boundary And Loading Conditions For Transient Analysis
+- level: Heading 3
+  title: Shock Pulse Specifications
+- level: Heading 3
+  title: Results of Shock Analysis
+- level: Heading 4
+  title: Analysis Transient in X Direction
+- level: Heading 4
+  title: Analysis Transient in Y Direction
+- level: Heading 4
+  title: Analysis Transient in Z Direction
+- level: Heading 3
+  title: Shock Analysis Conclusion
+- level: Heading 1
+  title: CFD Analysis
+- level: Heading 2
+  title: Introduction
+- level: Heading 2
+  title: CFD Analysis Methodology
+- level: Heading 2
+  title: Assumptions
+- level: Heading 2
+  title: CFD Mesh
+- level: Heading 2
+  title: Material Selection
+- level: Heading 2
+  title: Turbulent Viscous model
+- level: Heading 2
+  title: Boundary Conditions
+- level: Heading 2
+  title: Solution Methods
+- level: Heading 3
+  title: Convergence criteria
+- level: Heading 2
+  title: Results
+- level: Heading 3
+  title: Y+ Plot
+- level: Heading 3
+  title: Velocity distribution
+- level: Heading 3
+  title: Pressure distribution
+- level: Heading 3
+  title: Calculation of valve coefficient
+- level: Heading 3
+  title: CFD Analysis Conclusions
+- level: Heading 1
+  title: Material Properties
+- level: Heading 1
+  title: Design calculations of the Valve
+- level: Heading 2
+  title: Design Validation of the Union Bolted Joint and (Body- Bonnet) Flange
+- level: Heading 3
+  title: Bolt load calculations
+- level: Heading 2
+  title: Flange moments
+- level: Heading 2
+  title: Effort Required
+- level: Heading 2
+  title: End Connection Flange Design
+figure_captions:
+- 'Figure 1 - Equipment Details: CAD Model'
+- 'Figure 2 Equipment Details: CAD Model Section View'
+- Figure 3 Fluid Volume
+- Figure 4 Item no as Per BOM
+- 'Figure 5 - Valve Component Description: (BOM)'
+- 'Figure 6 - Model Orientation: Standard Earth Gravity'
+- 'Figure 7 - Simulation Geometry: Valve Geometry for FE Analysis'
+- 'Figure 8 - FE Mesh: Mesh for FE Simulation'
+- Figure 14 Share Topology at Pipe and Flange Weld Locations
+- 'Figure 15 - Modelling approach for joints: Revolute - 2 Disc To 7 Spindle'
+- 'Figure 16 - Modelling approach for joints: Cylindrical - 15 Yoke Sleeve To 10 Stem'
+- 'Figure 17 - Modelling approach for joints: Fixed - 10 Stem To 50 Cylindrical Pin-2'
+- 'Figure 18 - Modelling approach for joints: Revolute - 14 Bonnet To 15 Yoke Sleeve'
+- 'Figure 19 - Modelling approach for joints: Revolute - 14 Bonnet To 19 Gear'
+- 'Figure 20 - Modelling approach for joints: Revolute - 14 Bonnet To 20 Pinion Shaft'
+- 'Figure 21 - Modelling approach for joints: Revolute - 18 Yoke Nut To 15 Yoke Sleeve'
+- 'Figure 22 - Modelling approach for joints: Revolute - 20 Pinion Shaft To 33 Indicator'
+- 'Figure 23 - Modelling approach for joints: General - 12 Bush-1 To 10 Stem'
+- Figure 24  Loads Applied in MBD analysis
+- Figure 25 Joint Force at Threaded Joint
+- Figure 26 Joint force at Yoke Sleeve Bearings
+- Figure 27 Joint Forces at Pinion Shaft Bushes
+- 'Figure 28 - Modal Analysis: Boundary Conditions Modal Analysis'
+- 'Figure 29 - Modal Analysis: Mode 1 at Frequency 36.139 Hz'
+- 'Figure 30 - Modal Analysis: Mode 2 at Frequency 145.71 Hz'
+- 'Figure 31 - Modal Analysis: Mode 3 at Frequency 173.41 Hz'
+- 'Figure 32 - Modal Analysis: Mode 4 at Frequency 188.83 Hz'
+- 'Figure 33 - Modal Analysis: Mode 5 at Frequency 258.18 Hz'
+- 'Figure 34 - Modal Analysis: Mode 6 at Frequency 267.52 Hz'
+- 'Figure 35 - Static Structural Analysis: Boundary Conditions Static Structural Analysis'
+- 'Figure 36 - Static Structural: Total Deformation - End Time'
+- 'Figure 37 - Static Structural: Equivalent (von-Mises) Stress - End Time'
+- 'Figure 49 - Harmonic Response X: Boundary Conditions'
+- 'Figure 50 - Harmonic Response X: Displacement Amplitude (X)'
+- 'Figure 51 - Harmonic Response Y: Boundary Conditions'
+- 'Figure 52 - Harmonic Response Y: Displacement Amplitude (Y)'
+- 'Figure 53 - Harmonic Response Z: Boundary Conditions'
+- 'Figure 54 - Harmonic Response Z: Displacement Amplitude (Z)'
+- 'Figure 16 - Harmonic Response X: Equivalent (von-Mises) Stress'
+- 'Figure 17 - Harmonic Response X: Equivalent (von-Mises) Stress - MAT_ASTM_B367_Gr_5'
+- 'Figure 18 - Harmonic Response X: Equivalent (von-Mises) Stress - MAT_ASTM_B348_Gr_5'
+- 'Figure 19 - Harmonic Response X: Equivalent (von-Mises) Stress - MAT_ASTM_D4066_Nylon66'
+- 'Figure 20 - Harmonic Response X: Equivalent (von-Mises) Stress - MAT_BS970_EN19'
+- 'Figure 21 - Harmonic Response X: Equivalent (von-Mises) Stress - MAT_BS2874_CA104'
+- 'Figure 22 - Harmonic Response X: Equivalent (von-Mises) Stress - MAT_BS970_EN36C'
+- 'Figure 23 - Harmonic Response X: Equivalent (von-Mises) Stress - MAT_ASTM_A276_S32100'
+- 'Figure 24 - Harmonic Response X: Equivalent (von-Mises) Stress - MAT_ASTM_A217_CA15'
+- 'Figure 25 - Harmonic Response X: Equivalent (von-Mises) Stress - MAT_ASTM_A240_S32100'
+- 'Figure 26 - Harmonic Response X: Frequency Response_MAT_ASTM_B367_Gr_5'
+- 'Figure 27 - Harmonic Response X: Frequency Response_MAT_ASTM_B348_Gr_5'
+table_captions:
+- Table 1 - Revision Log
+- Table 2 - Scope of Design Analysis
+- Table 3 - Software/Tools Used
+- Table 4 - Standard References
+- Table 5 - Weight Balance Table
+- Table 6 - Design Specifications
+- Table 7 - Mesh Parameters
+- Table 8 - Mesh Quality Criteria
+- Table 9 MBD Analysis Boundary Conditions
+- Table 10 Joint Force Summary Table
+- Table 11 – Modal Analysis Boundary Conditions
+- Table 12 - Ratio of Effective Mass to Total Mass
+- Table 13 - Modal Frequencies
+- Table 14 - Modal Analysis Summary
+- Table 15 - Static Structural Boundary Conditions
+- Table 16 - Boundary Conditions Summary - Static Structural
+- Table 19 - Bolt Force Summary Table
+- Table 20 - Static Structural Results Summary
+- Table 21 - Vibration Proof Characteristics
+- Table 22 - Displacement Amplitude (X)
+- Table 23 - Vibration Resistance Analysis Settings (X)
+- Table 24 - Displacement Amplitude (Y)
+- Table 25 - Vibration Resistance Analysis Settings (Y)
+- Table 26 - Displacement Amplitude (Z)
+- Table 27 - Vibration Resistance Analysis Settings (Z)
+- Table 26 Material Case Mapping according to ANNEX 3-F DESIGN FATIGUE CURVES of ASME BPVC.VIII.2-2023
+- Table 28 - Static Structural Results Summary
+- Table 28 Allowable calculations for the Martensitic carbon/low alloy steel
+- Table 29 Allowable calculations for NAB
+- Table 30 Allowable Calculations for Ti Gr 5
+- Table 29 - Analysis Settings
+- Table 30 - Analysis Settings
+- Table 31 - Analysis Settings
+- Table 32 - Shock Pulse Specification Table
+- 'Table 33 - Bolt Loads: Shock in X direction'
+- 'Table 34 - Bolt Loads: Shock in Y direction'
+- 'Table 35 - Bolt Loads: Shock in Z direction'
+- Table 36 - Transient Shock Response Summary
+- Table 37 Boundary conditions.
+- Table 38 Parameters used for calculation of valve coefficient.
+- Table 39 Union Bolt Design
+- Table 40 Relation between thread angle and coefficient of frictions
+- Table 41 Effort required and the length of thread engagement for Spindle
+- Table 42 End Connection Flange Design
+- Table 43 Tightening torque and preload calculations
+tables:
+- index: 1
+  rows: 3
+  first_row:
+  - 'Prepared by:'
+  - 'Prepared by:'
+  - 'Checked by:'
+  - 'Approved by: (DMDE)'
+- index: 2
+  rows: 2
+  first_row:
+  - Document Revision number
+  - Date of revision
+  - Description
+  - Remarks
+- index: 3
+  rows: 16
+  first_row:
+  - S. No.
+  - Analysis Type
+  - Section (In this Document)
+  - Relevant Section of PO
+  - Remarks
+- index: 4
+  rows: 3
+  first_row:
+  - S. No.
+  - Software
+  - System configuration
+  - Versions
+- index: 5
+  rows: 9
+  first_row:
+  - S. No.
+  - Reference type (Standard Journal paper etc.)
+  - Reference Number
+  - Title
+  - Revision year
+  - Referred for
+- index: 6
+  rows: 37
+  first_row:
+  - Sl. No.
+  - Body Name
+  - Material
+  - Mass (FE Weight) (kg)
+  - Dwg. Weight (kg)
+- index: 7
+  rows: 11
+  first_row:
+  - Parameter
+  - Value
+  - Unit
+- index: 8
+  rows: 30
+  first_row:
+  - Sl. No.
+  - Sizing Name
+  - Element Size
+- index: 9
+  rows: 8
+  first_row:
+  - Parameter
+  - Ideal Range
+  - Acceptable Range
+  - Status
+- index: 10
+  rows: 3
+  first_row:
+  - Sl. No.
+  - Loading or BC
+  - Location
+  - Value
+- index: 11
+  rows: 4
+  first_row:
+  - Sr. No.
+  - Location
+  - Force [N]
+- index: 12
+  rows: 4
+  first_row:
+  - Sl. No.
+  - Loading or BC
+  - Location
+  - Value
+- index: 13
+  rows: 22
+  first_row:
+  - Mode
+  - Frequency [Hz]
+  - X Direction
+  - Y Direction
+  - Z Direction
+  - Rotation X
+  - Rotation Y
+  - Rotation Z
+- index: 14
+  rows: 21
+  first_row:
+  - Mode
+  - Frequency [Hz]
+- index: 15
+  rows: 7
+  first_row:
+  - Sl. No
+  - Frequency (Hz)
+  - Operating Frequency
+  - Dominant in Direction
+  - Remark
+- index: 16
+  rows: 3
+  first_row:
+  - Sl. No.
+  - Loading or BC
+  - Location
+  - Value
+- index: 17
+  rows: 43
+  first_row:
+  - Sr. No
+  - Name of BC
+  - Location of BC
+  - Value of BC
+- index: 18
+  rows: 9
+  first_row:
+  - Time (S)
+  - Reaction In X Direction (N)
+  - Reaction In Y Direction (N)
+  - Reaction In Z Direction (N)
+  - Total Reaction (N)
+- index: 19
+  rows: 9
+  first_row:
+  - Time (S)
+  - Reaction In X Direction (N)
+  - Reaction In Y Direction (N)
+  - Reaction In Z Direction (N)
+  - Total Reaction (N)
+- index: 20
+  rows: 52
+  first_row:
+  - Bolt No
+  - Bolt Connection Group
+  - Max Axial Force (N)
+  - Max Shear Force (N)
+  - Bolt Area (mm2)
+  - Normal Stress (MPa)
+  - Shear Stress (MPa)
+  - Yield Stress MPa
+- index: 21
+  rows: 10
+  first_row:
+  - Sr. No
+  - Material
+  - Maximum Occurs On
+  - Stresses Observed(MPa)
+  - Allowable Stress(MPa)
+  - Remarks
+- index: 22
+  rows: 7
+  first_row:
+  - Frequency Range
+  - Vibration Amplitude
+  - ''
+  - Duration for Vibration Resistance in min
+  - Duration for Vibration Proof Characteristic Test in min
+- index: 23
+  rows: 12
+  first_row:
+  - Frequency [Hz]
+  - Magnitude [mm]
+  - Phase Angle [deg]
+- index: 24
+  rows: 10
+  first_row:
+  - Property
+  - Value
+- index: 25
+  rows: 12
+  first_row:
+  - Frequency [Hz]
+  - Magnitude [mm]
+  - Phase Angle [deg]
+- index: 26
+  rows: 10
+  first_row:
+  - Property
+  - Value
+- index: 27
+  rows: 12
+  first_row:
+  - Frequency [Hz]
+  - Magnitude [mm]
+  - Phase Angle [deg]
+- index: 28
+  rows: 10
+  first_row:
+  - Property
+  - Value
+- index: 29
+  rows: 9
+  first_row:
+  - Material
+  - UNS
+  - Type
+  - Case
+- index: 30
+  rows: 28
+  first_row:
+  - Sr. No.
+  - Direction
+  - Material
+  - Maximum Occurs On
+  - Stresses Observed (MPa)
+  - Allowable Stress (MPa)
+  - Remarks
+- index: 31
+  rows: 4
+  first_row:
+  - Material
+  - UTS
+  - Stress at at 10^7 Cycles
+  - Surface Roughness Factor
+  - Fatigue Allowable
+- index: 32
+  rows: 4
+  first_row:
+  - Material
+  - Surface Roughness Factor
+  - ''
+  - Fatigue Allowable
+- index: 33
+  rows: 4
+  first_row:
+  - Material
+  - Surface Roughness Factor
+  - Page 81 of this Report
+  - Fatigue Allowable
+- index: 34
+  rows: 7
+  first_row:
+  - Property
+  - Value
+- index: 35
+  rows: 7
+  first_row:
+  - Property
+  - Value
+- index: 36
+  rows: 7
+  first_row:
+  - Property
+  - Value
+- index: 37
+  rows: 6
+  first_row:
+  - ''
+  - Vertical
+  - ''
+  - ''
+  - ''
+  - Longitudinal
+  - ''
+  - ''
+  - ''
+  - Horizontal
+  - ''
+  - ''
+  - ''
+- index: 38
+  rows: 52
+  first_row:
+  - Bolt No
+  - Bolt Connection Group
+  - Max Axial Force (N)
+  - Max Shear Force (N)
+  - Bolt Area (mm2)
+  - Normal Stress (MPa)
+  - Shear Stress (MPa)
+  - Yield Stress MPa
+- index: 39
+  rows: 52
+  first_row:
+  - Bolt No
+  - Bolt Connection Group
+  - Max Axial Force (N)
+  - Max Shear Force (N)
+  - Bolt Area (mm2)
+  - Normal Stress (MPa)
+  - Shear Stress (MPa)
+  - Yield Stress MPa
+- index: 40
+  rows: 52
+  first_row:
+  - Bolt No
+  - Bolt Connection Group
+  - Max Axial Force (N)
+  - Max Shear Force (N)
+  - Bolt Area (mm2)
+  - Normal Stress (MPa)
+  - Shear Stress (MPa)
+  - Yield Stress MPa

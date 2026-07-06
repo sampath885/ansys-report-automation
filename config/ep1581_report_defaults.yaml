@@ -1,0 +1,304 @@
+revision_log:
+  caption: 'Table 1 - Revision Log'
+  headers:
+  - Document Revision number
+  - Date of revision
+  - Description
+  - Remarks
+  rows:
+  - - R00
+    - ''
+    - Initial Submission
+    - ''
+scope_analysis:
+  caption: Table 2 - Scope of Design Analysis
+  headers:
+  - S. No.
+  - Analysis Type
+  - Section (In this Document)
+  - Relevant Section of PO
+  - Remarks
+  rows:
+  - - '1'
+    - Static Structural Analysis
+    - '8.1'
+    - '10.1'
+    - Sec- B
+    - --
+  - - '2'
+    - Modal Analysis
+    - '8.2'
+    - '10.2'
+    - Sec- B
+    - --
+  - - '3'
+    - Vibration Analysis
+    - '8.3'
+    - '10.3'
+    - Sec- B
+    - --
+  - - '4'
+    - Shock Analysis
+    - '8.4'
+    - '10.4'
+    - Sec- B
+    - --
+  - - '5'
+    - Fatigue Analysis
+    - NA
+    - NA
+    - N.A
+    - Indicated in the P.O. However, FE Analysis is not carried out as there is no Cyclic load.
+  - - ''
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+    - Mechanical Design Calculations
+  - - '6'
+    - Thickness Calculation of Welded Plane Pipe Flange
+    - '11.1'
+    - '11.1'
+    - Sec- B
+    - --
+  - - '7'
+    - Design Validation Flange Thickness Calculations
+    - '11.2'
+    - '11.2'
+    - Sec- B
+    - --
+  - - '8'
+    - Bolt Preload Calculations
+    - '11.3'
+    - '11.3'
+    - Sec- B
+    - --
+  - - '9'
+    - Fatigue Calculations
+    - '11.4'
+    - '11.4'
+    - Sec- B
+    - --
+software_tools:
+  caption: Table 3 - Software/Tools Used
+  headers:
+  - 'S.NO:'
+  - Process
+  - Software used
+  - Version
+  rows:
+  - - '1'
+    - 3D Modelling
+    - Solidworks
+    - '2025'
+  - - '2'
+    - Pre-processer
+    - Ansys Space claim & Design Modeller
+    - 2025 R2
+  - - '3'
+    - Solver
+    - Ansys Enterprise
+    - 2025 R2
+  - - '4'
+    - Post-processer
+    - Ansys Mechanical
+    - 2025 R2
+references:
+  caption: Table 4 - Standard References
+  headers:
+  - S.no.
+  - Reference type (Standard/Jonal paper/etc)
+  - Reference Number
+  - Title
+  - Revision year and date
+  - Referred for
+  rows:
+  - - '1'
+    - Standard
+    - ASME PCC-1-2019
+    - Guidelines for Pressure Boundary Bolted Flange Joint Assembly
+    - '2019'
+    - Bolt Pretension Calculations
+  - - '2'
+    - Standard
+    - ASME BPVC SEC II, Part D
+    - Boiler and Pressure Vessels Codes- Materials
+    - '2023'
+    - Material Properties
+  - - '3'
+    - Standard
+    - ASME section VIII Div 1
+    - Boiler and Pressure Vessels Codes
+    - '2023'
+    - Shell Thickness Calculations
+  - - '4'
+    - Standard
+    - NDT 117-96
+    - Flange section
+    - '2024'
+    - Flange design
+  - - '5'
+    - Test Book
+    - ''
+    - Machine Design – Robert L. Norton
+    - ''
+    - Endurance limit
+design_changes:
+  caption: 'Table 2: Current Design changes comparison Table w.r.t previous reference design/ drawing of NTD-117-96.'
+  headers:
+  - Ser No
+  - BOM ID
+  - NTD – 117-96
+  - EP2737
+  - Remarks
+  rows:
+  - - '1'
+    - Nominal Dia (mm)
+    - NTD – 117-96 Table 4.12 at pressure 1Mpa and at material steel refer figure no.4
+    - '100'
+    - ''
+  - - '2'
+    - Nominal Pressure (Kgf/Cm2)
+    - ''
+    - '10'
+    - ''
+  - - '3'
+    - Type
+    - ''
+    - Loose type Flange
+    - ''
+  - - '4'
+    - End Connection
+    - ''
+    - Flange to Flange
+    - ''
+  - - '5'
+    - Working Medium
+    - ''
+    - Air
+    - ''
+  - - '6'
+    - Working Temperature
+    - ''
+    - -10 TO 55
+    - ''
+  - - '7'
+    - Weight
+    - ''
+    - 1.94± 03%
+    - ''
+  - - '8'
+    - Material
+    - ''
+    - SS
+    - ''
+  - - '9'
+    - Manufacturing Method
+    - ''
+    - CDF
+    - ''
+  - - '10'
+    - Model view
+    - ''
+    - ''
+    - ''
+technical_specifications:
+  caption: Table 6 - Design Specifications
+  headers:
+  - S.No
+  - Parameter
+  - Value
+  rows:
+  - - '1'
+    - Nominal Bore
+    - 100 mm
+  - - '2'
+    - Working Pressure
+    - 10 kg/cm²
+  - - '3'
+    - Working Medium
+    - Air
+  - - '5'
+    - Weight
+    - 1.959 kg
+  - - '6'
+    - Material
+    - ASTM A 182 F321
+mesh_quality:
+  caption: Table 8 - Mesh Quality Criteria
+  headers:
+  - Parameter
+  - Ideal Range
+  - Acceptable Range
+  - Status
+  rows:
+  - - '1'
+    - Aspect Ratio
+    - <
+    - '10'
+  - - '2'
+    - Skewness
+    - <
+    - '0.31'
+  - - '3'
+    - Jacobian ratio
+    - '>'
+    - '0.97'
+  - - '5'
+    - Element Quality
+    - '='
+    - '0.77'
+  - - '6'
+    - Maximum Corner Angle
+    - '='
+    - 100°
+shock_pulse_specifications:
+  caption: 'Table 11: Shock Pulse Specifications'
+  headers:
+  - Direction of ImpactWt
+  - Longitudinal (X)
+  - Vertical (Y)
+  - Horizontal (Z)
+  rows:
+  - - ''
+    - A1
+    - T1
+    - A2
+    - T2
+    - A1
+    - T1
+    - A2
+    - T2
+    - A1
+    - T1
+    - A2
+    - T2
+  - - 0-60 kg
+    - '220'
+    - '2.5'
+    - '59.5'
+    - '9'
+    - '180'
+    - '3'
+    - '83.5'
+    - '6.5'
+    - '280'
+    - '3'
+    - '94'
+    - '9'
+mass_balance:
+  caption: Table 5 - Weight Balance Table
+  headers:
+  - Sl. No.
+  - Body Name
+  - Material
+  - Mass (FE Weight) (kg)
+  - Dwg. Weight (kg)
+  rows: []
+mesh_control_reference:
+  caption: Table 7 - Mesh Parameters
+  headers:
+  - Sl. No.
+  - Sizing Name
+  - Element Size
+  rows: []

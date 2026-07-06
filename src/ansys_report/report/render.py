@@ -32,6 +32,12 @@ def render_report(
     native_ep2737: bool = False,
     cfg: ProjectConfig | None = None,
 ) -> Path:
+    layout = (cfg.layout if cfg else "").lower()
+    if layout == "ep1581" and cfg is not None:
+        from ansys_report.report.ep1581_render import render_ep1581_report
+
+        return render_ep1581_report(context, output_path, cfg)
+
     if native_ep2737 or "EP2737" in template_path.name.upper():
         from ansys_report.report.ep2737_render import render_ep2737_report
 

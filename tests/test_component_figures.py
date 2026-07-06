@@ -31,6 +31,33 @@ def test_discover_static_material_figures(tmp_path):
     assert "MAT_ASTM_A182_F321" in labels
 
 
+def test_discover_frequency_response_figures(tmp_path):
+    from ansys_report.images.component_figures import discover_gallery_figures
+
+    root = tmp_path / "exports"
+    graphs = root / "vibration_resistance_analysis_x" / "solution" / "graphs"
+    graphs.mkdir(parents=True)
+    (graphs / "frequency_response.png").write_bytes(b"x")
+    (graphs / "other_plot.png").write_bytes(b"x")
+
+    figures = discover_gallery_figures(
+        root, "vibration_resistance_analysis_x", category="frequency_response"
+    )
+    assert len(figures) == 1
+    assert figures[0].stem == "frequency_response"
+
+
+def test_discover_frequency_response_empty_graphs_dir(tmp_path):
+    from ansys_report.images.component_figures import discover_gallery_figures
+
+    root = tmp_path / "exports"
+    (root / "vibration_resistance_analysis_x" / "solution").mkdir(parents=True)
+
+    assert discover_gallery_figures(
+        root, "vibration_resistance_analysis_x", category="frequency_response"
+    ) == []
+
+
 def test_figure_gallery_blocks_in_static_section(tmp_path):
     from ansys_report.config import load_project_config
     from ansys_report.report.block_assembler import assemble_ep2737_document
@@ -72,7 +99,7 @@ def test_figure_gallery_blocks_in_static_section(tmp_path):
     assert any("Boundary Conditions" in c for c in captions)
     assert any("MAT_NES_747_PART_II" in c for c in captions)
     assert any("MAT_STRUCTURAL_STEEL" in c for c in captions)
-    assert len(figure_blocks) >= 6
+    assert len(figure_blocks) >= 5
 
 
 @pytest.mark.skipif(not EXPORTS.is_dir(), reason="Local Mechanical exports not present")

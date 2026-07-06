@@ -58,7 +58,73 @@ def build_live_reference_tables(context: dict[str, Any], cfg: ProjectConfig) -> 
     return tables
 
 
-def build_mass_balance_table(equipment: dict[str, Any], cfg: ProjectConfig) -> dict[str, Any]:
+def build_mass_balance_table(equipment: dict[str, Any], cfg: ProjectConfig) -> dict[str, Any] | None:
+    bodies = equipment.get("bodies") or []
+    if bodies:
+        return _build_per_body_mass_balance_table(equipment, cfg)
+    return _build_assembly_mass_balance_table(equipment, cfg)
+
+
+def _uses_ep1581_layout(cfg: ProjectConfig) -> bool:
+    return (getattr(cfg, "layout", None) or "").lower() == "ep1581"
+
+
+def _build_per_body_mass_balance_table(equipment: dict[str, Any], cfg: ProjectConfig) -> dict[str, Any]:
+    bodies = equipment.get("bodies") or []
+    rows: list[list[str]] = []
+    for index, body in enumerate(bodies, start=1):
+        name = str(body.get("name") or f"Body {index}")
+        material = str(body.get("material") or "—")
+        mass_kg = body.get("mass_kg")
+        fe_mass = _fmt(mass_kg) if mass_kg is not None else ""
+        rows.append([str(index), name, material, fe_mass, ""])
+
+    assembly = equipment.get("assembly") or {}
+    assembly_mass = assembly.get("mass_kg")
+    if assembly_mass is not None and rows:
+        rows.append(["", "Total", "", _fmt(assembly_mass), ""])
+
+    if _uses_ep1581_layout(cfg):
+        return {
+            "caption": "Table 5 - Weight Balance Table",
+            "headers": [
+                "Sl. No.",
+                "Body Name",
+                "Material",
+                "Mass (FE Weight) (kg)",
+                "Dwg. Weight (kg)",
+            ],
+            "rows": rows,
+        }
+
+    return {
+        "caption": "Table 5: Mass Balance",
+        "headers": [
+            "S.No.",
+            "Part Name",
+            "Material Std/Grade",
+            "Qty",
+            "Drawing (Kg)",
+            "FE Model Mass (Kg)",
+            "Total Mass",
+        ],
+        "rows": [
+            [
+                row[0],
+                row[1],
+                row[2],
+                "1",
+                row[4],
+                row[3],
+                "",
+            ]
+            for row in rows
+            if row[1] != "Total"
+        ],
+    }
+
+
+def _build_assembly_mass_balance_table(equipment: dict[str, Any], cfg: ProjectConfig) -> dict[str, Any]:
     spec = cfg.equipment_spec
     assembly = equipment.get("assembly") or {}
     assembly_mass = assembly.get("mass_kg")
@@ -66,6 +132,27 @@ def build_mass_balance_table(equipment: dict[str, Any], cfg: ProjectConfig) -> d
     flange_mass = _flange_fe_mass_kg(equipment.get("bodies") or [])
     fe_mass = _fmt(flange_mass) if flange_mass is not None else ""
     total_mass = _fmt(assembly_mass) if assembly_mass is not None else ""
+
+    if _uses_ep1581_layout(cfg):
+        return {
+            "caption": "Table 5 - Weight Balance Table",
+            "headers": [
+                "Sl. No.",
+                "Body Name",
+                "Material",
+                "Mass (FE Weight) (kg)",
+                "Dwg. Weight (kg)",
+            ],
+            "rows": [
+                [
+                    "1",
+                    spec.part_name,
+                    spec.material_grade,
+                    fe_mass or total_mass,
+                    spec.drawing_mass_kg,
+                ],
+            ],
+        }
 
     return {
         "caption": "Table 5: Mass Balance",
@@ -135,6 +222,69 @@ def build_technical_specifications_table(
             ["5", "Weight", f"{spec.drawing_mass_kg.replace('±', '±')} kg"],
             ["6", "Material", primary_mat],
         ],
+    }
+
+
+def build_modal_boundary_conditions_table(modal: dict[str, Any]) -> dict[str, Any] | None:
+    """Table 11 from modal-system CAERep loads and boundary conditions (omit if empty)."""
+    rows: list[list[str]] = []
+    index = 0
+
+    for load in modal.get("loads") or []:
+        label = _modal_bc_row_label(index)
+        name = str(load.get("caption") or load.get("load_type") or "Load")
+        rows.append([label, name, "", _format_modal_load_value(load)])
+        index += 1
+
+    for bc in modal.get("boundary_conditions") or []:
+        label = _modal_bc_row_label(index)
+        name = str(bc.get("caption") or _humanize_bc_type(bc.get("bc_type")) or "Boundary condition")
+        rows.append([label, name, "", _format_modal_bc_value(bc)])
+        index += 1
+
+    if not rows:
+        return None
+
+    return {
+        "caption": "Table 11 – Modal Analysis Boundary Conditions",
+        "headers": ["Sl. No.", "Loading or BC", "Location", "Value"],
+        "rows": rows,
+    }
+
+
+def build_loads_summary_table(loads_section: dict[str, Any]) -> dict[str, Any] | None:
+    rows: list[list[str]] = []
+    index = 1
+    for load in loads_section.get("loads") or []:
+        caption = load.get("caption") or load.get("load_type") or "Load"
+        detail = load.get("load_type") or ""
+        magnitude = load.get("magnitude")
+        extra = ""
+        if load.get("count"):
+            extra = f" (×{load['count']})"
+        if magnitude is not None:
+            detail = f"{detail}: {_fmt(magnitude)}{extra}".strip(": ")
+        rows.append([str(index), "Load", caption, detail])
+        index += 1
+
+    for bc in loads_section.get("boundary_conditions") or []:
+        rows.append(
+            [
+                str(index),
+                "Boundary condition",
+                bc.get("caption") or bc.get("bc_type") or "BC",
+                bc.get("bc_type") or "",
+            ]
+        )
+        index += 1
+
+    if not rows:
+        return None
+
+    return {
+        "caption": "Table: Loads & boundary conditions (from CAERep)",
+        "headers": ["S. No.", "Kind", "Name", "Details"],
+        "rows": rows,
     }
 
 
@@ -287,42 +437,6 @@ def build_mesh_quality_table(
     }
 
 
-def build_loads_summary_table(loads_section: dict[str, Any]) -> dict[str, Any] | None:
-    rows: list[list[str]] = []
-    index = 1
-    for load in loads_section.get("loads") or []:
-        caption = load.get("caption") or load.get("load_type") or "Load"
-        detail = load.get("load_type") or ""
-        magnitude = load.get("magnitude")
-        extra = ""
-        if load.get("count"):
-            extra = f" (×{load['count']})"
-        if magnitude is not None:
-            detail = f"{detail}: {_fmt(magnitude)}{extra}".strip(": ")
-        rows.append([str(index), "Load", caption, detail])
-        index += 1
-
-    for bc in loads_section.get("boundary_conditions") or []:
-        rows.append(
-            [
-                str(index),
-                "Boundary condition",
-                bc.get("caption") or bc.get("bc_type") or "BC",
-                bc.get("bc_type") or "",
-            ]
-        )
-        index += 1
-
-    if not rows:
-        return None
-
-    return {
-        "caption": "Table: Loads & boundary conditions (from CAERep)",
-        "headers": ["S. No.", "Kind", "Name", "Details"],
-        "rows": rows,
-    }
-
-
 def build_mesh_control_table(modelling: dict[str, Any]) -> dict[str, Any] | None:
     nodes = modelling.get("node_count")
     elements = modelling.get("element_count")
@@ -427,6 +541,42 @@ def _split_material_name(name: str) -> tuple[str, str]:
     if len(parts) >= 2:
         return " ".join(parts[:-1]), parts[-1]
     return name, ""
+
+
+def _modal_bc_row_label(index: int) -> str:
+    if index < 26:
+        return chr(ord("A") + index)
+    return str(index + 1)
+
+
+def _humanize_bc_type(bc_type: str | None) -> str:
+    mapping = {
+        "fixed_support": "Fixed",
+        "displacement": "Displacement",
+        "remote_displacement": "Remote Displacement",
+    }
+    return mapping.get((bc_type or "").lower(), bc_type or "")
+
+
+def _format_modal_load_value(load: dict[str, Any]) -> str:
+    load_type = (load.get("load_type") or "").lower()
+    magnitude = load.get("magnitude")
+    count = load.get("count")
+    if load_type == "bolt_pretension" and magnitude is not None:
+        suffix = f" (×{count})" if count else ""
+        return f"{_fmt(magnitude)} N{suffix}"
+    if magnitude is not None:
+        return _fmt(magnitude)
+    if load_type == "acceleration":
+        return "-"
+    return "-"
+
+
+def _format_modal_bc_value(bc: dict[str, Any]) -> str:
+    bc_type = (bc.get("bc_type") or "").lower()
+    if bc_type == "fixed_support":
+        return "Ux=Uy=Uz=Rx=Ry=Rz=0"
+    return "-"
 
 
 def _fmt(value: Any) -> str:

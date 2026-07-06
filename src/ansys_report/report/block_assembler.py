@@ -12,6 +12,15 @@ from ansys_report.report.blocks import RenderBlock, RenderDocument, RenderSectio
 from ansys_report.report.section_spec import BlockSpec, SectionContentSpec, SectionSpec, load_section_content_spec
 
 
+def assemble_report_document(
+    context: dict[str, Any],
+    cfg: ProjectConfig,
+    spec: SectionContentSpec | None = None,
+    spec_path: Path | None = None,
+) -> RenderDocument:
+    return assemble_ep2737_document(context, cfg, spec=spec, spec_path=spec_path)
+
+
 def assemble_ep2737_document(
     context: dict[str, Any],
     cfg: ProjectConfig,
@@ -45,7 +54,8 @@ def assemble_ep2737_document(
         parent = section.parent_section
         if parent and parent not in seen_parents:
             seen_parents.add(parent)
-            blocks.append(RenderBlock(kind="heading", text=parent, level=2))
+            parent_level = section.parent_heading_level or 2
+            blocks.append(RenderBlock(kind="heading", text=parent, level=parent_level))
 
         if section.heading:
             blocks.append(
@@ -185,6 +195,9 @@ def _materialize_block(
         text = _render_template(spec.template or spec.text or "", env)
         return [RenderBlock(kind="heading", text=text, level=spec.level)]
 
+    if spec.type == "section_break":
+        return [RenderBlock(kind="section_break", orientation=spec.orientation or "landscape")]
+
     if spec.type == "paragraph":
         if spec.field:
             val = _resolve_path(data, spec.field)
@@ -262,8 +275,24 @@ def _materialize_block(
             )
         ]
 
+    if spec.type == "figure_placeholder":
+        caption = _render_template(spec.caption or spec.caption_template or "", env)
+        if not caption.strip():
+            return []
+        return [
+            RenderBlock(
+                kind="pending",
+                caption=caption,
+                pending=True,
+                placeholder=True,
+                note=spec.note or "Insert calculation figure manually.",
+            )
+        ]
+
     if spec.type == "figure_gallery":
-        return _materialize_figure_gallery(spec, env, skip_images, context)
+        return _materialize_figure_gallery(
+            spec, env, skip_images, context, cfg=cfg, section_key=section_key, data=data
+        )
 
     if spec.type == "figure":
         if spec.field:
@@ -280,10 +309,24 @@ def _materialize_block(
             ]
         slot = _render_template(spec.slot_template or spec.slot or "", env)
         caption = _render_template(spec.caption or spec.caption_template or "", env)
-        image_path = _resolve_image(images, slot)
+        image_path = _resolve_image(images, slot, context=context)
+        ep1581 = (cfg.layout or "").lower() == "ep1581"
         if skip_images or not image_path:
             if spec.required:
                 doc.missing_figures.append(slot or caption)
+                if caption:
+                    return [
+                        RenderBlock(
+                            kind="pending",
+                            caption=caption,
+                            slot=slot,
+                            pending=True,
+                            note=f"Image not found for slot: {slot or '(unnamed)'}",
+                        )
+                    ]
+                return []
+            if ep1581:
+                return []
             if skip_images and caption:
                 return [
                     RenderBlock(
@@ -294,7 +337,7 @@ def _materialize_block(
                         note="Figure pending (skip_images)",
                     )
                 ]
-            if not skip_images and caption:
+            if caption:
                 return [
                     RenderBlock(
                         kind="pending",
@@ -381,6 +424,10 @@ def _materialize_figure_gallery(
     env: dict[str, Any],
     skip_images: bool,
     context: dict[str, Any],
+    *,
+    cfg: ProjectConfig,
+    section_key: str,
+    data: dict[str, Any],
 ) -> list[RenderBlock]:
     folder = _render_template(spec.analysis_folder_template or spec.analysis_folder or "", env)
     if not folder:
@@ -403,6 +450,12 @@ def _materialize_figure_gallery(
 
     prefix = _render_template(spec.caption_prefix or "", env)
     suffix = _render_template(spec.caption_suffix or "", env)
+    describe_material = (
+        _style_enabled(cfg, "ep1581")
+        and (spec.category or "material_stress") == "material_stress"
+        and section_key in ("static", "shock")
+    )
+    allowable_label = "Static Allowable" if section_key == "shock" else "permissible"
     blocks: list[RenderBlock] = []
     for fig in figures:
         if spec.caption:
@@ -414,6 +467,16 @@ def _materialize_figure_gallery(
             )
         else:
             caption = f"{prefix} - {fig.label} {suffix}".strip()
+        description = None
+        if describe_material:
+            from ansys_report.narrative.figure_narrative import material_stress_figure_description
+
+            description = material_stress_figure_description(
+                fig.label,
+                data,
+                cfg,
+                allowable_label=allowable_label,
+            )
         if skip_images:
             blocks.append(
                 RenderBlock(
@@ -430,26 +493,41 @@ def _materialize_figure_gallery(
                 caption=caption,
                 slot=fig.rel_path,
                 image_path=str(fig.path),
+                description=description,
             )
         )
     return blocks
 
 
-def _resolve_image(images: dict[str, Any], slot: str) -> Path | None:
+def _resolve_image(
+    images: dict[str, Any],
+    slot: str,
+    *,
+    context: dict[str, Any] | None = None,
+) -> Path | None:
     if not slot:
         return None
     val = images.get(slot)
-    if val is None:
-        return None
-    if isinstance(val, Path):
-        return val if val.exists() else None
-    if isinstance(val, str):
-        p = Path(val)
-        return p if p.exists() else None
-    path = getattr(val, "path", None)
-    if path:
-        p = Path(path)
-        return p if p.exists() else None
+    if val is not None:
+        if isinstance(val, Path):
+            return val if val.exists() else None
+        if isinstance(val, str):
+            p = Path(val)
+            return p if p.exists() else None
+        path = getattr(val, "path", None)
+        if path:
+            p = Path(path)
+            return p if p.exists() else None
+
+    if context:
+        root = context.get("image_root")
+        if root:
+            from ansys_report.images.auto_discover import resolve_slot_for_exports, scan_image_folder
+
+            root_path = Path(root)
+            found = resolve_slot_for_exports(slot, root_path, scan_image_folder(root_path))
+            if found is not None:
+                return found
     return None
 
 

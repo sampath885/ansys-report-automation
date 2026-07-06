@@ -334,6 +334,11 @@ def enrich_context_tables(context: dict[str, Any], cfg: ProjectConfig) -> None:
             resonance_margin_hz=thresholds.modal.resonance_margin_hz,
         )
         modal["intro_text"] = build_modal_intro_text(modal, cfg)
+        from ansys_report.report.live_table_builders import build_modal_boundary_conditions_table
+
+        boundary_table = build_modal_boundary_conditions_table(modal)
+        if boundary_table:
+            modal["boundary_conditions_table"] = boundary_table
 
     from ansys_report.narrative.harmonic_merge import (
         HARMONIC_SECTION_KEYS,

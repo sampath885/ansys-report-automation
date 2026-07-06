@@ -15,9 +15,12 @@ def validate_section_content(
     context: dict[str, Any],
     cfg: ProjectConfig,
     spec: SectionContentSpec | None = None,
+    *,
+    strict: bool = False,
 ) -> ValidationReport:
     """Check enabled sections against content matrix (figures, pending tables, data gaps)."""
     report = ValidationReport()
+    strict = strict or cfg.strict_mode
     spec = spec or load_section_content_spec(cfg.section_content_path)
     ctx = dict(context)
     enrich_context_tables(ctx, cfg)
@@ -27,11 +30,13 @@ def validate_section_content(
         for slot in doc.missing_figures:
             report.add("figures", f"Figure slot missing (expected while skip_images): {slot}", "warning")
     else:
+        severity = "error" if strict else "error"
         for slot in doc.missing_figures:
-            report.add("figures", f"Missing required figure: {slot}", "error")
+            report.add("figures", f"Missing required figure: {slot}", severity)
 
+    pending_severity = "error" if strict else "warning"
     for label in doc.pending_blocks:
-        report.add("content", f"Pending content block: {label}", "warning")
+        report.add("content", f"Pending content block: {label}", pending_severity)
 
     for section in spec.sections:
         if not _section_relevant(section, cfg):
@@ -44,7 +49,7 @@ def validate_section_content(
                     report.add("sections", f"No data for section: {section.key}", "warning")
             elif section_key in cfg.sections_enabled:
                 report.add("sections", f"No data for enabled section: {section_key}", "warning")
-        _check_block_specs(section, data or {}, report)
+        _check_block_specs(section, data or {}, report, strict=strict)
 
     dc = ctx.get("design_calcs") or {}
     if "design_calcs" in cfg.sections_enabled:
@@ -56,7 +61,7 @@ def validate_section_content(
                 "excel",
                 f"No design calculation tables extracted from workbook (source={src}). "
                 "Check --excel-calcs path points to the UDPL calculation workbook.",
-                "warning",
+                "error" if strict else "warning",
             )
 
     return report
@@ -71,25 +76,45 @@ def _section_relevant(section, cfg: ProjectConfig) -> bool:
     return section_key in cfg.sections_enabled
 
 
-def _check_block_specs(section, data: dict[str, Any], report: ValidationReport) -> None:
-    _walk_block_specs(section.blocks, data, section.key, report)
+def _check_block_specs(section, data: dict[str, Any], report: ValidationReport, *, strict: bool) -> None:
+    _walk_block_specs(section.blocks, data, section.key, report, strict=strict)
 
 
-def _walk_block_specs(blocks, data: dict[str, Any], section_key: str, report: ValidationReport) -> None:
+def _resolve_path(obj: Any, path: str) -> Any:
+    cur: Any = obj
+    for part in path.split("."):
+        if not isinstance(cur, dict):
+            return None
+        cur = cur.get(part)
+    return cur
+
+
+def _walk_block_specs(
+    blocks, data: dict[str, Any], section_key: str, report: ValidationReport, *, strict: bool
+) -> None:
     for block in blocks:
+        if block.when_field and not _has_rows(data, block.when_field):
+            continue
+        if block.unless_field and _resolve_path(data, block.unless_field):
+            continue
+
         if block.implemented is False:
             cap = block.caption or block.caption_template or block.note or block.type
-            report.add("content", f"Not implemented: {section_key} / {cap}", "warning")
+            sev = "error" if strict else "warning"
+            report.add("content", f"Not implemented: {section_key} / {cap}", sev)
         if block.type == "table" and block.implemented is not False:
             if block.rows_path and not _has_rows(data, block.rows_path):
+                if not block.required:
+                    continue
                 cap = block.caption or block.rows_path
-                report.add("data", f"Empty table data: {section_key} → {cap}", "warning")
+                sev = "error" if strict else "warning"
+                report.add("data", f"Empty table data: {section_key} → {cap}", sev)
         if block.type == "repeat":
             items = data.get(block.items_path or "") if isinstance(data, dict) else None
             if not items:
                 continue
             for item in items:
-                _walk_block_specs(block.blocks, item, section_key, report)
+                _walk_block_specs(block.blocks, item, section_key, report, strict=strict)
 
 
 def _has_rows(data: dict[str, Any], rows_path: str) -> bool:

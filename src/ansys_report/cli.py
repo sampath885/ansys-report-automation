@@ -186,7 +186,11 @@ def _execute_build(
     assets = _resolve_image_assets(cfg)
     if assets is not None:
         validation.merge(assets_to_validation(assets))
-        if tpl_path.exists() and "EP2737" in tpl_path.name.upper():
+        layout = (cfg.layout or "").lower()
+        if assets.resolved and (
+            layout in ("ep1581", "ep2737")
+            or (tpl_path.exists() and "EP2737" in tpl_path.name.upper())
+        ):
             images_ctx = dict(assets.resolved)
         elif tpl_path.exists() and assets.resolved:
             from docxtpl import DocxTemplate
@@ -206,12 +210,14 @@ def _execute_build(
     elif cfg.image_root.exists():
         context["image_root"] = str(cfg.image_root)
     if not mock_data:
-        from ansys_report.report.ep2737_overlay import apply_golden_dpf_overlay, needs_golden_overlay
+        use_golden = cfg.use_dpf_golden_fallback and not cfg.strict_mode
+        if use_golden or golden_dpf:
+            from ansys_report.report.ep2737_overlay import apply_golden_dpf_overlay, needs_golden_overlay
 
-        if golden_dpf or (cfg.use_dpf_golden_fallback and needs_golden_overlay(context)):
-            apply_golden_dpf_overlay(context, cfg, force=golden_dpf)
-        elif cfg.use_dpf_golden_fallback:
-            apply_golden_dpf_overlay(context, cfg, force=False)
+            if golden_dpf or needs_golden_overlay(context):
+                apply_golden_dpf_overlay(context, cfg, force=golden_dpf)
+            else:
+                apply_golden_dpf_overlay(context, cfg, force=False)
     validation.merge(build_validation)
 
     if not mock_data and cfg.section_content_path and cfg.section_content_path.exists():
@@ -219,7 +225,7 @@ def _execute_build(
         from ansys_report.report.table_builders import enrich_context_tables
 
         enrich_context_tables(context, cfg)
-        validation.merge(validate_section_content(context, cfg))
+        validation.merge(validate_section_content(context, cfg, strict=cfg.strict_mode))
 
         from ansys_report.report.extraction_diagnostics import (
             check_harmonic_extraction,

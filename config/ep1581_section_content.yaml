@@ -1,0 +1,625 @@
+version: 1
+reference_template: EP1581_29APR_R0.docx
+sections:
+- key: cover
+  enabled: true
+  blocks:
+  - type: cover
+- key: revision
+  section_key: revision
+  heading: Revision Log
+  heading_level: 1
+  reference_table: 'Table 1: Revision Log'
+  blocks:
+  - type: reference_table
+    ref_key: revision_log
+- key: scope
+  section_key: scope
+  heading: Scope
+  heading_level: 1
+  reference_table: 'Table 3: Scope of Design Analysis'
+  blocks:
+  - type: reference_table
+    ref_key: scope_analysis
+- key: software
+  section_key: software
+  heading: Software/Tools
+  heading_level: 1
+  blocks:
+  - type: reference_table
+    ref_key: software_tools
+- key: references
+  section_key: references
+  heading: References
+  heading_level: 1
+  blocks:
+  - type: reference_table
+    ref_key: references
+- key: equipment
+  section_key: equipment
+  heading: Equipment Details
+  heading_level: 1
+  blocks:
+  - type: heading
+    text: CAD Model
+    level: 2
+  - type: figure
+    slot: cad_isometric
+    caption: 'Figure 1 - Equipment Details: CAD Model'
+    required: false
+  - type: figure
+    slot: cad_section
+    caption: 'Figure 2 Equipment Details: CAD Model Section View'
+    required: false
+  - type: heading
+    text: Mass, Material, Centre of gravity and model orientation
+    level: 2
+  - type: heading
+    text: The weight in FE analysis is tabulated below
+    level: 3
+  - type: reference_table
+    ref_key: mass_balance
+  - type: heading
+    text: Centre of gravity
+    level: 3
+  - type: reference_table
+    ref_key: centre_of_gravity
+  - type: heading
+    text: Model Orientation
+    level: 3
+  - type: figure
+    slot: model_orientation_gravity
+    caption: 'Figure 6 - Model Orientation: Standard Earth Gravity'
+    required: false
+  - type: heading
+    text: Working Principle
+    level: 2
+  - type: paragraph
+    template: '{methodology.working_principle}'
+  - type: heading
+    text: Design Specifications
+    level: 2
+  - type: reference_table
+    ref_key: technical_specifications
+- key: modelling
+  section_key: modelling
+  heading: Modelling Details
+  heading_level: 1
+  blocks:
+  - type: heading
+    text: Details of all the non-structural parts which are excluded from the model
+    level: 2
+  - type: paragraph
+    template: '{methodology.excluded_parts}'
+  - type: heading
+    text: Modelling approach for all structural parts
+    level: 2
+  - type: heading
+    text: Simulation Geometry
+    level: 3
+  - type: heading
+    text: FE Mesh
+    level: 3
+  - type: figure
+    slot: mesh_global
+    caption: 'Figure 8 - FE Mesh: Mesh for FE Simulation'
+    required: false
+  - type: reference_table
+    ref_key: mesh_control_reference
+  - type: heading
+    text: Mesh Quality criteria
+    level: 3
+  - type: reference_table
+    ref_key: mesh_quality
+  - type: heading
+    text: Modelling approach for bolted joints
+    level: 2
+  - type: paragraph
+    template: '{methodology.bolted_joint_method}'
+  - type: heading
+    text: Modelling approach for welded joints
+    level: 2
+  - type: paragraph
+    template: '{methodology.welded_joint_method}'
+  - type: heading
+    text: Modelling approach for gaskets
+    level: 2
+  - type: paragraph
+    template: '{methodology.gasket_method}'
+  - type: heading
+    text: Modelling approach for interfaces (contacts)
+    level: 2
+  - type: heading
+    text: Details of materials models selected
+    level: 2
+  - type: reference_table
+    ref_key: material_properties_modelling
+- key: modal
+  section_key: modal
+  heading: Load Case – 2 Modal Analysis
+  heading_level: 2
+  parent_section: Details of the Loading and BC
+  blocks:
+  - type: heading
+    text: Modal Analysis Methodology
+    level: 3
+  - type: paragraph
+    template: '{methodology.modal_methodology}'
+  - type: heading
+    text: Modal Analysis Boundary Conditions
+    level: 3
+  - type: table
+    caption: Table 11 – Modal Analysis Boundary Conditions
+    headers:
+    - Sl. No.
+    - Loading or BC
+    - Location
+    - Value
+    rows_path: boundary_conditions_table.rows
+    raw_table: true
+    when_field: boundary_conditions_table
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: modal
+    subfolder: loading
+    filename: loading_conditions_overview.png
+    caption: 'Figure 28 - Modal Analysis: Boundary Conditions Modal Analysis'
+  - type: heading
+    text: Modal Analysis Results
+    level: 3
+  - type: figure
+    slot: modal_mode1
+    caption: 'Figure 29 - Modal Analysis: Mode 1'
+    required: false
+  - type: figure
+    slot: modal_mode2
+    caption: 'Figure 30 - Modal Analysis: Mode 2'
+    required: false
+  - type: figure
+    slot: modal_mode3
+    caption: 'Figure 31 - Modal Analysis: Mode 3'
+    required: false
+  - type: figure
+    slot: modal_mode4
+    caption: 'Figure 32 - Modal Analysis: Mode 4'
+    required: false
+  - type: figure
+    slot: modal_mode5
+    caption: 'Figure 33 - Modal Analysis: Mode 5'
+    required: false
+  - type: figure
+    slot: modal_mode6
+    caption: 'Figure 34 - Modal Analysis: Mode 6'
+    required: false
+  - type: heading
+    text: Modal Analysis Conclusions
+    level: 3
+  - type: paragraph
+    when_style: ep1581
+    field: intro_text
+  - type: table
+    when_style: ep1581
+    caption: Table 14 - Modal Analysis Summary
+    headers:
+    - Sl. No
+    - Frequency (Hz)
+    - Operating Frequency
+    - Dominant in Direction
+    - Remark
+    rows_path: summary_table
+    columns:
+    - sr_no
+    - freq_hz
+    - operating_frequency
+    - dominant_direction
+    - remark
+  - type: narrative
+    when_style: ep1581
+    narrative_mode: conclusions_only
+  parent_heading_level: 1
+- key: static
+  section_key: static
+  heading: Load Case - 3 Static Structural Analysis
+  heading_level: 2
+  parent_section: Details of the Loading and BC
+  blocks:
+  - type: heading
+    text: Static Structural Analysis Boundary Conditions
+    level: 3
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: static_structural
+    subfolder: loading
+    filename: loading_conditions_overview.png
+    caption: 'Figure 35 - Static Structural Analysis: Boundary Conditions Static Structural Analysis'
+  - type: heading
+    text: Static Structural Analysis Results
+    level: 3
+  - type: figure
+    slot: static_total_deformation
+    caption: 'Figure 36 - Static Structural: Total Deformation - End Time'
+    required: false
+  - type: figure
+    slot: static_vonmises_stress
+    caption: 'Figure 37 - Static Structural: Equivalent (von-Mises) Stress - End Time'
+    required: false
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: static_structural
+    category: material_stress
+    caption_prefix: 'Static Structural: Equivalent (von-Mises) Stress'
+    caption_suffix: '- End Time'
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: static_structural
+    category: reaction
+    caption_prefix: Static Structural
+    caption_suffix: '- End Time'
+  - type: table
+    caption: Table 19 - Bolt Force Summary Table
+    headers:
+    - Bolt No
+    - Maximum Axial Force (N)
+    - Maximum Shear Force (N)
+    - Tensile Stress Area mm2
+    - Shear Stress Area mm2
+    - Normal Stress
+    - Shear Stress
+    - Yield Stress MPa
+    - Conclusion
+    rows_path: bolt_loads
+    when_field: bolt_loads
+    columns:
+    - bolt_no
+    - axial_force_n
+    - shear_force_n
+    - tensile_stress_area_mm2
+    - shear_stress_area_mm2
+    - normal_stress_mpa
+    - shear_stress_mpa
+    - yield_stress_mpa
+    - conclusion
+  - type: heading
+    text: Static Structural Analysis Conclusions
+    level: 3
+  - type: table
+    when_style: ep1581
+    caption: Table 20 - Static Structural Results Summary
+    headers:
+    - Sr. No
+    - Material
+    - Maximum Occurs on
+    - Stresses Observed(MPa)
+    - Allowable Stress (MPa)
+    - Remarks
+    rows_path: conclusion_table
+    columns:
+    - sr_no
+    - material
+    - location
+    - stress_mpa
+    - allowable_mpa
+    - remarks
+  - type: narrative
+- key: vibration_intro
+  section_key: harmonic_x
+  parent_section: Details of the Loading and BC
+  heading: Load case - 4 Vibration resistance analysis
+  heading_level: 2
+  enabled_when_any:
+  - harmonic_x
+  - harmonic_y
+  - harmonic_z
+  blocks:
+  - type: heading
+    text: Vibration Resistance Analysis Methodology
+    level: 3
+  - type: paragraph
+    template: '{methodology.vibration_methodology}'
+  - type: heading
+    text: Vibration Resistance analysis Results
+    level: 3
+- key: harmonic_x
+  section_key: harmonic_x
+  heading: Load Case - 3.1 Vibration Resistance Analysis in X- Direction
+  heading_level: 4
+  parent_section: Details of the Loading and BC
+  blocks:
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: vibration_resistance_analysis_x
+    subfolder: loading
+    filename: loading_conditions_overview.png
+    caption: 'Figure - Harmonic Response X: Boundary Conditions'
+  - type: figure
+    slot: harmonic_x_deformation
+    caption: 'Harmonic Response X: Displacement Amplitude (X)'
+    required: false
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: vibration_resistance_analysis_x
+    category: material_stress
+    caption_prefix: 'Harmonic Response X: Equivalent (von-Mises) Stress'
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: vibration_resistance_analysis_x
+    category: frequency_response
+    caption_prefix: 'Harmonic Response X: Frequency Response'
+- key: harmonic_y
+  section_key: harmonic_y
+  heading: Load Case - 3.2 Vibration Resistance Analysis in Y- Direction
+  heading_level: 4
+  parent_section: Details of the Loading and BC
+  blocks:
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: vibration_resistance_analysis_y
+    subfolder: loading
+    filename: loading_conditions_overview.png
+    caption: 'Figure - Harmonic Response Y: Boundary Conditions'
+  - type: figure
+    slot: harmonic_y_deformation
+    caption: 'Harmonic Response Y: Displacement Amplitude (Y)'
+    required: false
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: vibration_resistance_analysis_y
+    category: material_stress
+    caption_prefix: 'Harmonic Response Y: Equivalent (von-Mises) Stress'
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: vibration_resistance_analysis_y
+    category: frequency_response
+    caption_prefix: 'Harmonic Response Y: Frequency Response'
+- key: harmonic_z
+  section_key: harmonic_z
+  heading: Load Case - 3.3 Vibration Resistance Analysis in Z- Direction
+  heading_level: 4
+  parent_section: Details of the Loading and BC
+  blocks:
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: vibration_resistance_analysis_z
+    subfolder: loading
+    filename: loading_conditions_overview.png
+    caption: 'Figure - Harmonic Response Z: Boundary Conditions'
+  - type: figure
+    slot: harmonic_z_deformation
+    caption: 'Harmonic Response Z: Displacement Amplitude (Z)'
+    required: false
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: vibration_resistance_analysis_z
+    category: material_stress
+    caption_prefix: 'Harmonic Response Z: Equivalent (von-Mises) Stress'
+  - type: figure_gallery
+    when_style: ep1581
+    analysis_folder: vibration_resistance_analysis_z
+    category: frequency_response
+    caption_prefix: 'Harmonic Response Z: Frequency Response'
+- key: harmonic_conclusion
+  section_key: vibration_conclusion
+  heading: Harmonic Analysis Conclusions
+  heading_level: 3
+  parent_section: Details of the Loading and BC
+  enabled_when_any:
+  - harmonic_x
+  - harmonic_y
+  - harmonic_z
+  blocks:
+  - type: table
+    when_style: ep1581
+    caption: 'Table 28: Harmonic Analysis Results Summary'
+    headers:
+    - Sr. No.
+    - Direction
+    - Material
+    - Maximum Occurs On
+    - Stresses Observed (MPa)
+    - Allowable Stress (MPa)
+    - Remarks
+    rows_path: stress_table
+    columns:
+    - sr_no
+    - direction
+    - material
+    - location
+    - stress_mpa
+    - allowable_mpa
+    - remarks
+  - type: table
+    caption: Vibration resistance summary
+    headers:
+    - Sl. No.
+    - Analysis
+    - Component
+    - Material
+    - Peak Frequency (Hz)
+    - Peak Displacement (mm)
+    - Remarks
+    rows_path: rows
+    columns:
+    - sr_no
+    - analysis
+    - component
+    - material
+    - peak_frequency_hz
+    - peak_displacement_mm
+    - remarks
+  - type: narrative
+    when_style: ep1581
+    narrative_mode: conclusions_only
+  - type: narrative
+    unless_style: ep1581
+- key: shock
+  section_key: shock
+  heading: Load Case - 5 Shock Analysis - Transient Approach
+  heading_level: 2
+  parent_section: Details of the Loading and BC
+  blocks:
+  - type: heading
+    text: Shock Analysis Boundary And Loading Conditions For Transient Analysis
+    level: 3
+  - type: reference_table
+    ref_key: shock_pulse_specifications
+  - type: heading
+    text: Results of Shock Analysis
+    level: 3
+  - type: repeat
+    items_path: directions
+    item_prefix: shock_item
+    blocks:
+    - type: heading
+      template: Equivalent Static Analysis in {shock_item.direction} Direction
+      level: 3
+    - type: figure_gallery
+      when_style: ep1581
+      analysis_folder_template: '{shock_item.analysis_folder}'
+      subfolder: loading
+      filename: loading_conditions_overview.png
+      caption_template: 'Equivalent Static Analysis in {shock_item.direction}: Boundary Conditions'
+    - type: figure
+      slot_template: shock_{shock_item.key}_deformation
+      caption_template: Total Deformation — shock {shock_item.direction}
+      required: false
+    - type: figure
+      slot_template: shock_{shock_item.key}_stress_asm
+      caption_template: Equivalent Von-Mises Stress — assembly, shock {shock_item.direction}
+      required: false
+    - type: figure
+      slot_template: shock_{shock_item.key}_stress_flange
+      caption_template: Equivalent Von-Mises Stress — flange, shock {shock_item.direction}
+      required: false
+    - type: figure_gallery
+      when_style: ep1581
+      analysis_folder_template: '{shock_item.analysis_folder}'
+      category: material_stress
+      caption_prefix: 'Equivalent Static {shock_item.direction}: Equivalent (von-Mises) Stress'
+      caption_suffix: '- End Time'
+    - type: table
+      caption_template: 'Table {shock_item.table_no}: Bolt Loads: Shock in {shock_item.direction} direction'
+      headers:
+      - Bolt No
+      - Maximum Axial Force (N)
+      - Maximum Shear Force (N)
+      - Tensile Stress Area mm2
+      - Shear Stress Area mm2
+      - Normal Stress
+      - Shear Stress
+      - Yield Stress MPa
+      - Conclusion
+      rows_path: bolt_loads
+      when_field: bolt_loads
+      columns:
+      - bolt_no
+      - axial_force_n
+      - shear_force_n
+      - tensile_stress_area_mm2
+      - shear_stress_area_mm2
+      - normal_stress_mpa
+      - shear_stress_mpa
+      - yield_stress_mpa
+      - conclusion
+  - type: heading
+    text: Result Summary – Equivalent Static Analysis
+    level: 3
+  - type: table
+    caption: 'Table 23: Result Summary – Equivalent Static Analysis'
+    headers:
+    - Sr. No
+    - Direction
+    - Material
+    - Maximum Occurs on
+    - Stresses Observed (MPa)
+    - Allowable Stress (MPa)
+    - Remarks
+    rows_path: conclusion_table
+    columns:
+    - sr_no
+    - direction
+    - material
+    - location
+    - stress_mpa
+    - allowable_mpa
+    - remarks
+  - type: narrative
+- key: materials
+  section_key: materials
+  heading: Material Properties
+  heading_level: 1
+  blocks:
+  - type: reference_table
+    ref_key: material_properties_results
+  - type: reference_table
+    ref_key: material_allowable_strength
+- key: design_calcs
+  section_key: design_calcs
+  heading: Design calculations of the Valve
+  heading_level: 1
+  blocks:
+  - type: repeat
+    items_path: discovered_sections
+    item_prefix: calc_section
+    blocks:
+    - type: heading
+      template: '{calc_section.title}'
+      level: 2
+    - type: table
+      caption_template: '{calc_section.title}'
+      raw_table: true
+      headers_path: headers
+      rows_path: raw_rows
+      when_field: raw_rows
+    - type: figure_placeholder
+      caption_template: '{calc_section.title}'
+      when_field: raw_rows
+  - type: heading
+    text: Thickness Calculation of Welded Plane Pipe Flange
+    level: 2
+    unless_field: discovered_sections
+  - type: table
+    caption: 'Table 25: Flange Thickness calculation'
+    headers:
+    - Parameter
+    - Value
+    - Unit
+    - Verdict
+    rows_path: end_flange
+    columns:
+    - label
+    - value
+    - unit
+    - verdict
+    unless_field: discovered_sections
+  - type: heading
+    text: Bolt Preload Calculations
+    level: 2
+    unless_field: discovered_sections
+  - type: table
+    caption: 'Table 26: Bolt pretension calculations'
+    headers:
+    - Parameter
+    - Value
+    - Unit
+    rows_path: bolt_load
+    columns:
+    - label
+    - value
+    - unit
+    unless_field: discovered_sections
+  - type: heading
+    text: Fatigue Strength Calculations
+    level: 2
+    unless_field: discovered_sections
+  - type: paragraph
+    template: '{methodology.fatigue_theory}'
+  - type: reference_table
+    ref_key: fatigue_strength_calculations
+    unless_field: discovered_sections
+  - type: reference_table
+    ref_key: surface_finish_factors
+  - type: reference_table
+    ref_key: reliability_factors
+  - type: narrative
+layout: ep1581
+content_start_marker: Revision Log

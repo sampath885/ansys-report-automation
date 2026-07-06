@@ -12,6 +12,7 @@ class ModeResult(BaseModel):
     index: int
     freq_hz: float | None = None
     participation: float | None = None
+    dominant_direction: str | None = None
 
 
 class BodyStressRow(BaseModel):

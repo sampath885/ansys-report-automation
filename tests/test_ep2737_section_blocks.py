@@ -86,7 +86,20 @@ def test_block_render_writes_docx(tmp_path):
         "prepared_by": {"name": "A", "role": "B"},
         "checked_by": {"name": "C", "role": "D"},
         "approved_by": {"name": "E", "role": "F"},
-        "modal": {"modes": [{"index": 1, "freq_hz": 421.124}], "narrative": {"conclusions": ["OK"]}},
+        "modal": {
+            "modes": [{"index": 1, "freq_hz": 421.124}],
+            "summary_table": [
+                {
+                    "sr_no": 1,
+                    "freq_hz": 421.124,
+                    "operating_frequency": "10-200 Hz",
+                    "dominant_direction": "—",
+                    "remark": "OK",
+                }
+            ],
+            "intro_text": "Modal summary.",
+            "narrative": {"conclusions": ["OK"]},
+        },
     }
     cfg.sections_enabled = ["modal"]
     doc_model = assemble_ep2737_document(ctx, cfg)

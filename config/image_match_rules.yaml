@@ -17,6 +17,10 @@ rules:
     path_glob: connections/*connections*.png
   geometry_model_orientation:
     path_glob: coordinate_systems/*coordinate*.png
+  model_orientation_gravity:
+    folder_keywords: [static_structural]
+    file: loading/standard_earth_gravity.png
+    exclude_keywords: [modal, harmonic, vibration, shock, transient, equivalent_static]
 
   mesh_global:
     path_glob: mesh/mesh*.png

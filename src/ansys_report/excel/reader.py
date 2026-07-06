@@ -55,10 +55,8 @@ def read_design_calcs(
         if has_calc_data(auto_result):
             return auto_result
         if excel_mode == "auto":
-            logger.warning(
-                "Auto-discover found no calculation tables in %s; trying map/generic fallback",
-                excel_path.name,
-            )
+            logger.warning("Auto-discover found no calculation tables in %s", excel_path.name)
+            return auto_result
 
     if excel_map_path and excel_map_path.exists() and case_root:
         from ansys_report.excel.auto_discover import has_calc_data

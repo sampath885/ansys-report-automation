@@ -16,6 +16,7 @@ BlockKind = Literal[
     "scalar",
     "narrative",
     "page_break",
+    "section_break",
     "pending",
 ]
 
@@ -37,6 +38,9 @@ class RenderBlock(BaseModel):
     recommendations: list[str] = Field(default_factory=list)
     pending: bool = False
     note: str | None = None
+    description: str | None = None
+    placeholder: bool = False
+    orientation: str | None = None
 
 
 class RenderSection(BaseModel):

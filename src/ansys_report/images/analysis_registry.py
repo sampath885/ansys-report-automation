@@ -52,6 +52,8 @@ def slot_family(slot: str) -> str | None:
         return "connections"
     if s.startswith("static_"):
         return "static"
+    if s == "model_orientation_gravity":
+        return "static"
     if s.startswith("modal_"):
         return "modal"
     if s.startswith("mesh_"):
@@ -80,6 +82,8 @@ def folder_markers_for_slot(slot: str) -> tuple[str, ...]:
         return ("connections/",)
     if s == "geometry_model_orientation":
         return ("coordinate_systems/",)
+    if s == "model_orientation_gravity":
+        return ("static_structural",)
     if s.startswith("mesh_"):
         return ("mesh/",)
     return ()
@@ -97,7 +101,7 @@ def path_allowed_for_slot(slot: str, rel_path: str) -> bool:
         elif not any(m in p for m in markers):
             return False
 
-    if s.startswith("static_"):
+    if s.startswith("static_") or s == "model_orientation_gravity":
         if any(bad in p for bad in _FORBIDDEN_FOR_STATIC):
             return False
 

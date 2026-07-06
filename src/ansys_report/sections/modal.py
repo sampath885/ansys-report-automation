@@ -22,8 +22,21 @@ class ModalSection:
         modes = []
         if modal:
             modes = [m.model_dump() for m in modal.modes]
+
+        boundary_conditions: list[dict[str, Any]] = []
+        loads: list[dict[str, Any]] = []
+        mech_dir = _modal_mech_dir(inventory)
+        if mech_dir is not None:
+            from ansys_report.extract.metadata import extract_analysis_metadata
+
+            analysis = extract_analysis_metadata(mech_dir)
+            boundary_conditions = [bc.model_dump(mode="json") for bc in analysis.boundary_conditions]
+            loads = [load.model_dump(mode="json") for load in analysis.loads]
+
         return {
             "modes": modes,
+            "boundary_conditions": boundary_conditions,
+            "loads": loads,
             "manual_fields": modal.manual_fields if modal else ["frequencies"],
         }
 
@@ -52,3 +65,11 @@ def _pick_rst(inventory: ProjectInventory, prefer: tuple[str, ...]):
             if name.lower() in key.lower():
                 return path
     return next(iter(inventory.rst_files.values()), None)
+
+
+def _modal_mech_dir(inventory: ProjectInventory):
+    for name in ("modal", "SYS-1", "sys-1"):
+        for key, sys in inventory.systems.items():
+            if name.lower() in key.lower() or name.lower() in sys.folder.lower():
+                return sys.mech_dir
+    return None

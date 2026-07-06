@@ -304,13 +304,15 @@ def test_modal_conclusion_table_ep1581(ep2737_cfg):
 
     modal = {
         "modes": [
-            {"index": 1, "freq_hz": 36.139},
+            {"index": 1, "freq_hz": 36.139, "dominant_direction": "Z Direction"},
             {"index": 2, "freq_hz": 145.71},
             {"index": 3, "freq_hz": 188.83},
         ]
     }
     rows = build_modal_conclusion_table(modal, ep2737_cfg, resonance_margin_hz=10.0)
     assert len(rows) == 3
+    assert rows[0]["dominant_direction"] == "Z Direction"
+    assert rows[1]["dominant_direction"] == "—"
     assert rows[0]["operating_frequency"] == "10 to 200 Hz"
     assert rows[0]["remark"] == "Not in or near operating Frequency"
     assert "resonance" in rows[1]["remark"].lower()

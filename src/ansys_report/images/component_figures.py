@@ -78,7 +78,26 @@ def discover_gallery_figures(
             )
         ]
 
-    figures: list[ComponentFigure] = []
+    if category == "frequency_response":
+        graphs_dir = image_root / analysis_folder / "solution" / "graphs"
+        if not graphs_dir.is_dir():
+            return []
+        figures: list[ComponentFigure] = []
+        for path in sorted(graphs_dir.glob("*.png")):
+            stem = path.stem.lower()
+            if "frequency" not in stem and "response" not in stem:
+                continue
+            figures.append(
+                ComponentFigure(
+                    path=path.resolve(),
+                    label=filename_to_material_label(path.stem),
+                    stem=path.stem,
+                    rel_path=str(path.relative_to(image_root)).replace("\\", "/"),
+                )
+            )
+        return figures
+
+    figures = []
     for path in sorted(base.glob("*.png")):
         stem = path.stem
         if category == "material_stress" and not _is_material_stress_file(stem):

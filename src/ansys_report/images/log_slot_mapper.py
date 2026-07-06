@@ -161,6 +161,8 @@ def parse_autodiscover_export_log(log_path: Path, exports_root: Path) -> dict[st
 
         if slot not in mapping:
             mapping[slot] = rel
+        if slot == "static_earth_gravity" and "model_orientation_gravity" not in mapping:
+            mapping["model_orientation_gravity"] = rel
 
     return dict(sorted(mapping.items()))
 

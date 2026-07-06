@@ -1,6 +1,7 @@
 slots:
   cad_isometric: geometry/geometry.png
   geometry_model_orientation: coordinate_systems/coordinate_systems.png
+  model_orientation_gravity: static_structural/loading/standard_earth_gravity.png
   harmonic_x_accel_plot: vibration_resistance_analysis_x/solution/graphs/frequency_response.png
   harmonic_x_deformation: vibration_resistance_analysis_x/solution/total_deformation.png
   harmonic_x_location: vibration_resistance_analysis_x/loading/acceleration.png

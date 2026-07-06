@@ -125,6 +125,9 @@ class ProjectConfig(BaseModel):
     use_word_table_data: bool = False
     report_defaults_path: Path | None = None
     use_dpf_golden_fallback: bool = False
+    strict_mode: bool = False
+    layout: str = "ep2737"  # ep2737 | ep1581
+    content_start_marker: str = "Revision log"
     standards_tables_path: Path | None = None
     skip_images: bool = False
     sections_enabled: list[str]

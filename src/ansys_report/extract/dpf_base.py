@@ -309,3 +309,63 @@ def read_modal_frequencies_hz(model, num_modes: int = 6) -> list[float]:
     """Natural frequencies from modal result metadata (time/freq support)."""
     freqs = list(model.metadata.time_freq_support.time_frequencies.data)
     return [float(f) for f in freqs[:num_modes]]
+
+
+_MODAL_DIRECTION_KEYS = ("x", "y", "z", "rot_x", "rot_y", "rot_z")
+
+
+def modal_mode_data_sources(rst_path: Path):
+    """DataSources for modal spectrum reads (RST + sibling ``file.mode`` when present)."""
+    from ansys.dpf import core as dpf
+
+    rst_path = rst_path.resolve()
+    mode_path = rst_path.with_suffix(".mode")
+    ds = dpf.DataSources()
+    if mode_path.is_file():
+        ds.set_result_file_path(str(mode_path), "mode")
+    ds.add_file_path(str(rst_path))
+    return ds
+
+
+def read_modal_effective_mass_ratios(
+    rst_path: Path,
+    num_modes: int = 6,
+) -> list[dict[str, float]] | None:
+    """Effective-mass-to-total-mass ratios per mode and global direction (needs ``.mode`` file)."""
+    mode_path = rst_path.resolve().with_suffix(".mode")
+    if not mode_path.is_file():
+        return None
+
+    try:
+        from ansys.dpf import core as dpf
+    except Exception:
+        return None
+
+    try:
+        ds = modal_mode_data_sources(rst_path)
+        spec = dpf.operators.result.spectrum_data()
+        spec.inputs.data_sources.connect(ds)
+        participation = spec.outputs.participation_factors()
+
+        mass_op = dpf.operators.result.total_mass()
+        mass_op.inputs.data_sources.connect(ds)
+        total_mass = float(mass_op.outputs.mass())
+        if total_mass <= 0:
+            return None
+
+        n_dirs = min(len(participation), len(_MODAL_DIRECTION_KEYS))
+        n_modes = min(num_modes, len(participation[0].data) if n_dirs else 0)
+        if n_modes <= 0:
+            return None
+
+        per_mode: list[dict[str, float]] = []
+        for mode_idx in range(n_modes):
+            ratios: dict[str, float] = {}
+            for dir_idx in range(n_dirs):
+                pf = float(participation[dir_idx].data[mode_idx])
+                ratios[_MODAL_DIRECTION_KEYS[dir_idx]] = (pf * pf) / total_mass
+            per_mode.append(ratios)
+        return per_mode
+    except Exception as exc:
+        logger.warning("Modal effective mass read failed for %s: %s", rst_path, exc)
+        return None

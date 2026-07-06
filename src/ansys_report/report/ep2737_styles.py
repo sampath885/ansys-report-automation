@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import io
 import re
 import shutil
@@ -13,14 +14,14 @@ W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 NS = {"w": W_NS}
 
 
-def _extract_document_shell(doc_xml: str) -> str:
+def _extract_document_shell(doc_xml: str, *, prefer_portrait: bool = False) -> str:
     """Return document.xml with empty body preserving namespaces and sectPr."""
     root = ET.fromstring(doc_xml)
     body = root.find("w:body", NS)
     if body is None:
         return doc_xml
 
-    sect_pr = body.find("w:sectPr", NS)
+    sect_pr = _select_shell_sect_pr(body, prefer_portrait=prefer_portrait)
     new_body = ET.Element(f"{{{W_NS}}}body")
     if sect_pr is not None:
         new_body.append(sect_pr)
@@ -38,15 +39,45 @@ def _extract_document_shell(doc_xml: str) -> str:
     return ET.tostring(root, encoding="unicode", xml_declaration=False)
 
 
+def _select_shell_sect_pr(body: ET.Element, *, prefer_portrait: bool) -> ET.Element | None:
+    candidates: list[ET.Element] = []
+    for element in body:
+        if element.tag == f"{{{W_NS}}}sectPr":
+            candidates.append(element)
+        if element.tag == f"{{{W_NS}}}p":
+            ppr = element.find("w:pPr", NS)
+            if ppr is not None:
+                sect = ppr.find("w:sectPr", NS)
+                if sect is not None:
+                    candidates.append(sect)
+
+    if not candidates:
+        return None
+
+    if prefer_portrait:
+        for sect in candidates:
+            pg = sect.find("w:pgSz", NS)
+            if pg is None:
+                continue
+            width = pg.get(f"{{{W_NS}}}w")
+            height = pg.get(f"{{{W_NS}}}h")
+            if width and height and int(width) < int(height):
+                return copy.deepcopy(sect)
+
+    return copy.deepcopy(candidates[-1])
+
+
 def create_style_shell(reference_docx: Path, output_path: Path) -> Path:
-    """Copy reference DOCX and replace document body with sectPr only."""
+    """Copy reference DOCX and replace document body with portrait sectPr only."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(reference_docx, output_path)
 
     with zipfile.ZipFile(output_path, "r") as zin:
         doc_xml = zin.read("word/document.xml").decode("utf-8")
 
-    new_doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + _extract_document_shell(doc_xml)
+    new_doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n' + _extract_document_shell(
+        doc_xml, prefer_portrait=True
+    )
 
     buffer = output_path.read_bytes()
     out_buf = io.BytesIO()

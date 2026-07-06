@@ -1,0 +1,31 @@
+HEADINGS:
+  Heading 1 | CFD Analysis
+  Heading 2 | Introduction
+  Heading 2 | CFD Analysis Methodology
+  Heading 2 | Assumptions
+  Heading 2 | CFD Mesh
+  Heading 2 | Material Selection
+  Heading 2 | Turbulent Viscous model
+  Heading 2 | Boundary Conditions
+  Heading 2 | Solution Methods
+  Heading 3 | Convergence criteria
+  Heading 2 | Results
+  Heading 3 | Y+ Plot
+  Heading 3 | Velocity distribution
+  Heading 3 | Pressure distribution
+  Heading 3 | Calculation of valve coefficient
+  Heading 3 | CFD Analysis Conclusions
+CAPTIONS:
+  Figure 149 (a) Schematic of valve and its (b) sectional view.
+  Figure 150 Extracted fluid domain of EP 1581Valve.
+  Figure 151 CFD Mesh Size
+  Figure 152 Polyhedral grids generated on the exterior surface and hexahedral grids on the internal surface of the valve.
+  Figure 153 Material properties of sea-water.
+  Figure 154 Selection of turbulence model.
+  Table 37 Boundary conditions.
+  Figure 155 Mass Balance.
+  Figure 158 Velocity contours in the computational region of EP 1581.
+  Figure 159 Velocity streamlines in the computational region of EP 1581.
+  Figure 160 Pressure contours in the computational region of EP 1581.
+  Figure 161 Area averaged pressure obtained at the inlet and outlet
+  Table 38 Parameters used for calculation of valve coefficient.

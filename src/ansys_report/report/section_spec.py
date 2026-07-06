@@ -9,7 +9,7 @@ import yaml
 from pydantic import BaseModel, Field
 
 DEFAULT_SECTION_CONTENT = (
-    Path(__file__).resolve().parents[3] / "config" / "ep2737_section_content.yaml"
+    Path(__file__).resolve().parents[3] / "config" / "ep1581_section_content.yaml"
 )
 
 
@@ -53,6 +53,7 @@ class BlockSpec(BaseModel):
     filename: str | None = None
     caption_prefix: str | None = None
     caption_suffix: str | None = None
+    orientation: str | None = None
 
     model_config = {"extra": "ignore"}
 
@@ -63,6 +64,7 @@ class SectionSpec(BaseModel):
     heading: str | None = None
     heading_level: int = 1
     parent_section: str | None = None
+    parent_heading_level: int = 2
     enabled: bool = True
     enabled_when_any: list[str] = Field(default_factory=list)
     reference_table: str | None = None
@@ -74,6 +76,8 @@ class SectionSpec(BaseModel):
 class SectionContentSpec(BaseModel):
     version: int = 1
     reference_template: str = ""
+    layout: str = "ep1581"
+    content_start_marker: str = "Revision Log"
     sections: list[SectionSpec] = Field(default_factory=list)
 
     model_config = {"extra": "ignore"}
@@ -89,6 +93,8 @@ def load_section_content_spec(path: Path | None = None) -> SectionContentSpec:
     return SectionContentSpec(
         version=raw.get("version", 1),
         reference_template=raw.get("reference_template", ""),
+        layout=raw.get("layout", "ep1581"),
+        content_start_marker=raw.get("content_start_marker", "Revision Log"),
         sections=sections,
     )
 
@@ -101,6 +107,7 @@ def _parse_section(data: dict[str, Any]) -> SectionSpec:
         heading=data.get("heading"),
         heading_level=data.get("heading_level", 1),
         parent_section=data.get("parent_section"),
+        parent_heading_level=data.get("parent_heading_level", 2),
         enabled=data.get("enabled", True),
         enabled_when_any=data.get("enabled_when_any", []),
         reference_table=data.get("reference_table"),
