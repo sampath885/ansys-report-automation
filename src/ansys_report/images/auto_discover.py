@@ -44,6 +44,26 @@ class ImageMatchRulesConfig(BaseModel):
     rules: dict[str, ImageMatchRule] = Field(default_factory=dict)
 
 
+def enrich_match_rules(config: ImageMatchRulesConfig) -> ImageMatchRulesConfig:
+    """Merge registry folder aliases into YAML match rules."""
+    enriched: dict[str, ImageMatchRule] = {}
+    for slot, rule in config.rules.items():
+        folder_keywords = list(rule.folder_keywords)
+        inferred = infer_rule_from_slot(slot)
+        if inferred:
+            for kw in inferred.folder_keywords:
+                if kw not in folder_keywords:
+                    folder_keywords.append(kw)
+        for alias in infer_folder_keywords_for_slot(slot):
+            if alias not in folder_keywords:
+                folder_keywords.append(alias)
+        if folder_keywords != rule.folder_keywords:
+            enriched[slot] = rule.model_copy(update={"folder_keywords": folder_keywords})
+        else:
+            enriched[slot] = rule
+    return ImageMatchRulesConfig(version=config.version, rules=enriched)
+
+
 def load_image_match_rules(path: Path) -> ImageMatchRulesConfig:
     import yaml
 
@@ -57,7 +77,7 @@ def load_image_match_rules(path: Path) -> ImageMatchRulesConfig:
                 rules[str(key)] = ImageMatchRule(**value)
             elif isinstance(value, str):
                 rules[str(key)] = ImageMatchRule(path=value)
-    return ImageMatchRulesConfig(version=int(data.get("version", 1)), rules=rules)
+    return enrich_match_rules(ImageMatchRulesConfig(version=int(data.get("version", 1)), rules=rules))
 
 
 def scan_image_folder(image_root: Path) -> list[str]:
@@ -244,7 +264,7 @@ def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
         axis = harmonic_match.group(1)
         tail = harmonic_match.group(2)
         file_map = {
-            "location": "loading/acceleration.png",
+            "location": "loading/displacement.png",
             "accel_plot": "solution/graphs/frequency_response.png",
             "deformation": "solution/total_deformation.png",
             "stress_asm": "solution/equivalent_stress.png",
@@ -253,10 +273,18 @@ def infer_rule_from_slot(slot: str) -> ImageMatchRule | None:
         file_name = file_map.get(tail)
         folder_keywords = infer_folder_keywords_for_slot(f"harmonic_{axis}_deformation")
         if file_name and folder_keywords:
+            exclude = [
+                f"vibration_resistance_analysis_{other}"
+                for other in "xyz"
+                if other != axis
+            ]
+            exclude.extend(
+                f"harmonic_response_{other}" for other in "xyz" if other != axis
+            )
             return ImageMatchRule(
                 folder_keywords=folder_keywords,
                 file=file_name,
-                exclude_keywords=["modal_modal"],
+                exclude_keywords=["modal_modal", *exclude],
             )
 
     shock_match = re.match(r"shock_(plus|minus)_([xyz])_(.+)$", s)
@@ -294,7 +322,7 @@ def _score_path_for_slot(slot: str, rel_path: str) -> int:
     if s.startswith("modal_"):
         families.append(("modal", 14))
     if s.startswith("harmonic_"):
-        families.extend([("harmonic", 12), ("vibration", 12)])
+        families.extend([("harmonic", 12), ("vibration", 12), ("harmonic_response", 14)])
     if s.startswith("shock_"):
         families.extend([("shock", 12), ("transient", 10), ("equivalent", 8)])
     if s.startswith("mesh_") or s == "modelling_contacts":
@@ -317,7 +345,7 @@ def _score_path_for_slot(slot: str, rel_path: str) -> int:
             f"_{axis}_direction",
         )
         if any(ref in s for ref in axis_refs):
-            if axis in tokens or f"{axis}_direction" in p or f"_{axis}_" in p:
+            if axis in tokens or f"{axis}_direction" in p or f"harmonic_response_{axis}" in p or f"_{axis}_" in p:
                 score += 18
             for other in "xyz":
                 if other != axis and (other in tokens or f"{other}_direction" in p):
@@ -374,7 +402,7 @@ def _score_path_for_slot(slot: str, rel_path: str) -> int:
 
     if "accel" in s and ("frequency_response" in p or "acceleration" in p):
         score += 20
-    if "location" in s and ("loading" in p or "acceleration" in p):
+    if "location" in s and ("loading" in p or "acceleration" in p or "displacement" in p):
         score += 12
         if "modal_modal" in p:
             score -= 50
@@ -453,7 +481,7 @@ def _matches_rule(rel_path: str, rule: ImageMatchRule, *, slot: str = "") -> boo
         return fnmatch.fnmatch(rel_lower, _normalize_rel(rule.path_glob).lower())
 
     if rule.folder_keywords:
-        if not all(kw.lower() in rel_lower for kw in rule.folder_keywords):
+        if not any(kw.lower() in rel_lower for kw in rule.folder_keywords):
             return False
         if rule.file:
             target = _normalize_rel(rule.file).lower()

@@ -6,6 +6,8 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from ansys_report.images.analysis_registry import resolve_export_folder
+
 # Aggregate result plots — not per-material component figures.
 SOLUTION_AGGREGATE_STEMS = frozenset(
     {
@@ -60,7 +62,8 @@ def discover_gallery_figures(
     filename: str | None = None,
 ) -> list[ComponentFigure]:
     """Return ordered component figures under *image_root/analysis_folder/subfolder*."""
-    base = image_root / analysis_folder / subfolder
+    resolved_folder = resolve_export_folder(image_root, analysis_folder)
+    base = image_root / resolved_folder / subfolder
     if not base.is_dir():
         return []
 
@@ -79,7 +82,7 @@ def discover_gallery_figures(
         ]
 
     if category == "frequency_response":
-        graphs_dir = image_root / analysis_folder / "solution" / "graphs"
+        graphs_dir = image_root / resolved_folder / "solution" / "graphs"
         if not graphs_dir.is_dir():
             return []
         figures: list[ComponentFigure] = []
