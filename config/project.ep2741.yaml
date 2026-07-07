@@ -36,6 +36,7 @@ skip_images: false
 image_map_path: "../config/image_map.ep2741.yaml"
 image_match_rules_path: "../config/image_match_rules.yaml"
 image_resolve_mode: hybrid
+semantic_image_fallback: auto
 
 equipment_spec:
   part_name: "valve assembly"

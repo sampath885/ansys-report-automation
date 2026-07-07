@@ -141,6 +141,7 @@ class ProjectConfig(BaseModel):
     image_map_path: Path | None = None
     image_match_rules_path: Path | None = None
     image_resolve_mode: str = "hybrid"
+    semantic_image_fallback: str = "auto"  # auto | on | off — Gemini for static/harmonic/shock gaps
     thresholds_path: Path | None = None
 
     @field_validator("sections_enabled")
@@ -288,6 +289,10 @@ def ai_enabled(no_ai: bool = False) -> bool:
     if no_ai:
         return False
     return bool(os.getenv("ANTHROPIC_API_KEY") or os.getenv("OPENAI_API_KEY"))
+
+
+def gemini_enabled() -> bool:
+    return bool(os.getenv("GEMINI_API_KEY"))
 
 
 class ValidationIssue(BaseModel):

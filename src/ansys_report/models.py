@@ -333,6 +333,8 @@ class MissingAssets(BaseModel):
     warnings: list[str] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
     resolved: dict[str, Path] = Field(default_factory=dict)
+    semantic_resolved_slots: set[str] = Field(default_factory=set)
+    folder_aliases: dict[str, str] = Field(default_factory=dict)
 
     @property
     def has_missing(self) -> bool:

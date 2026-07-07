@@ -6,29 +6,62 @@ import re
 from pathlib import Path
 
 _SHOCK_FOLDER: dict[str, tuple[str, ...]] = {
-    "shock_plus_x": ("equivalent_static_analysis_posx", "shock/plus_x", "plus_x/"),
-    "shock_plus_y": ("equivalent_static_analysis_posy", "shock/plus_y", "plus_y/"),
-    "shock_plus_z": ("equivalent_static_analysis_posz", "shock/plus_z", "plus_z/"),
-    "shock_minus_x": ("equivalent_static_analysis_negx", "shock/minus_x", "minus_x/"),
-    "shock_minus_y": ("equivalent_static_analysis_negy", "shock/minus_y", "minus_y/"),
-    "shock_minus_z": ("equivalent_static_analysis_negz", "shock/minus_z", "minus_z/"),
+    "shock_plus_x": (
+        "equivalent_static_analysis_posx",
+        "harmonic_response_x/",
+        "shock/plus_x",
+        "plus_x/",
+    ),
+    "shock_plus_y": (
+        "equivalent_static_analysis_posy",
+        "harmonic_response_y/",
+        "shock/plus_y",
+        "plus_y/",
+    ),
+    "shock_plus_z": (
+        "equivalent_static_analysis_posz",
+        "harmonic_response_z/",
+        "shock/plus_z",
+        "plus_z/",
+    ),
+    "shock_minus_x": (
+        "equivalent_static_analysis_negx",
+        "transient_horizontal_-x-/",
+        "shock/minus_x",
+        "minus_x/",
+    ),
+    "shock_minus_y": (
+        "equivalent_static_analysis_negy",
+        "transient_vertical_-y-/",
+        "shock/minus_y",
+        "minus_y/",
+    ),
+    "shock_minus_z": (
+        "equivalent_static_analysis_negz",
+        "transient_longitudional_-z-/",
+        "shock/minus_z",
+        "minus_z/",
+    ),
 }
 
 _HARMONIC_FOLDER: dict[str, tuple[str, ...]] = {
     "harmonic_x": (
         "vibration_resistance_analysis_x",
+        "harmonic_response_x/",
         "harmonic/x/",
         "harmonic_x/",
         "x_direction",
     ),
     "harmonic_y": (
         "vibration_resistance_analysis_y",
+        "harmonic_response_y/",
         "harmonic/y/",
         "harmonic_y/",
         "y_direction",
     ),
     "harmonic_z": (
         "vibration_resistance_analysis_z",
+        "harmonic_response_z/",
         "harmonic/z/",
         "harmonic_z/",
         "z_direction",

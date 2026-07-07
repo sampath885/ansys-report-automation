@@ -598,9 +598,18 @@ def resolve_assets_smart(
     rules: ImageMatchRulesConfig | None = None,
     mode: str = "hybrid",
     check_quality: bool = True,
+    semantic_image_fallback: str = "auto",
 ) -> MissingAssets:
     """Resolve figure slots using exact map, auto-discover rules, or both."""
     from ansys_report.images.mapper import resolve_assets
+    from ansys_report.images.semantic_image_router import (
+        apply_semantic_fallback,
+        semantic_fallback_enabled,
+    )
+    from ansys_report.images.folder_aliases import (
+        build_folder_aliases_from_resolved,
+        merge_folder_aliases,
+    )
 
     mode = (mode or "hybrid").lower()
     if mode not in {"exact", "auto", "hybrid"}:
@@ -644,11 +653,55 @@ def resolve_assets_smart(
         warnings.extend(auto.warnings)
         pending = [slot for slot in requested if slot not in resolved]
 
+    semantic_resolved: set[str] = set()
+    folder_aliases: dict[str, str] = {}
     missing_after = [slot for slot in requested if slot not in resolved]
+
+    if missing_after:
+        indexed = scan_image_folder(image_root)
+        path_owners: dict[str, str] = {}
+        already_resolved_paths: dict[str, str] = {}
+        for slot, path in resolved.items():
+            rel = path.relative_to(image_root.resolve()).as_posix()
+            path_owners[rel.lower()] = slot
+            already_resolved_paths[slot] = rel
+        sem_paths, sem_slots, sem_aliases, sem_warnings = apply_semantic_fallback(
+            image_root,
+            missing_after,
+            indexed,
+            used_paths,
+            enabled=True,
+            gemini_enabled=semantic_fallback_enabled(semantic_image_fallback),
+            path_owners=path_owners,
+            already_resolved_paths=already_resolved_paths,
+        )
+        warnings.extend(sem_warnings)
+        for slot, path in sem_paths.items():
+            resolved[slot] = path
+            used_paths.add(_path_key(path))
+            semantic_resolved.add(slot)
+        folder_aliases.update(sem_aliases)
+        missing_after = [slot for slot in requested if slot not in resolved]
+
+    folder_aliases = merge_folder_aliases(
+        folder_aliases,
+        build_folder_aliases_from_resolved(resolved, image_root),
+    )
+    from ansys_report.images.export_context import build_export_context
+    from ansys_report.images.export_inference import build_folder_aliases_from_export_context
+
+    folder_aliases = merge_folder_aliases(
+        folder_aliases,
+        build_folder_aliases_from_export_context(build_export_context(image_root)),
+    )
 
     from ansys_report.images.image_validation import validate_resolved_images
 
-    validation_errors, validation_warnings = validate_resolved_images(resolved, image_root)
+    validation_errors, validation_warnings = validate_resolved_images(
+        resolved,
+        image_root,
+        semantic_resolved_slots=semantic_resolved,
+    )
     warnings.extend(validation_warnings)
     errors: list[str] = []
     errors.extend(validation_errors)
@@ -667,6 +720,8 @@ def resolve_assets_smart(
         warnings=unique_warnings,
         errors=errors,
         resolved=resolved,
+        semantic_resolved_slots=semantic_resolved,
+        folder_aliases=folder_aliases,
     )
 
 

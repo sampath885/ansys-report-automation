@@ -36,6 +36,7 @@ def main() -> int:
     print("detected layout:", detect_export_layout(exports))
     print("configured map:", cfg.image_map_path)
     print("resolve_mode:", mode)
+    print("semantic_image_fallback:", cfg.semantic_image_fallback)
     print("exports:", exports)
     print("png count:", len(list(exports.rglob("*.png"))) if exports.exists() else 0)
     print("auto_discover_log:", (exports / "auto_discover_log.txt").exists())
@@ -56,7 +57,13 @@ def main() -> int:
         rules=rules,
         mode=mode,
         check_quality=False,
+        semantic_image_fallback=cfg.semantic_image_fallback,
     )
+
+    if assets.semantic_resolved_slots:
+        print("semantic_resolved:", ", ".join(sorted(assets.semantic_resolved_slots)))
+    if assets.folder_aliases:
+        print("folder_aliases:", assets.folder_aliases)
 
     print("\n=== SLOT → PATH ===")
     by_path: dict[str, list[str]] = defaultdict(list)
@@ -83,7 +90,11 @@ def main() -> int:
             print(f"  {rel}: {', '.join(sorted(ss))}")
 
     print("\n=== VALIDATION ===")
-    errs, warns = validate_resolved_images(assets.resolved, exports)
+    errs, warns = validate_resolved_images(
+        assets.resolved,
+        exports,
+        semantic_resolved_slots=assets.semantic_resolved_slots,
+    )
     for e in errs:
         print("ERROR:", e)
     for w in warns[:15]:

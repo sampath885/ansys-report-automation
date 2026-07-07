@@ -58,8 +58,12 @@ def discover_gallery_figures(
     subfolder: str = "solution",
     category: str = "material_stress",
     filename: str | None = None,
+    folder_aliases: dict[str, str] | None = None,
 ) -> list[ComponentFigure]:
     """Return ordered component figures under *image_root/analysis_folder/subfolder*."""
+    from ansys_report.images.folder_aliases import resolve_gallery_folder
+
+    analysis_folder = resolve_gallery_folder(analysis_folder, folder_aliases)
     base = image_root / analysis_folder / subfolder
     if not base.is_dir():
         return []

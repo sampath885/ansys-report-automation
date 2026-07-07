@@ -158,6 +158,7 @@ def _resolve_image_assets(cfg: ProjectConfig) -> "MissingAssets | None":
         image_map=image_map,
         rules=rules,
         mode=effective_mode,
+        semantic_image_fallback=cfg.semantic_image_fallback,
     )
 
 
@@ -209,6 +210,8 @@ def _execute_build(
         context["image_root"] = str(inventory.image_root)
     elif cfg.image_root.exists():
         context["image_root"] = str(cfg.image_root)
+    if assets is not None and assets.folder_aliases:
+        context["folder_aliases"] = dict(assets.folder_aliases)
     if not mock_data:
         use_golden = cfg.use_dpf_golden_fallback and not cfg.strict_mode
         if use_golden or golden_dpf:

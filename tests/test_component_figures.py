@@ -31,6 +31,24 @@ def test_discover_static_material_figures(tmp_path):
     assert "MAT_ASTM_A182_F321" in labels
 
 
+def test_discover_gallery_with_folder_alias(tmp_path):
+    from ansys_report.images.component_figures import discover_gallery_figures
+
+    root = tmp_path / "exports"
+    solution = root / "custom_static_valve" / "solution"
+    solution.mkdir(parents=True)
+    (solution / "bs970_en19.png").write_bytes(b"x")
+
+    figures = discover_gallery_figures(
+        root,
+        "static_structural",
+        category="material_stress",
+        folder_aliases={"static_structural": "custom_static_valve"},
+    )
+    assert len(figures) == 1
+    assert figures[0].stem == "bs970_en19"
+
+
 def test_discover_frequency_response_figures(tmp_path):
     from ansys_report.images.component_figures import discover_gallery_figures
 

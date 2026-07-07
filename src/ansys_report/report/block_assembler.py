@@ -309,7 +309,7 @@ def _materialize_block(
             ]
         slot = _render_template(spec.slot_template or spec.slot or "", env)
         caption = _render_template(spec.caption or spec.caption_template or "", env)
-        image_path = _resolve_image(images, slot, context=context)
+        image_path = _resolve_image(images, slot, context=context, cfg=cfg)
         ep1581 = (cfg.layout or "").lower() == "ep1581"
         if skip_images or not image_path:
             if spec.required:
@@ -438,12 +438,14 @@ def _materialize_figure_gallery(
         return []
 
     root = Path(image_root)
+    folder_aliases = context.get("folder_aliases") or {}
     figures = discover_gallery_figures(
         root,
         folder,
         subfolder=spec.subfolder or "solution",
         category=spec.category or "material_stress",
         filename=spec.filename,
+        folder_aliases=folder_aliases,
     )
     if not figures:
         return []
@@ -504,6 +506,7 @@ def _resolve_image(
     slot: str,
     *,
     context: dict[str, Any] | None = None,
+    cfg: ProjectConfig | None = None,
 ) -> Path | None:
     if not slot:
         return None
@@ -518,6 +521,16 @@ def _resolve_image(
         if path:
             p = Path(path)
             return p if p.exists() else None
+
+    layout = ""
+    if cfg is not None:
+        layout = (cfg.layout or "").lower()
+    elif context:
+        layout = str(context.get("layout") or "").lower()
+
+    # EP1581: never scavenger-hunt missing slots (modal/mesh PNGs get picked wrongly).
+    if layout == "ep1581":
+        return None
 
     if context:
         root = context.get("image_root")
